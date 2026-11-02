@@ -195,16 +195,17 @@ button,input{font:inherit;color:inherit}
 #deadmsg{position:absolute;left:0;right:0;top:42%;text-align:center;font-size:22px;padding:0 16px}
 #deadmsg b{font-family:var(--f-disp);font-size:46px;color:var(--cheese);display:block}
 .tr{position:absolute;top:max(8px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));display:flex;gap:6px}
-.tr button{pointer-events:auto;font-size:13px;padding:.3em .8em;border:2px solid var(--ink);border-radius:8px;background:var(--hud);cursor:pointer}
+.tr button{pointer-events:auto;font-size:15px;padding:.5em 1.1em;min-height:40px;border:2px solid var(--ink);border-radius:8px;background:var(--hud);cursor:pointer}
 #emoPanel{position:absolute;top:max(46px,calc(env(safe-area-inset-top,0px) + 40px));right:max(10px,env(safe-area-inset-right,0px));pointer-events:auto;display:grid;grid-template-columns:repeat(3,auto);gap:5px;background:var(--hud);border:2px solid var(--ink);border-radius:12px;padding:6px}
-#emoPanel button{border:2px solid var(--ink);border-radius:10px;background:var(--paper);color:var(--ink);font-size:15px;padding:6px 8px;cursor:pointer;white-space:nowrap}
-.joyzone{position:absolute;left:0;bottom:0;width:48%;height:70%;pointer-events:auto!important;touch-action:none}
+#emoPanel button{border:2px solid var(--ink);border-radius:10px;background:var(--paper);color:var(--ink);font-size:17px;padding:10px 12px;cursor:pointer;white-space:nowrap}
+.abtn::after{content:'';position:absolute;inset:-16px;border-radius:50%}
+.joyzone{position:absolute;left:0;bottom:0;width:55%;height:88%;pointer-events:auto!important;touch-action:none}
 .joy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.35)}
 .joy .kn,.abtn .kn{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.75);border:3px solid var(--ink)}
 .abtn{position:absolute;border-radius:50%;pointer-events:auto!important;touch-action:none;border:3px solid var(--ink)}
-#btnAtk{width:116px;height:116px;right:max(26px,calc(env(safe-area-inset-right,0px) + 18px));bottom:max(26px,calc(env(safe-area-inset-bottom,0px) + 18px));background:rgba(255,80,40,.55)}
+#btnAtk{width:136px;height:136px;right:max(22px,calc(env(safe-area-inset-right,0px) + 16px));bottom:max(22px,calc(env(safe-area-inset-bottom,0px) + 16px));background:rgba(255,80,40,.55)}
 #btnAtk .kn{background:#ff6a3a}
-#btnSup{width:80px;height:80px;right:max(160px,calc(env(safe-area-inset-right,0px) + 150px));bottom:max(36px,calc(env(safe-area-inset-bottom,0px) + 28px));
+#btnSup{width:98px;height:98px;right:max(178px,calc(env(safe-area-inset-right,0px) + 172px));bottom:max(40px,calc(env(safe-area-inset-bottom,0px) + 34px));
   background:conic-gradient(var(--cheese) calc(var(--p,0)*1turn),rgba(40,40,60,.55) 0)}
 #btnSup .kn{width:40px;height:40px;margin:-20px 0 0 -20px;background:#9aa0b4}
 #btnSup.ready{animation:glow .7s infinite alternate}
@@ -268,7 +269,7 @@ button,input{font:inherit;color:inherit}
   .rlist li{padding:1px 8px}.coinpanel .cpt{font-size:19px;padding:4px 0 2px}.ctotal{margin-top:4px;padding:3px 14px 6px}.rbtns2 .btn.big{font-size:20px}
   .tdelta{font-size:40px}.tdelta .ic{width:44px;height:44px}.rhead .b{font-size:32px}
   .ctotal .v{font-size:30px}.ctotal .ic{width:30px;height:30px}.crow{font-size:15px;padding:2px 14px}
-  #btnAtk{width:100px;height:100px}#btnSup{width:70px;height:70px;right:max(140px,calc(env(safe-area-inset-right,0px) + 130px))}
+  #btnAtk{width:120px;height:120px}#btnSup{width:86px;height:86px;right:max(156px,calc(env(safe-area-inset-right,0px) + 150px));bottom:max(30px,calc(env(safe-area-inset-bottom,0px) + 24px))}
   #timer{font-size:28px}#banner{font-size:48px}
   .tab{min-width:50px;font-size:12px;padding:2px 5px}.tab small{display:none}.chips.tal small{display:none}.mbtns .chip{font-size:12px}.mright{gap:4px}
   .mright{display:grid;grid-template-columns:auto auto;justify-items:end;gap:4px 6px}.cur{grid-column:1/-1}
@@ -351,6 +352,43 @@ button,input{font:inherit;color:inherit}
 @media (max-width:640px) and (orientation:portrait) and (max-height:720px){
   #pick{grid-template-rows:auto 20vh auto auto minmax(170px,1fr)}.pdet .perks{display:none}.pdet .chdesc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 }
+
+/* ===== 寶箱與角色登場 ===== */
+#rvBg{position:fixed;inset:0;z-index:0;overflow:hidden;background:#1a0f2a;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--tc) 55%,#1a0f2a) 0,#1a0f2a 70%)}
+#rvBg .rays{position:absolute;left:50%;top:45%;width:260vmax;height:260vmax;margin:-130vmax 0 0 -130vmax;background:repeating-conic-gradient(var(--tc) 0 9deg,transparent 9deg 20deg);opacity:.32;animation:rvspin 14s linear infinite}
+@keyframes rvspin{to{transform:rotate(360deg)}}
+#reveal{display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;color:var(--paper);overflow:hidden;touch-action:manipulation}
+.rvTag{font-family:var(--f-disp);font-size:40px;color:var(--cheese);min-height:1.1em;line-height:1.1}
+#rvStage{flex:1;width:min(520px,100%);min-height:0}
+.rvInfo{display:flex;flex-direction:column;align-items:center;gap:6px}
+.rvName{font-family:var(--f-disp);font-size:44px;line-height:1}
+.rvSub{display:flex;gap:8px;align-items:center;justify-content:center}
+.rvShard{font-family:var(--f-disp);font-size:22px;color:var(--cheese)}
+.rvCoin{display:flex;align-items:center;gap:6px;font-family:var(--f-disp);font-size:22px}.rvCoin .ic{width:26px;height:26px}
+.rvBtns{display:flex;gap:12px;margin-top:8px}
+.rvHint{margin:0;font-size:15px;opacity:.85;animation:rvblink 1s infinite alternate}
+@keyframes rvblink{to{opacity:.35}}
+.pop{animation:rvpop .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes rvpop{from{transform:scale(.2);opacity:0}}
+#rvChest{position:fixed;left:50%;top:46%;width:200px;height:160px;margin:-80px 0 0 -100px;z-index:4;filter:drop-shadow(0 0 26px var(--tc)) drop-shadow(0 0 8px var(--tc))}
+#rvChest .box{position:absolute;left:0;right:0;bottom:0;height:92px;border:5px solid var(--ink);border-radius:10px;background:linear-gradient(#b8742a,#7a4612);box-sizing:border-box}
+#rvChest .box::before,#rvChest .box::after{content:'';position:absolute;top:-5px;bottom:-5px;width:22px;background:var(--cheese);border:4px solid var(--ink);box-sizing:border-box}
+#rvChest .box::before{left:26px}#rvChest .box::after{right:26px}
+#rvChest .lid{position:absolute;left:-6px;right:-6px;top:6px;height:66px;border:5px solid var(--ink);border-radius:46px 46px 8px 8px;background:linear-gradient(#d08a3a,#9a5a1a);box-sizing:border-box;transform-origin:20% 100%;transition:transform .35s cubic-bezier(.3,1.6,.5,1),opacity .35s}
+#rvChest .lid::after{content:'';position:absolute;left:50%;bottom:-22px;width:34px;height:40px;margin-left:-17px;background:var(--tc);border:4px solid var(--ink);border-radius:8px;box-sizing:border-box}
+#rvChest.shake{animation:rvshake .55s ease-in-out infinite}
+@keyframes rvshake{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-9deg) scale(1.04)}45%{transform:rotate(8deg) scale(1.08)}70%{transform:rotate(-4deg) scale(1.02)}}
+#rvChest.open .lid{transform:translateY(-140px) rotate(-38deg);opacity:0}
+#rvChest.open{animation:rvgone .5s .15s forwards}
+@keyframes rvgone{to{transform:scale(1.6);opacity:0}}
+#rvFlash{position:fixed;inset:0;z-index:5;background:#fff;opacity:0;pointer-events:none}
+#rvFlash.go{animation:rvflash .5s ease-out}
+@keyframes rvflash{0%{opacity:0}15%{opacity:.95}100%{opacity:0}}
+#rvConf{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+#rvConf i{position:absolute;top:-20px;width:10px;height:16px;border-radius:2px;animation:rvfall linear forwards}
+@keyframes rvfall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-height:460px){.rvTag{font-size:30px}.rvName{font-size:32px}.rvShard,.rvCoin{font-size:18px}#rvChest{transform:scale(.8)}.rvBtns .btn.big{font-size:22px;padding:.3em 1em}}
+@media (prefers-reduced-motion:reduce){#rvBg .rays,#rvChest.shake,.rvHint{animation:none}}
 @media (prefers-reduced-motion:reduce){#banner.show,#btnSup.ready,#feed div,.lbl .emo{animation:none}#banner.show{opacity:1}}
 </style>
 
@@ -360,6 +398,7 @@ button,input{font:inherit;color:inherit}
 </svg>
 
 <div id="bg"></div>
+<div id="rvBg" hidden><div class="rays"></div></div>
 <canvas id="cv"></canvas>
 <div id="ink"></div>
 <div id="loading">載入中…</div>
@@ -463,8 +502,23 @@ button,input{font:inherit;color:inherit}
   <div class="row2"><button class="btn blue" id="cfNo">繼續打</button><button class="btn main" id="cfYes">離開</button></div>
 </div></div>
 <div id="sheet" hidden><div class="sheet panel"><div class="sh"><h3 id="sheetTitle"></h3><button class="btn small blue" id="sheetClose">關閉</button></div><div id="sheetBody"></div></div></div>
+<div id="reveal" class="screen" hidden>
+  <div class="rvTag ot" id="rvTag"></div>
+  <div id="rvStage"></div>
+  <div class="rvInfo" id="rvInfo">
+    <div class="rvName ot" id="rvName"></div>
+    <div class="rvSub"><span class="tierb" id="rvTier"></span><span class="chrole" id="rvRole"></span></div>
+    <div class="rvShard ot" id="rvShard"></div>
+    <div class="rvCoin ot" id="rvCoin"></div>
+    <div class="rvBtns" id="rvBtns"><button class="btn blue" id="rvMore">再開一個</button><button class="btn big main" id="rvOk">好！</button></div>
+  </div>
+  <p class="rvHint" id="rvHint">點一下打開</p>
+  <div id="rvChest"><div class="box"></div><div class="lid"></div></div>
+  <div id="rvConf"></div>
+  <div id="rvFlash"></div>
+</div>
 <div id="toast"></div>
-<span class="ver">v0.6.0</span>
+<span class="ver">v0.6.1</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1649,12 +1703,12 @@ function initMenu3D(){menuScene=new THREE.Scene();menuCam=new THREE.PerspectiveC
 function setMenuChar(ch,alt,acc){const key=ch+(alt?'*':'')+(acc||'');if(menuCharId===key)return;if(menuChar)menuScene.remove(menuChar.group);menuChar=makeChar(ch,alt,acc);menuCharId=key;menuScene.add(menuChar.group)}
 function renderMenu(dt,t){if(!menuChar)return;const asp=innerWidth/innerHeight;menuCam.aspect=asp;menuCam.updateProjectionMatrix();
   const halfH=7*Math.tan(16*Math.PI/180),halfW=halfH*asp;let x=0,y=0,sc=1.25;
-  if(mode==='menu'||mode==='pick'){
+  if(mode==='menu'||mode==='pick'||mode==='reveal'){
     /* 角色放進畫面上「沒被按鈕蓋住」的那塊區域 */
     let L=0,T=0,Wd=innerWidth,Ht=innerHeight;
-    if(mode==='pick'){const r=$('#pkStage').getBoundingClientRect();L=r.left;T=r.top;Wd=r.width;Ht=r.height}
+    if(mode==='pick'||mode==='reveal'){const r=$(mode==='pick'?'#pkStage':'#rvStage').getBoundingClientRect();L=r.left;T=r.top;Wd=r.width;Ht=r.height}
     else{const hb=document.querySelector('.mtop').getBoundingClientRect().bottom,mc=$('#mainCard').getBoundingClientRect();T=hb;Ht=(innerWidth<innerHeight?mc.top:innerHeight-8)-hb}
-    if(Wd>20&&Ht>20){const ppu=innerHeight/(2*halfH),cap=mode==='pick'?1.7:1.45;
+    if(Wd>20&&Ht>20){const ppu=innerHeight/(2*halfH),cap=mode==='reveal'?2.2:mode==='pick'?1.7:1.45;
       sc=Math.max(.5,Math.min(cap,.92*Ht/(2.1*ppu),.95*Wd/(1.5*ppu)));
       const fx=(L+Wd/2)/innerWidth,fy=(T+Ht*.5)/innerHeight;
       x=(fx-.5)*2*halfW;const cy=1.05*sc,yl=cy-(.5-fy)*2*halfH;y=1.05-yl}
@@ -1662,7 +1716,10 @@ function renderMenu(dt,t){if(!menuChar)return;const asp=innerWidth/innerHeight;m
   else if(asp>1){x=mode==='result'?halfW*.08:halfW*.02}else{y=mode==='result'?-.1:-.5}
   menuCam.position.set(-x,1.4-y,7);menuCam.lookAt(-x,1.05-y,0);menuPod.scale.setScalar(1.1*sc/1.25);
   const happy=mode==='result'&&lastRank===0;menuChar.group.rotation.y=Math.sin(t*.8)*.5;
-  animChar(menuChar,dt,happy,false,false,t);menuChar.group.position.y=happy?Math.abs(Math.sin(t*6))*.35:0;menuChar.group.scale.setScalar(sc);
+  animChar(menuChar,dt,happy,false,false,t);menuChar.group.position.y=happy?Math.abs(Math.sin(t*6))*.35:0;menuChar.group.scale.setScalar(sc);menuChar.group.visible=true;menuPod.visible=true;
+  if(mode==='reveal'&&rv){const on=rv.phase>=2;menuChar.group.visible=on;menuPod.visible=on;
+    if(on){const e=Math.min(1,(performance.now()-rv.charT)/700),k=1-Math.pow(1-e,3);menuChar.group.position.y=3.2*(1-k)*sc+(e>=1?Math.abs(Math.sin(t*5))*.25:0);menuChar.group.rotation.y=(1-k)*TAU*1.5+(e>=1?Math.sin(t*1.6)*.4:0);
+      menuChar.group.scale.setScalar(sc*(e<1?.6+.4*k:1));animChar(menuChar,0,e>=1,false,e<1,t)}}
   R.render(menuScene,menuCam)}
 
 /* ================= 輸入 ================= */
@@ -1716,9 +1773,9 @@ function sendEmote(k){const now=performance.now();if(now-lastEmo<1200)return;las
 /* ================= 流程 ================= */
 let mode='loading',game=null,view=null,netState=null,meId=0,acc=0,pred=null,lastRank=0,matchCfg=null,ffT=0;
 const curState=()=>game||netState;
-function showScreen(name){for(const s of['menu','pick','room','result'])$('#'+s).hidden=s!==name;$('#hud').hidden=name!=='game';$('#bg').hidden=name==='game';
+function showScreen(name){for(const s of['menu','pick','room','result','reveal'])$('#'+s).hidden=s!==name;$('#hud').hidden=name!=='game';$('#bg').hidden=name==='game';
   mode=name;if(name==='menu')renderMenuUI();if(name==='pick')renderPickUI();$('#joinBox').hidden=true;$('#confirmBox').hidden=true;$('#emoPanel').hidden=true;$('#sheet').hidden=true;$('#ink').style.opacity=0;
-  if(name!=='game')playMusic('lobby')}
+  if(name!=='game')playMusic('lobby');$('#rvBg').hidden=name!=='reveal'}
 function botName(used){const pool=BOT_NAMES.filter(n=>!used.has(n));const n=pool[Math.floor(Math.random()*pool.length)]||'電腦';used.add(n);return n}
 function botLevel(base,diff,fair){if(fair)return 1;const[a,b]=BOT_LV[diff]||BOT_LV[1];return clamp(base+rndi(a,b),1,MAX_LV)}
 function fillBots(humans,count,base,diff,fair,soccer){const used=new Set(humans.map(h=>h.name));const list=humans.slice(0,8);
@@ -1863,7 +1920,7 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-lastT)/1
     if(FINE){const a=mouseAim();if(a&&me&&performance.now()-IN.mouseT<4000)view.showAim(me,a.x,a.z,IN.keys.ShiftLeft?'sup':'atk',a.d);else view.showAim(null)}
     else view.showAim(me,IN.aimX,IN.aimZ,IN.aimKind,IN.aimLen);
     R.render(view.scene,view.cam);updFloaters(dt,view.cam)}
-  else if(mode==='menu'||mode==='pick'||mode==='result'||mode==='room'){renderMenu(dt,t/1000)}
+  else if(mode==='menu'||mode==='pick'||mode==='result'||mode==='room'||mode==='reveal'){renderMenu(dt,t/1000)}
   }catch(err){console.error(err)}}
 
 /* ================= 連線（房間代碼，PeerJS） ================= */
@@ -2020,7 +2077,7 @@ $('#chTal').addEventListener('click',e=>{const b=e.target.closest('[data-tal]');
 $('#pkUse').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return;save.ch=viewCh;persist();SFX.pick();toast('換成'+CHARS[viewCh].name);renderPickUI()});
 $('#pkWard').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return;wardId=viewCh;openSheet('造型',wardSheet())});
 $('#btnUp').addEventListener('click',()=>{const id=viewCh,C=CHARS[id];
-  if($('#btnUp').dataset.act==='buy'){if(save.owned.includes(id)||save.trophies<C.unlock||save.coins<C.price)return;save.coins-=C.price;save.owned.push(id);save.ch=id;persist();renderPickUI();SFX.goal();toast('得到'+C.name+'！');return}
+  if($('#btnUp').dataset.act==='buy'){if(save.owned.includes(id)||save.trophies<C.unlock||save.coins<C.price)return;save.coins-=C.price;save.owned.push(id);save.ch=id;persist();startReveal({kind:'buy',id});return}
   const lv=save.lvl[id],cost=lv*100,need=shardReq(lv);if(lv>=MAX_LV||save.coins<cost||save.shards[id]<need)return;
   save.coins-=cost;save.shards[id]-=need;save.lvl[id]=lv+1;persist();renderPickUI();SFX.pick();
   toast(C.name+' 升到 '+(lv+1)+' 級！'+(lvAmmo(lv+1)>lvAmmo(lv)?'彈藥變 '+lvAmmo(lv+1)+' 格':lv+1===5?'可以選天賦了':lv+1===10?'解鎖異色造型！':''))});
@@ -2062,6 +2119,32 @@ function helpSheet(){sheetKind='help';
       `<p class="note">加入主畫面之後可以全螢幕玩，對戰電腦不用網路也能開。開房間、加入房間還是要連上網路。</p><p class="note">更新後如果圖示沒變，先把主畫面上舊的刪掉，再重新加一次。遊戲更新要完全關掉再打開，看右下角版本號有沒有變新。</p>`}
   openSheet('遊戲說明',`<div class="chips htabs">${tabs.map(([k,n])=>`<button class="chip${helpTab===k?' on':''}" data-act="htab" data-v="${k}">${n}</button>`).join('')}</div><div class="hbody">${b}</div>`,true)}
 $('#btnHelp').addEventListener('click',()=>{helpTab='how';helpDev=detectDev();helpSheet()});
+
+/* ---- 寶箱開啟與角色登場：0 搖晃 1.1 秒 → 1 開蓋閃光 0.25 秒 → 2 角色落下旋轉登場＋彩帶 ---- */
+let rv=null;const rvTimers=[];
+function rvClear(){while(rvTimers.length)clearTimeout(rvTimers.pop())}
+function startReveal(o){rvClear();const back=rv?rv.back:(mode==='pick'?'pick':'menu');const C=CHARS[o.id],T=TIERS[C.tier];
+  rv=Object.assign({},o,{back,phase:o.kind==='chest'?0:1,charT:0});
+  for(const el of[$('#reveal'),$('#rvBg')])el.style.setProperty('--tc',T.col);
+  showScreen('reveal');$('#rvInfo').style.visibility='hidden';$('#rvBtns').hidden=true;$('#rvTag').textContent='';$('#rvConf').innerHTML='';
+  setMenuChar(o.id,false,'');
+  const ch=$('#rvChest');ch.hidden=o.kind!=='chest';ch.className='';$('#rvHint').hidden=o.kind!=='chest';
+  if(o.kind==='chest'){void ch.offsetWidth;ch.className='shake';SFX.tick();rvTimers.push(setTimeout(()=>SFX.tick(),400),setTimeout(()=>SFX.tick(),800),setTimeout(rvOpen,1150))}
+  else rvTimers.push(setTimeout(rvShow,120))}
+function rvOpen(){if(!rv||rv.phase!==0)return;rv.phase=1;rvClear();$('#rvHint').hidden=true;$('#rvChest').className='open';const f=$('#rvFlash');f.className='';void f.offsetWidth;f.className='go';SFX.goal();rvTimers.push(setTimeout(rvShow,260))}
+function rvShow(){if(!rv)return;rv.phase=2;rv.charT=performance.now();const C=CHARS[rv.id],T=TIERS[C.tier],fresh=rv.kind==='buy'||rv.isNew;
+  $('#rvChest').hidden=true;$('#rvTag').textContent=fresh?'新角色！':'角色碎片';$('#rvTag').className='rvTag ot pop';
+  $('#rvName').textContent=C.name;$('#rvTier').textContent=T.name;$('#rvTier').style.background=T.col;$('#rvRole').textContent=C.role;
+  $('#rvShard').textContent=fresh?'':'碎片 ×'+rv.shards+'（升級用）';$('#rvShard').hidden=fresh;
+  $('#rvCoin').innerHTML=rv.coins?`${coinIc} +${rv.coins}`:'';$('#rvCoin').hidden=!rv.coins;
+  rvTimers.push(setTimeout(()=>{if(!rv)return;const inf=$('#rvInfo');inf.style.visibility='visible';inf.classList.remove('pop');void inf.offsetWidth;inf.classList.add('pop')},450));
+  rvTimers.push(setTimeout(()=>{if(!rv)return;$('#rvBtns').hidden=false;$('#rvMore').hidden=!(rv.kind==='chest'&&save.chests>0)},900));
+  if(fresh){const cols=[T.col,'#ffc93c','#ff4f38','#ffffff','#41e650','#1d7bff'];let h='';for(let i=0;i<46;i++)h+=`<i style="left:${Math.random()*100}%;background:${cols[i%cols.length]};animation-duration:${(1.8+Math.random()*1.6).toFixed(2)}s;animation-delay:${(Math.random()*.6).toFixed(2)}s"></i>`;$('#rvConf').innerHTML=h;SFX.sup()}
+  else SFX.pick()}
+function rvDone(){if(!rv)return;const o=rv;rvClear();rv=null;showScreen(o.back);if(o.kind==='chest')openSheet('寶箱',chestSheet(null))}
+$('#reveal').addEventListener('click',e=>{if(rv&&rv.phase===0&&!e.target.closest('button'))rvOpen()});
+$('#rvOk').addEventListener('click',rvDone);
+$('#rvMore').addEventListener('click',()=>{if(!rv||save.chests<=0)return;const r=openChest();startReveal(Object.assign({kind:'chest'},r))});
 function openChest(){let r=Math.random()*100,tier=0;for(let i=0;i<4;i++){if(r<CHEST_W[i]){tier=i;break}r-=CHEST_W[i]}
   const pool=CH_IDS.filter(id=>CHARS[id].tier===tier);const id=pool[Math.floor(Math.random()*pool.length)];const coins=rndi(30,80);save.coins+=coins;
   let res;if(!save.owned.includes(id)){save.owned.push(id);res={id,isNew:true,coins}}else{const n=SHARDS_PER[tier];save.shards[id]+=n;res={id,shards:n,coins}}
@@ -2089,7 +2172,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='tgs'){commitName();save.sfx=!save.sfx;persist();setSheet();return}
   else if(act==='htab'){helpTab=b.dataset.v;helpSheet();return}
   else if(act==='hdev'){helpDev=b.dataset.v;helpSheet();return}
-  if(act==='open'){if(save.chests<=0)return;const r=openChest();SFX.goal();openSheet('寶箱',chestSheet(r))}
+  if(act==='open'){if(save.chests<=0)return;const r=openChest();$('#sheet').hidden=true;sheetKind='';startReveal(Object.assign({kind:'chest'},r));return}
   else if(act==='buyc'){if(save.coins<CHEST_PRICE)return;save.coins-=CHEST_PRICE;save.chests++;persist();openSheet('寶箱',chestSheet(null))}
   else if(act==='claim'){const m=save.daily.list[+b.dataset.i];if(!m||m.claimed||m.p<m.t)return;m.claimed=true;if(m.rw==='chest')save.chests++;else save.coins+=m.rw;persist();SFX.pick();openSheet('每日任務',taskSheet())}
   else if(act==='buya'){const k=b.dataset.k,a=ACCS[k];if(save.accOwned.includes(k)||save.coins<a.price)return;save.coins-=a.price;save.accOwned.push(k);const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=k;persist();SFX.pick();openSheet('造型',wardSheet())}

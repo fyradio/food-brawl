@@ -176,6 +176,9 @@ button,input{font:inherit;color:inherit}
   background:conic-gradient(var(--yel) calc(var(--p,0)*1turn),rgba(40,40,60,.55) 0)}
 #btnSup .kn{width:40px;height:40px;margin:-20px 0 0 -20px;background:#9aa0b4}
 #btnSup.ready{animation:glow .7s infinite alternate}
+.suplab{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:13px;white-space:nowrap;pointer-events:none}
+#btnSup.ready .suplab{color:var(--yel);font-size:15px}
+.lbl .sp{width:68px;height:5px;border-radius:3px;background:#3a3a50;border:1px solid var(--ink);overflow:hidden}.lbl .sp u{display:block;height:100%;background:var(--yel)}
 #btnSup.ready .kn{background:var(--yel)}
 @keyframes glow{to{box-shadow:0 0 22px 6px rgba(255,213,31,.85)}}
 .fine .joyzone,.fine .abtn{display:none}
@@ -234,9 +237,9 @@ button,input{font:inherit;color:inherit}
   <div id="banner" class="ot"></div>
   <div id="deadmsg" class="ot" hidden></div>
   <div class="joyzone" id="joyZone"><div class="joy" id="joy" hidden><div class="kn"></div></div></div>
-  <div class="abtn" id="btnSup" aria-label="大招"><div class="kn"></div></div>
+  <div class="abtn" id="btnSup" aria-label="大招"><div class="kn"></div><span class="suplab ot" id="supLab">大招 0%</span></div>
   <div class="abtn" id="btnAtk" aria-label="攻擊"><div class="kn"></div></div>
-  <div id="keyhint" class="ot">WASD 移動｜滑鼠瞄準、左鍵攻擊｜右鍵或 E 放大招</div>
+  <div id="keyhint" class="ot">WASD 移動｜滑鼠瞄準、左鍵攻擊｜打中人會累積大招，滿了按右鍵或 E</div>
   <button id="btnQuit" class="ot">離開</button>
 </div>
 
@@ -304,7 +307,7 @@ button,input{font:inherit;color:inherit}
   <div class="row2"><button class="btn blue ot" id="cfNo">繼續打</button><button class="btn yel" id="cfYes">離開</button></div>
 </div></div>
 <div id="toast"></div>
-<span class="ver ot">v0.1.0</span>
+<span class="ver ot">v0.1.1</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -328,18 +331,18 @@ function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch
 /* ================= 數值 ================= */
 const STEP=1/60, MATCH_T=180, RESPAWN_T=3, INV_T=2, BUSH_HIDE=3, CRATE_HP=2200, CRATE_RESPAWN=20, PR=0.6, H=21, MAX_LV=10;
 const CHARS={
-  apple:{name:'蘋果',role:'中距離',hp:3200,speed:5.2,reload:1.0,superCost:3000,range:9,col:'#ff5a22',
+  apple:{name:'蘋果',role:'中距離',hp:3200,speed:5.2,reload:1.0,superCost:2400,range:9,col:'#ff5a22',
     desc:'丟蘋果片，直線中距離。大招：滾出一顆大蘋果，一路撞飛擋路的人。',stat:[3,3,3]},
-  sushi:{name:'壽司',role:'中距離＋陷阱',hp:2800,speed:6.0,reload:0.9,superCost:2600,range:8,col:'#ff8a4c',
+  sushi:{name:'壽司',role:'中距離＋陷阱',hp:2800,speed:6.0,reload:0.9,superCost:2100,range:8,col:'#ff8a4c',
     desc:'一次丟兩片魚卵手裡劍，沒打中會留在地上 3 秒，別人踩到會滑倒（自己不會）。大招：一次撒一圈手裡劍。',stat:[2,5,3]},
-  eggplant:{name:'茄子',role:'近身噴灑',hp:4200,speed:4.9,reload:1.2,superCost:3600,range:4.5,col:'#6a2f9a',
+  eggplant:{name:'茄子',role:'近身噴灑',hp:4200,speed:4.9,reload:1.2,superCost:2900,range:4.5,col:'#6a2f9a',
     desc:'近距離扇形噴茄子汁，貼身最痛。大招：噴出一大灘毒汁水窪，踩到變慢又扣血。',stat:[5,2,1]}
 };
 const CH_IDS=['apple','sushi','eggplant'];
 const DIFF=[
-  {name:'簡單',aimErr:.38,react:.75,dodge:0,fireRate:.55,lead:0,gap:.9},
-  {name:'普通',aimErr:.17,react:.4,dodge:.35,fireRate:.85,lead:.5,gap:.45},
-  {name:'困難',aimErr:.07,react:.2,dodge:.75,fireRate:1,lead:1,gap:.25}];
+  {name:'簡單',aimErr:.55,react:1.1,dodge:0,fireRate:.4,lead:0,gap:1.4,sight:9,supWait:3},
+  {name:'普通',aimErr:.28,react:.65,dodge:.15,fireRate:.65,lead:.3,gap:.85,sight:11,supWait:1.5},
+  {name:'困難',aimErr:.15,react:.4,dodge:.45,fireRate:.85,lead:.7,gap:.5,sight:13,supWait:.5}];
 const BOT_NAMES=['飯糰','小籠包','鹹酥雞','蔥油餅','芒果冰','臭豆腐','滷蛋','菠蘿包','大雞排','豆花','雞蛋糕','肉圓','珍奶','車輪餅'];
 const TRO=[10,8,6,4,2,0,-2,-4], COIN_RANK=[40,32,26,20,16,12,10,8];
 const PEER_PREFIX='foodbrawl-tw-';
@@ -490,7 +493,7 @@ function botThink(g,p,dt){
   if(ai.lx!==undefined&&Math.hypot(I.mx,I.mz)>.5&&Math.hypot(p.x-ai.lx,p.z-ai.lz)<.12){ai.stuck=(ai.stuck||0)+1;if(ai.stuck>6){ai.str*=-1;ai.wp=null;ai.stuck=0}}else ai.stuck=0;
   ai.lx=p.x;ai.lz=p.z;
   let tgt=null,tw=1e9;
-  for(const q of g.players){if(q===p||!q.alive)continue;const d=Math.hypot(q.x-p.x,q.z-p.z);if(d>14)continue;if(g.isHidden(q)&&d>2.5)continue;const w=d+(q.hp/q.maxHp)*2+(q.inv?6:0);if(w<tw){tw=w;tgt=q}}
+  for(const q of g.players){if(q===p||!q.alive)continue;const d=Math.hypot(q.x-p.x,q.z-p.z);if(d>D.sight)continue;if(g.isHidden(q)&&d>2.5)continue;const w=d+(q.hp/q.maxHp)*2+(q.inv?6:0);if(w<tw){tw=w;tgt=q}}
   if(tgt!==ai.tgt){ai.tgt=tgt;ai.seen=0}
   const hpF=p.hp/p.maxHp,want={apple:6.5,sushi:5.5,eggplant:2.2}[p.ch];
   let gx=0,gz=0,goal=null;
@@ -505,7 +508,8 @@ function botThink(g,p,dt){
         const a=Math.atan2(tgt.x+tgt.vx*tt-p.x,tgt.z+tgt.vz*tt-p.z)+(Math.random()*2-1)*D.aimErr;I.ax=Math.sin(a);I.az=Math.cos(a);I.f++}
       ai.fireCd=D.gap+Math.random()*.3}
     const sr={apple:11,sushi:4,eggplant:6}[p.ch];
-    if(p.sup>=1&&vis&&d<sr&&ai.seen>=D.react){const a=Math.atan2(tgt.x-p.x,tgt.z-p.z)+(Math.random()*2-1)*D.aimErr*.5;I.ax=Math.sin(a);I.az=Math.cos(a);I.ad=d;I.s++}}
+    if(p.sup>=1){ai.supT=(ai.supT||0)+.13}else ai.supT=0;
+    if(p.sup>=1&&vis&&d<sr&&ai.seen>=D.react&&ai.supT>=D.supWait){const a=Math.atan2(tgt.x-p.x,tgt.z-p.z)+(Math.random()*2-1)*D.aimErr*.5;I.ax=Math.sin(a);I.az=Math.cos(a);I.ad=d;I.s++}}
   if(goal){gx=goal.x-p.x;gz=goal.z-p.z}
   else if(!tgt){let it=null,bd=12;for(const o of g.items){const d=Math.hypot(o.x-p.x,o.z-p.z);if(d<bd){bd=d;it=o}}
     if(it){gx=it.x-p.x;gz=it.z-p.z}
@@ -718,15 +722,16 @@ class View{
 /* ---------- 頭上名牌 ---------- */
 const V3=()=>new THREE.Vector3();const _v=V3();
 function makeLabel(p,me){const el=document.createElement('div');el.className='lbl ot'+(me?' me':'');
-  el.innerHTML='<div class="top"><span class="bdg">0</span><span class="nm"></span><span class="pw"></span></div><div class="hp"><i></i><b></b></div>'+(me?'<div class="am"><i><u></u></i><i><u></u></i><i><u></u></i></div>':'');
+  el.innerHTML='<div class="top"><span class="bdg">0</span><span class="nm"></span><span class="pw"></span></div><div class="hp"><i></i><b></b></div>'+(me?'<div class="am"><i><u></u></i><i><u></u></i><i><u></u></i></div><div class="sp"><u></u></div>':'');
   el.querySelector('.nm').textContent=p.name;$('#labels').appendChild(el);
-  return{el,bdg:el.querySelector('.bdg'),hp:el.querySelector('.hp i'),hpt:el.querySelector('.hp b'),pw:el.querySelector('.pw'),am:[...el.querySelectorAll('.am u')],c:{}}}
+  return{el,bdg:el.querySelector('.bdg'),hp:el.querySelector('.hp i'),hpt:el.querySelector('.hp b'),pw:el.querySelector('.pw'),am:[...el.querySelectorAll('.am u')],sp:el.querySelector('.sp u'),c:{}}}
 function updLabel(L,p,vis,o,cam){if(!vis){if(L.c.v!==0){L.el.style.visibility='hidden';L.c.v=0}return}if(L.c.v!==1){L.el.style.visibility='visible';L.c.v=1}
   _v.set(o.dx,2.45,o.dz).project(cam);const x=(_v.x*.5+.5)*innerWidth,y=(-_v.y*.5+.5)*innerHeight;
   L.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-100%)`;
   if(L.c.s!==p.score){L.c.s=p.score;L.bdg.textContent=p.score}
   const hp=Math.ceil(p.hp);if(L.c.h!==hp||L.c.m!==p.maxHp){L.c.h=hp;L.c.m=p.maxHp;L.hp.style.width=(100*p.hp/p.maxHp).toFixed(1)+'%';L.hpt.textContent=hp}
   if(L.c.p!==p.power){L.c.p=p.power;L.pw.textContent=p.power?'+'+p.power*10+'%':''}
+  if(L.sp){const sv=Math.round(p.sup*100);if(L.c.sp!==sv){L.c.sp=sv;L.sp.style.width=sv+'%'}}
   if(L.am.length){const a=Math.round(p.ammo*20);if(L.c.a!==a){L.c.a=a;L.am.forEach((u,i)=>u.style.width=(clamp(p.ammo-i,0,1)*100)+'%')}}}
 
 /* ---------- 跳字 ---------- */
@@ -799,7 +804,7 @@ function fillBots(humans,botLv){const used=new Set(humans.map(h=>h.name));const 
 function startSolo(){const lv=save.lvl[save.ch];const botLv=[1,Math.max(1,Math.ceil(lv/2)),lv][save.diff];
   const map=Math.random()<.5?'desert':'kitchen';beginMatch({map,diff:save.diff,players:fillBots([{name:save.name,ch:save.ch,lvl:lv}],botLv)},0,true)}
 function beginMatch(cfg,myId,local){matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
-  IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;
+  IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;supWas=false;IN.aimKind=null;pred=null;acc=0;ended=false;
   if(local){game=new Game(cfg);netState=null}else{game=null}
   view=new View(cfg.map);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1)}
 let ended=false,lastBanner=-1;
@@ -850,7 +855,10 @@ function updHud(st,dt){
   if(bd.dataset.k!==key){bd.dataset.k=key;bd.innerHTML=show.map(p=>`<div class="ot${p.id===meId?' me':''}">${sorted.indexOf(p)+1}. ${esc(p.name)}<b>${p.score}</b></div>`).join('')}
   const me=st.players[meId];if(!me)return;
   const dm=$('#deadmsg');if(!me.alive&&st.startT<=0){dm.hidden=false;const by=dm.dataset.by;dm.innerHTML=`${by?esc(by)+' 淘汰了你':'你倒下了'}<b>${Math.max(0,me.respawnT).toFixed(1)}</b>秒後復活`}else dm.hidden=true;
-  const sb=$('#btnSup');sb.style.setProperty('--p',me.sup.toFixed(3));sb.classList.toggle('ready',me.sup>=1)}
+  const sb=$('#btnSup'),ready=me.sup>=1;sb.style.setProperty('--p',me.sup.toFixed(3));sb.classList.toggle('ready',ready);
+  const sl=ready?'大招好了！':'大招 '+Math.floor(me.sup*100)+'%';if($('#supLab').textContent!==sl)$('#supLab').textContent=sl;
+  if(ready&&!supWas&&me.alive){banner(FINE?'大招好了！按右鍵或 E':'大招好了！按黃色按鈕');SFX.sup()}supWas=ready}
+let supWas=false;
 
 /* ================= 主迴圈 ================= */
 let lastT=0,lastSnap=0,lastIn=0,pendingEv=[],lastInKey='';

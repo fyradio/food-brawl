@@ -350,7 +350,7 @@ button,input{font:inherit;color:inherit}
   .mcards{gap:6px}
 }
 @media (max-width:640px) and (orientation:portrait) and (max-height:720px){
-  #pick{grid-template-rows:auto 20vh auto auto minmax(170px,1fr)}.pdet .perks{display:none}.pdet .chdesc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #pick{grid-template-rows:auto 20vh auto auto minmax(170px,1fr)}
 }
 
 /* ===== 寶箱與角色登場 ===== */
@@ -396,6 +396,18 @@ button,input{font:inherit;color:inherit}
   .ropts{grid-area:opts;gap:3px}.rleft{grid-area:code}.slots{grid-area:slots;align-self:start}.rbtns{grid-area:btns;align-self:end}
   .rleft .code{font-size:34px}.rhint{font-size:10.5px;line-height:1.35}.rleft{gap:0}.slots li{min-height:16px}.ropts .chip{padding:.12em .55em}
 }
+/* 選角格子：滿版頭像＋等級；說明文字不截斷 */
+#pick .pgrid{grid-auto-rows:min-content}
+#pick .pc{padding:0;aspect-ratio:1/1;align-self:start;height:auto;overflow:hidden;box-shadow:none;background:#fff7e2}
+#pick .lvrow{flex-wrap:wrap}
+#pick .pc .dot{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0;background-size:115%!important;background-position:50% 40%!important}
+#pick .pc::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--tc)}
+#pick .pc small{position:absolute;left:5px;bottom:10px;z-index:1;background:rgba(28,18,6,.78);color:#fff;border-radius:7px;padding:1px 7px;font-family:var(--f-disp);font-size:14px;font-weight:400;line-height:1.3}
+#pick .pc .use{top:4px;right:4px;z-index:1}
+#pick .pc.on{border-color:var(--tomato);box-shadow:0 0 0 3px var(--tomato),0 0 14px var(--tomato)}
+#pick .pc.locked .dot{filter:grayscale(1) brightness(.8)}
+#pick .pdet .chdesc{display:block;-webkit-line-clamp:unset;overflow:visible}#pick .pdet .perks{display:block;white-space:normal;overflow:visible}
+#pick .lv{white-space:nowrap}
 /* 頭像尺寸 */
 .pc .dot{width:46px;height:46px}.slots li i{width:22px;height:22px}.rlist li i{width:20px;height:20px}
 @media (max-height:460px){.pc .dot{width:36px;height:36px}}
@@ -546,7 +558,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.6.6</span>
+<span class="ver">v0.6.7</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -646,8 +658,8 @@ const CHARS={
     desc:'每一發子彈顏色不同、效果也不同：紅燒傷、橙擊退、黃暈眩、綠補血、藍變慢、靛遮眼、紫定身。大招：彩虹橋，一整條路打人，自己走在上面變快。',stat:[3,4,4]},
   hotpotking:{name:'火鍋王',tier:3,role:'砲台',hp:4300,speed:5.0,reload:2.2,superCost:2600,range:8,col:'#d8261b',want:6,psp:99,sr:8,unlock:900,price:2500,
     desc:'普攻是放一座小火鍋砲台，會自己射燙燙的湯（最多 2 座）。大招：所有砲台一起沸騰爆炸。',stat:[4,2,4]},
-  burger:{name:'漢堡',tier:3,role:'吞人',hp:4800,speed:5.2,reload:1.0,superCost:2700,range:8,col:'#d9862a',want:5,psp:13,sr:2.8,unlock:1000,price:2500,
-    desc:'綁著紅頭帶的漢堡，丟出會反彈的肉排。大招：一口把身邊的人吞進肚子，過一下再狠狠吐出去。',stat:[5,3,4]},
+  burger:{name:'漢堡',tier:3,role:'吞人',hp:4800,speed:5.2,reload:1.0,superCost:2700,range:8,col:'#d9862a',want:5,psp:13,sr:8,unlock:1000,price:2500,
+    desc:'綁著紅頭帶的漢堡，丟出會反彈的肉排。大招：張開大嘴往前飛撲咬過去，咬到的人被吞進肚子，過一下再狠狠吐出去。',stat:[5,3,4]},
   fries:{name:'薯條',tier:3,role:'拳擊',hp:3800,speed:5.8,reload:.9,superCost:2500,range:6.5,col:'#ffd23a',want:4,psp:16,sr:3,unlock:1100,price:2500,
     desc:'戴拳擊手套的薯條，火箭拳把人打飛，撞到牆還會被打暈。大招：百裂拳，對最近的人一陣狂打。',stat:[3,5,3]},
 };
@@ -927,6 +939,7 @@ class Game{
         if(best){const a=Math.atan2(best.x-tr.x,best.z-tr.z);this.spawnAt(o,'broth',tr.x+Math.sin(a)*.6,tr.z+Math.cos(a)*.6,a,12,7.5,tr.dmg,.32);tr.cd=.9}else tr.cd=.2}}
     const keep=[];for(const tr of this.turrets){if(tr.hp>0&&tr.life>0)keep.push(tr);else this.ev(['tbreak',r2(tr.x),r2(tr.z)])}this.turrets=keep}
   hitTurret(tr,dmg){tr.hp-=dmg;this.ev(['thit',tr.id])}
+  eatOn(p,q,dmg){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0||q.eatT>0)return false;const T=p.tal==='b'?2:1.2;q.eatT=T;q.eatBy=p.id;q.stunT=Math.max(q.stunT,T);q.dashT=0;q.dashQ=0;q.pullT=0;q.slipT=0;q.burstQ=[];q.spinT=0;q.flurT=0;q.blizT=0;p.eatDmg=dmg;this.ev(['eat',p.id,q.id]);return true}
   curryBoom(b,own){this.splash(b.x,b.z,1.6,Math.round(b.dmg*.4),own,'curry');this.ev(['land','curry',r2(b.x),r2(b.z),1.6])}
   stepHazard(dt){this.hazT-=dt;if(this.hazT>0)return;this.hazT=12;const E=this.M.erupt;
     for(let i=0;i<7;i++){const a=Math.random()*TAU,d=rnd(E.r+.8,E.reach);this.puddles.push({id:this.nid++,kind:4,owner:-1,x:clamp(E.x+Math.cos(a)*d,-this.bx+1,this.bx-1),z:clamp(E.z+Math.sin(a)*d,-this.bz+1,this.bz-1),r:1.7,life:1.6,max:1.6,tick:0,dmg:800})}
@@ -968,7 +981,7 @@ class Game{
       case'eggtart':this.spawn(p,'tart',a,12,8,Math.round(720*m),.4);break;
       case'rainbowcake':{const b=this.spawn(p,'rbw',a,14,9,Math.round(600*m),.34);b.ci=p.rbi;p.rbi=(p.rbi+1)%7;break}
       case'hotpotking':this.placeTurret(p,a,ad,m);break;
-      case'burger':{const offs=p.tal==='a'?[-.1,.1]:[0];for(const o of offs){const b=this.spawn(p,'patty',a+o,13,8,Math.round((p.tal==='a'?520:700)*m),.4);b.bounce=1}break}
+      case'burger':{const offs=p.tal==='a'?[-.1,.1]:[0];for(const o of offs){const b=this.spawn(p,'patty',a+o,13,8,Math.round((p.tal==='a'?560:760)*m),.4);b.bounce=1}break}
       case'fries':{const big=p.tal==='a';this.spawn(p,'glove',a,16,6.5,Math.round(650*m*(big?1.15:1)),big?.56:.45);break}}
     this.ev(['fire',p.id])}
   superDist(p,ad,max,def){let d=ad;if(!(d>.3)){const t=this.nearestEnemy(p,max+.5);d=t?Math.hypot(t.x-p.x,t.z-p.z):def}return Math.min(d,max)}
@@ -1023,9 +1036,7 @@ class Game{
       case'eggtart':p.shieldT=p.tal==='b'?4.5:3;break;
       case'rainbowcake':{const L=p.tal==='b'?16:12,life=p.tal==='b'?6:4;this.lash(p,a,L,Math.round(900*m));for(let d=1.2;d<=L;d+=1.4){const x=p.x+sx*d,z=p.z+sz*d;if(Math.abs(x)>this.bx||Math.abs(z)>this.bz)break;this.puddles.push({id:this.nid++,kind:10,owner:p.id,x,z,r:1,life,max:life,tick:0,dmg:Math.round(100*m)})}break}
       case'hotpotking':{const R=3*(p.tal==='b'?1.3:1),mine=this.turrets.filter(u=>u.owner===p.id&&u.hp>0),spots=mine.length?mine:[{x:p.x,z:p.z}];for(const s of spots){this.splash(s.x,s.z,R,Math.round(1200*m),p,'soup');this.ev(['land','boil',r2(s.x),r2(s.z),R]);s.hp=0}break}
-      case'burger':{let best=null,bd=2.8+PR;for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0||q.eatT>0)continue;const d=Math.hypot(q.x-p.x,q.z-p.z);if(d<bd){bd=d;best=q}}
-        if(best){const T=p.tal==='b'?2:1.2;best.eatT=T;best.eatBy=p.id;best.stunT=Math.max(best.stunT,T);best.dashT=0;best.dashQ=0;best.pullT=0;best.slipT=0;best.burstQ=[];best.spinT=0;best.flurT=0;best.blizT=0;p.eatDmg=Math.round((p.tal==='b'?2200:1700)*m);this.ev(['eat',p.id,best.id])}
-        else this.swing(p,a,2.6,Math.round(900*m));break}
+      case'burger':{const b=this.spawn(p,'gulp',a,17,8.5,0,.8);b.eatDmg=Math.round((p.tal==='b'?2200:1700)*m);break}
       case'fries':p.flurT=p.tal==='b'?2.4:1.6;p.flurCd=0;p.flurDmg=Math.round(150*m);break}
     this.ev(['super',p.id])}
   hitDecoysNear(p,r){for(const d of this.decoys)if(d.alive&&foe(p,d)&&Math.hypot(d.x-p.x,d.z-p.z)<r)this.popDecoy(d)}
@@ -1064,6 +1075,7 @@ class Game{
         if(!dead&&this.decoys.length)for(const d of this.decoys){if(d.alive&&foe(own,d)&&Math.hypot(d.x-b.x,d.z-b.z)<b.r+PR){this.popDecoy(d);if(!pierce){dead=true;break}}}
         if(!dead)for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0||q.eatT>0)continue;const dx=q.x-b.x,dz=q.z-b.z;
           if(dx*dx+dz*dz<(b.r+PR)**2){if(pierce){if(b.hit.has(q.id))continue;b.hit.add(q.id)}else if(b.hit&&b.hit.has(q.id))continue;
+            if(b.type==='gulp'){if(own)this.eatOn(own,q,b.eatDmg);dead=true;this.ev(['pop','gulp',r2(b.x),r2(b.z)]);break}
             this.damage(q,b.dmg,own);
             if(b.type==='fire')this.burnOn(q,own);else if(b.type==='mallow')q.slowT=Math.max(q.slowT,own&&own.tal==='a'?3:1.5);
             else if(b.type==='nori'&&q.alive)q.rootT=Math.max(q.rootT,own&&own.tal==='a'?2:1.2);
@@ -1459,6 +1471,8 @@ function makeProj(type,o){const g=new THREE.Group();
     case'spike':{const c=new THREE.Mesh(GEO.cone5,lam(0x9be05a));c.scale.set(.09,.4,.09);c.rotation.x=Math.PI/2;g.add(c);break}
     case'sseed':{const s2=new THREE.Mesh(GEO.sph,basic(0xff3a4a));s2.scale.set(.1,.1,.16);g.add(s2);break}
     case'cake':{const c=new THREE.Mesh(GEO.cyl16,lam(0xe8a85a));c.scale.set(.35,.6,.35);c.rotation.z=Math.PI/2;const r=new THREE.Group();r.add(c);const cf=new THREE.Mesh(GEO.cyl16,lam(0xfff8ea));cf.scale.set(.3,.62,.3);cf.rotation.z=Math.PI/2;r.add(cf);g.add(r);g.userData.roll=r;break}
+    case'gulp':{const top=new THREE.Mesh(GEO.dome,lam(0xe8a04a));top.scale.set(.75,.55,.75);top.position.y=.08;top.rotation.x=-.5;g.add(top);const bot=new THREE.Mesh(GEO.dome,lam(0xe8a04a));bot.scale.set(.72,.35,.72);bot.rotation.x=Math.PI+.4;g.add(bot);
+      const tg=new THREE.Mesh(GEO.sph,lam(0xe8402a));tg.scale.set(.35,.12,.4);tg.position.set(0,0,.2);g.add(tg);for(let i=-2;i<=2;i++){const th=new THREE.Mesh(GEO.cone5,lam(0xffffff));th.scale.set(.07,.14,.07);th.rotation.x=Math.PI;th.position.set(i*.16,.02,.52);g.add(th)}break}
     case'claw':{const m=lam(0xe8402a);for(const s of[-1,1]){const c=new THREE.Mesh(GEO.cone5,m);c.scale.set(.14,.5,.1);c.rotation.x=Math.PI/2;c.rotation.y=s*.35;c.position.x=s*.12;g.add(c)}ball(0xd8301a,.2).position.z=-.25;break}
     case'stink':{ball(0xc8902a,.26);for(let i=0;i<3;i++){const s2=ball(0x9ab83a,.12,true);s2.position.set(Math.cos(i*2)*.25,.25+i*.08,Math.sin(i*2)*.25)}break}
     case'ice':{const c=new THREE.Mesh(GEO.ico0,lam(0xbfe8ff));c.scale.set(.2,.2,.38);g.add(c);break}
@@ -1660,7 +1674,7 @@ class View{
     this.syncSet(this.bm,st.proj,b=>makeProj(b.type,b),(m,b)=>{const y=b.h>0?.7+b.h:b.type==='big'?1:b.type==='juice'?.8:.9;m.position.set(b.x,y,b.z);
       if(b.type==='slice'||b.type==='shuri')m.rotation.y+=dt*(b.type==='shuri'?18:10);if(b.type==='boom')m.rotation.y+=dt*16;if(b.type==='tako')m.rotation.y+=dt*4;if(b.type==='sausage'||b.type==='sprinkle')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.h>0)m.rotation.x+=dt*6;
       if(b.type==='big'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*9}
-      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart')m.rotation.y+=dt*15;if(b.type==='claw'||b.type==='ice'||b.type==='glove')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
+      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart')m.rotation.y+=dt*15;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
       if(b.type==='cake'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*7;const s=(b.r||.35)/.35;m.scale.setScalar(s);m.position.y=.35*s}});
     this.syncSet(this.tm,st.traps,o=>{if(o.kind===1)return makePeel();if(o.kind===2)return makeMine();const g=makeProj('shuri');g.scale.setScalar(.85);return g},(m,o)=>{m.position.set(o.x,o.kind===2?.02:.08,o.z);if(o.kind!==2)m.rotation.y+=dt*1.5;m.visible=o.life>.8||Math.floor(t*8)%2===0});
     this.syncSet(this.um,st.puddles,o=>{const pc=PCOL[o.kind|0]||PCOL[0],g=new THREE.Group();const d=new THREE.Mesh(GEO.disc,basic(pc[0],pc[1]));d.rotation.x=-Math.PI/2;g.add(d);
@@ -2047,7 +2061,7 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'']);
   players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz})}});
   pendingEv=[];beginMatch(cfg,0,true)}
-const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove'];
+const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp'];
 function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT)),
   P:g.players.map(p=>[p.id,r2(p.x),r2(p.z),r2(p.ang),Math.round(p.hp),p.maxHp,p.alive?1:0,p.score,p.deaths,r2(p.ammo),r2(p.sup),
     (p.hidden?1:0)|(p.inv?2:0)|(p.slip?4:0)|(p.moving?8:0)|(p.slow?16:0)|(p.atk?32:0)|(p.out?64:0)|(p.burn?128:0)|(p.ink?256:0)|(p.roll?512:0)|(p.dash?1024:0)|(p.stun?2048:0)|(p.orbit?4096:0)|(p.giant?8192:0)|(p.thorn?16384:0)|(p.root?32768:0)|(p.spin?65536:0)|(p.leap?131072:0)|(p.frozen?262144:0)|(p.bliz?524288:0)|(p.shield?1048576:0)|(p.flur?2097152:0),p.power,r2(Math.max(0,p.respawnT)),p.lives,p.place,r2(p.h||0)]),
@@ -2129,7 +2143,7 @@ function renderPickUI(){topUI();
   $('#pkTabs').innerHTML=[['all','全部'],...TIERS.map((T,i)=>[i,T.name])].map(([k,n])=>`<button class="chip${pickTier===k?' on':''}" data-pt="${k}">${n} ${cnt(k)}</button>`).join('');
   const ids=CH_IDS.filter(id=>pickTier==='all'||CHARS[id].tier===pickTier).sort((a,b)=>(save.owned.includes(b)?1:0)-(save.owned.includes(a)?1:0));
   $('#pkGrid').innerHTML=ids.length?ids.map(id=>{const C=CHARS[id],own=save.owned.includes(id);
-    return`<button class="pc${id===viewCh?' on':''}${own?'':' locked'}" data-ch="${id}" style="--tc:${TIERS[C.tier].col}">${id===save.ch?'<em class="use">使用中</em>':''}<i class="dot" style="${avStyle(id)}"></i><b>${C.name}</b><small>${own?'Lv '+save.lvl[id]:'未解鎖'}</small></button>`}).join(''):'<p class="sp">這個稀有度還沒有食物，之後會加。</p>';
+    return`<button class="pc${id===viewCh?' on':''}${own?'':' locked'}" data-ch="${id}" aria-label="${C.name}" title="${C.name}" style="--tc:${TIERS[C.tier].col}">${id===save.ch?'<em class="use">使用中</em>':''}<i class="dot" style="${avStyle(id)}"></i><small>${own?'Lv '+save.lvl[id]:'未解鎖'}</small></button>`}).join(''):'<p class="sp">這個稀有度還沒有食物，之後會加。</p>';
   const id=viewCh,C=CHARS[id],own=save.owned.includes(id),lv=save.lvl[id],T=TIERS[C.tier];
   $('#chName').textContent=C.name;$('#chTier').textContent=T.name;$('#chTier').style.background=T.col;$('#chRole').textContent=C.role;$('#chDesc').textContent=C.desc;
   $('#chStats').innerHTML=[['血量',C.stat[0],Math.round(C.hp*lvMul(lv))],['速度',C.stat[1],C.speed.toFixed(1)],['射程',C.stat[2],C.range],['彈藥',lvAmmo(lv),lvAmmo(lv)+' 格']].map(s=>`<span>${s[0]}</span><div class="bar"><i style="width:${Math.min(100,s[1]*20)}%"></i></div><b>${s[2]}</b>`).join('');

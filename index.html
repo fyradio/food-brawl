@@ -390,6 +390,12 @@ button,input{font:inherit;color:inherit}
 @media (max-height:460px){.rvTag{font-size:30px}.rvName{font-size:32px}.rvShard,.rvCoin{font-size:18px}#rvChest{transform:scale(.8)}.rvBtns .btn.big{font-size:22px;padding:.3em 1em}}
 @media (prefers-reduced-motion:reduce){#rvBg .rays,#rvChest.shake,.rvHint{animation:none}}
 
+/* 房間：矮螢幕把代碼和名單放右邊、選項和按鈕放左邊，開始鈕不會被擠出畫面 */
+@media (max-height:460px) and (orientation:landscape){
+  .roompanel{grid-template-columns:1.2fr 1fr;grid-template-areas:"opts code" "opts slots" "opts btns";align-items:start;gap:4px 14px;width:min(760px,100%);margin:auto}
+  .ropts{grid-area:opts;gap:3px}.rleft{grid-area:code}.slots{grid-area:slots;align-self:start}.rbtns{grid-area:btns;align-self:end}
+  .rleft .code{font-size:34px}.rhint{font-size:10.5px;line-height:1.35}.rleft{gap:0}.slots li{min-height:16px}.ropts .chip{padding:.12em .55em}
+}
 /* 頭像尺寸 */
 .pc .dot{width:46px;height:46px}.slots li i{width:22px;height:22px}.rlist li i{width:20px;height:20px}
 @media (max-height:460px){.pc .dot{width:36px;height:36px}}
@@ -540,7 +546,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.6.5</span>
+<span class="ver">v0.6.6</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1843,9 +1849,9 @@ function showScreen(name){for(const s of['menu','pick','room','result','reveal']
   if(name!=='game')playMusic('lobby');$('#rvBg').hidden=name!=='reveal'}
 function botName(used){const pool=BOT_NAMES.filter(n=>!used.has(n));const n=pool[Math.floor(Math.random()*pool.length)]||'電腦';used.add(n);return n}
 function botLevel(base,diff,fair){if(fair)return 1;const[a,b]=BOT_LV[diff]||BOT_LV[1];return clamp(base+rndi(a,b),1,MAX_LV)}
-function fillBots(humans,count,base,diff,fair,soccer){const used=new Set(humans.map(h=>h.name));const list=humans.slice(0,8);
+function fillBots(humans,count,base,diff,fixed,soccer,pool){const used=new Set(humans.map(h=>h.name));const list=humans.slice(0,8);const P=pool&&pool.length?pool:CH_IDS;
   const total=Math.min(8,list.length+count);
-  while(list.length<total){const lv=botLevel(base,diff,fair);const b={name:botName(used),ch:CH_IDS[Math.floor(Math.random()*CH_IDS.length)],lvl:lv,bot:true,tal:lv>=5?(Math.random()<.5?'a':'b'):null};
+  while(list.length<total){const lv=fixed?base:botLevel(base,diff,false);const b={name:botName(used),ch:P[Math.floor(Math.random()*P.length)],lvl:lv,bot:true,tal:lv>=5?(Math.random()<.5?'a':'b'):null};
     if(soccer){const n0=list.filter(x=>x.team===0).length,n1=list.filter(x=>x.team===1).length;b.team=n0<=n1?0:1}list.push(b)}
   return list}
 function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=save.lvl[save.ch],soccer=save.mode==='soccer';
@@ -1993,7 +1999,7 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-lastT)/1
 
 /* ================= 連線（房間代碼，PeerJS） ================= */
 let online=false;
-const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:'fair',map:'rand'},hostTeam:0,inGame:false,joined:false};
+const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false};
 function peerOpts(){const u=new URLSearchParams(location.search),h=u.get('peerhost');return h?{host:h,port:+(u.get('peerport')||9000),path:u.get('peerpath')||'/',secure:u.get('peersecure')==='1',debug:1}:{debug:1}}
 function netClose(){try{NET.peer&&NET.peer.destroy()}catch(e){}NET.peer=null;NET.conns.clear();NET.conn=null;NET.lobby=[];NET.lobbyMsg=null;NET.host=false;NET.inGame=false;NET.joined=false;online=false}
 function netFail(msg){netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu');
@@ -2024,13 +2030,17 @@ function hostLeave(c){if(!NET.host)return;const had=NET.conns.delete(c.peer);con
 function hostBroadcast(m){for(const[,c]of NET.conns)if(c.open)try{c.send(m)}catch(e){}}
 function lobbyMsg(){return{t:'lobby',code:NET.code,host:{name:save.name,ch:save.ch,lvl:save.lvl[save.ch],team:NET.hostTeam},list:NET.lobby.map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,team:l.team})),opts:NET.opts}}
 function broadcastLobby(){hostBroadcast(lobbyMsg());if(mode==='room')renderRoom()}
-function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fair=o.lv==='fair',soccer=o.mode==='soccer';
+function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o.lv==='own'?0:o.lv==='fair'?1:clamp(+o.lv||1,1,MAX_LV),soccer=o.mode==='soccer';
   const humans=[{name:save.name,ch:save.ch,lvl:save.lvl[save.ch],tal:myTal(save.ch),acc:accStr(save.ch),netId:null,team:NET.hostTeam},
     ...NET.lobby.filter(l=>NET.conns.has(l.id)).map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,tal:l.tal,acc:l.acc,netId:l.id,team:l.team}))].slice(0,8);
   if(humans.length+o.bots<2){toast('至少要 2 個角色才能開始：等朋友加入，或加幾隻電腦');return}
-  if(fair)humans.forEach(h=>{h.lvl=1;h.tal=null});const avg=Math.round(humans.reduce((s,h)=>s+h.lvl,0)/humans.length);
+  /* 隨機角色：範圍可以是全部或某個稀有度，每個人（含電腦）都從裡面抽 */
+  const pool=o.rc==='rand'?CH_IDS.filter(id=>o.rt==='all'||o.rt==null||CHARS[id].tier===+o.rt):null;
+  if(pool)humans.forEach(h=>{h.ch=pool[Math.floor(Math.random()*pool.length)];h.tal=null});
+  if(fixL)humans.forEach(h=>{h.lvl=fixL;h.tal=fixL>=5?(h.tal||(Math.random()<.5?'a':'b')):null});
+  const avg=fixL||Math.round(humans.reduce((s,h)=>s+h.lvl,0)/humans.length);
   if(!soccer)humans.forEach(h=>delete h.team);
-  const players=fillBots(humans,o.bots,avg,o.diff,fair,soccer);
+  const players=fillBots(humans,o.bots,avg,o.diff,!!fixL,soccer,pool);
   const map=soccer?'stadium':o.map==='rand'?MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)]:o.map;
   const cfg={map,mode:o.mode,dur:o.dur,diff:o.diff,players};NET.inGame=true;
   const[bx,bz]=boundsFor(o.mode,players.length);
@@ -2253,16 +2263,18 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
   let html=rows.map(r=>`<li class="${host&&soccer?'tap':''}" data-i="${r.idx}" ${host&&soccer?'tabindex="0"':''}><i style="${avStyle(r.ch)}"></i><span class="nm"></span>${soccer?`<span class="team t${r.team|0}">${r.team?'藍隊':'紅隊'}</span>`:''}${r.tag?'<span class="tag">房主</span>':''}</li>`).join('');
   for(let i=0;i<bots;i++)html+='<li class="bot">電腦</li>';for(let i=humans+bots;i<8;i++)html+='<li class="empty">空位</li>';
   $('#rSlots').innerHTML=html;
-  [...$('#rSlots').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=rows[i].name+'・'+(CHARS[rows[i].ch]||CHARS.apple).name+(o.lv==='own'?' Lv'+rows[i].lvl:''));
+  [...$('#rSlots').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=rows[i].name+'・'+(o.rc==='rand'?'隨機角色':(CHARS[rows[i].ch]||CHARS.apple).name)+(o.lv==='own'?' Lv'+rows[i].lvl:''));
   const maxBots=Math.max(0,8-Math.max(1,humans));const botVals=[];for(let i=0;i<=maxBots;i++)botVals.push([i,String(i)]);
   $('#rOpts').innerHTML=`<div class="chips">${chipsHTML('模式','mode',[['score','搶分'],['royale','吃雞'],['soccer','足球']],o.mode,!host)}</div>`+
     (o.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],o.dur,!host)}</div>`:'')+
     `<div class="chips">${chipsHTML('電腦','bots',botVals,bots,!host)}</div>`+
     `<div class="chips">${chipsHTML('強度','diff',DIFF.map((d,i)=>[i,d.name]),o.diff,!host)}</div>`+
-    `<div class="chips">${chipsHTML('等級','lv',[['fair','大家 1 級'],['own','自己的等級']],o.lv,!host)}</div>`+
+    `<div class="chips">${chipsHTML('等級','lv',[[1,'全部 Lv1'],[5,'全部 Lv5'],[10,'全部 Lv10'],['own','自己的']],o.lv==='fair'?1:o.lv,!host)}</div>`+
+    `<div class="chips">${chipsHTML('角色','rc',[['own','自己選'],['rand','隨機']],o.rc||'own',!host)}</div>`+
+    (o.rc==='rand'?`<div class="chips">${chipsHTML('範圍','rt',[['all','全部'],...TIERS.map((T,i)=>[i,T.name])],o.rt??'all',!host)}</div>`:'')+
     (!soccer?`<div class="chips">${chipsHTML('地圖','map',[['rand','隨機'],...MAP_POOL.map(k=>[k,MAPS[k].name])],o.map,!host)}</div>`:'');
   const sb=$('#rStart');sb.hidden=!host;sb.disabled=!(NET.peer&&NET.peer.open)}
-$('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+b.dataset.v:b.dataset.v;broadcastLobby()});
+$('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;const v=b.dataset.v;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+v:(k==='lv'||k==='rt')&&v!=='own'&&v!=='all'?+v:v;broadcastLobby()});
 $('#rSlots').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(!li||!NET.host||NET.opts.mode!=='soccer')return;const i=+li.dataset.i;
   if(i<0)NET.hostTeam=1-NET.hostTeam;else if(NET.lobby[i])NET.lobby[i].team=1-(NET.lobby[i].team|0);broadcastLobby()});
 $('#rStart').addEventListener('click',()=>{audioOn();hostStart()});

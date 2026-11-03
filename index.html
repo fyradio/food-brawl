@@ -537,7 +537,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.6.3</span>
+<span class="ver">v0.6.4</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1757,19 +1757,41 @@ addEventListener('blur',()=>{IN.keys={}});
 function keyMove(){const k=IN.keys;let x=(k.KeyD||k.ArrowRight?1:0)-(k.KeyA||k.ArrowLeft?1:0),z=(k.KeyS||k.ArrowDown?1:0)-(k.KeyW||k.ArrowUp?1:0);return[x,z]}
 let joy={id:null,ox:0,oy:0,x:0,y:0};
 const jz=$('#joyZone'),jEl=$('#joy');
-jz.addEventListener('pointerdown',e=>{if(joy.id!==null)return;joy.id=e.pointerId;joy.ox=e.clientX;joy.oy=e.clientY;joy.x=joy.y=0;jz.setPointerCapture(e.pointerId);jEl.hidden=false;
-  const r=jz.getBoundingClientRect();jEl.style.left=(e.clientX-r.left)+'px';jEl.style.top=(e.clientY-r.top)+'px';jEl.firstChild.style.transform=''});
-jz.addEventListener('pointermove',e=>{if(e.pointerId!==joy.id)return;let dx=e.clientX-joy.ox,dy=e.clientY-joy.oy;const L=Math.hypot(dx,dy),M=50;if(L>M){dx*=M/L;dy*=M/L}joy.x=dx/M;joy.y=dy/M;jEl.firstChild.style.transform=`translate(${dx}px,${dy}px)`});
-const joyEnd=e=>{if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;jEl.hidden=true};
-jz.addEventListener('pointerup',joyEnd);jz.addEventListener('pointercancel',joyEnd);
+/* 觸控：iPhone／iPad 用 touch 事件追蹤手指（pointer 事件在 iPad 多指時會被系統取消，搖桿會卡住）；滑鼠才用 pointer */
+const TOUCH='ontouchstart' in window;
+function joyStart(id,x,y){joy.id=id;joy.ox=x;joy.oy=y;joy.x=joy.y=0;jEl.hidden=false;const r=jz.getBoundingClientRect();jEl.style.left=(x-r.left)+'px';jEl.style.top=(y-r.top)+'px';jEl.firstChild.style.transform=''}
+function joyMove(x,y){let dx=x-joy.ox,dy=y-joy.oy;const L=Math.hypot(dx,dy),M=50;if(L>M){dx*=M/L;dy*=M/L}joy.x=dx/M;joy.y=dy/M;jEl.firstChild.style.transform=`translate(${dx}px,${dy}px)`}
+function joyStop(){joy.id=null;joy.x=joy.y=0;jEl.hidden=true}
+if(TOUCH){
+  jz.addEventListener('touchstart',e=>{e.preventDefault();if(joy.id!==null&&[...e.touches].some(t=>t.identifier===joy.id))return;const t=e.changedTouches[0];joyStart(t.identifier,t.clientX,t.clientY)},{passive:false});
+  jz.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===joy.id)joyMove(t.clientX,t.clientY)},{passive:false});
+  const te=e=>{for(const t of e.changedTouches)if(t.identifier===joy.id)joyStop()};jz.addEventListener('touchend',te);jz.addEventListener('touchcancel',te);
+}else{
+  jz.addEventListener('pointerdown',e=>{if(joy.id!==null)return;joyStart(e.pointerId,e.clientX,e.clientY);try{jz.setPointerCapture(e.pointerId)}catch(_){}});
+  jz.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)joyMove(e.clientX,e.clientY)});
+  const joyEnd=e=>{if(e.pointerId===joy.id)joyStop()};jz.addEventListener('pointerup',joyEnd);jz.addEventListener('pointercancel',joyEnd);jz.addEventListener('lostpointercapture',joyEnd)}
+const aimResets=[];
 function aimButton(el,kind,maxLen){const st={id:null,ox:0,oy:0,dx:0,dy:0};
-  el.addEventListener('pointerdown',e=>{st.id=e.pointerId;st.ox=e.clientX;st.oy=e.clientY;st.dx=st.dy=0;el.setPointerCapture(e.pointerId)});
-  el.addEventListener('pointermove',e=>{if(e.pointerId!==st.id)return;let dx=e.clientX-st.ox,dy=e.clientY-st.oy;const L=Math.hypot(dx,dy),M=60;if(L>M){dx*=M/L;dy*=M/L}st.dx=dx/M;st.dy=dy/M;
-    el.firstChild.style.transform=`translate(${dx*.7}px,${dy*.7}px)`;if(Math.hypot(st.dx,st.dy)>.25){IN.aimKind=kind;const l=Math.hypot(st.dx,st.dy);IN.aimX=st.dx/l;IN.aimZ=st.dy/l;IN.aimLen=l*maxLen}else IN.aimKind=null});
-  const end=e=>{if(e.pointerId!==st.id)return;st.id=null;el.firstChild.style.transform='';const l=Math.hypot(st.dx,st.dy);
-    if(e.type==='pointerup'){if(l>.25){IN.ax=st.dx/l;IN.az=st.dy/l;IN.ad=l*maxLen}else{IN.ax=IN.az=0;IN.ad=0}if(kind==='atk')IN.f++;else IN.s++;
-      if(kind==='atk')clientFireFx()}IN.aimKind=null};
-  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)}
+  const down=(id,x,y)=>{st.id=id;st.ox=x;st.oy=y;st.dx=st.dy=0};
+  const move=(x,y)=>{let dx=x-st.ox,dy=y-st.oy;const L=Math.hypot(dx,dy),M=60;if(L>M){dx*=M/L;dy*=M/L}st.dx=dx/M;st.dy=dy/M;
+    el.firstChild.style.transform=`translate(${dx*.7}px,${dy*.7}px)`;if(Math.hypot(st.dx,st.dy)>.25){IN.aimKind=kind;const l=Math.hypot(st.dx,st.dy);IN.aimX=st.dx/l;IN.aimZ=st.dy/l;IN.aimLen=l*maxLen}else IN.aimKind=null};
+  const end=fire=>{st.id=null;el.firstChild.style.transform='';const l=Math.hypot(st.dx,st.dy);
+    if(fire){if(l>.25){IN.ax=st.dx/l;IN.az=st.dy/l;IN.ad=l*maxLen}else{IN.ax=IN.az=0;IN.ad=0}if(kind==='atk')IN.f++;else IN.s++;if(kind==='atk')clientFireFx()}if(IN.aimKind===kind)IN.aimKind=null};
+  aimResets.push(()=>{if(st.id!==null)end(false)});
+  if(TOUCH){
+    el.addEventListener('touchstart',e=>{e.preventDefault();if(st.id!==null&&[...e.touches].some(t=>t.identifier===st.id))return;const t=e.changedTouches[0];down(t.identifier,t.clientX,t.clientY)},{passive:false});
+    el.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===st.id)move(t.clientX,t.clientY)},{passive:false});
+    el.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===st.id)end(true)});
+    el.addEventListener('touchcancel',e=>{for(const t of e.changedTouches)if(t.identifier===st.id)end(false)});
+  }else{
+    el.addEventListener('pointerdown',e=>{down(e.pointerId,e.clientX,e.clientY);try{el.setPointerCapture(e.pointerId)}catch(_){}});
+    el.addEventListener('pointermove',e=>{if(e.pointerId===st.id)move(e.clientX,e.clientY)});
+    el.addEventListener('pointerup',e=>{if(e.pointerId===st.id)end(true)});el.addEventListener('pointercancel',e=>{if(e.pointerId===st.id)end(false)})}}
+function resetTouch(){joyStop();for(const f of aimResets)f()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){resetTouch();IN.keys={}}});
+addEventListener('pagehide',resetTouch);
+/* 擋掉 iPad 的雙指縮放手勢，不然會把觸控取消掉 */
+for(const ev of['gesturestart','gesturechange','gestureend'])document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
 aimButton($('#btnAtk'),'atk',9);aimButton($('#btnSup'),'sup',6);
 const raycaster=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),_m=new THREE.Vector2(),_hit=new THREE.Vector3();
 function mouseWorld(e){if(!view)return null;_m.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);raycaster.setFromCamera(_m,view.cam);return raycaster.ray.intersectPlane(plane,_hit)?{x:_hit.x,z:_hit.z}:null}
@@ -1810,7 +1832,7 @@ function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=s
   const me={name:save.name,ch:save.ch,lvl:lv,tal:myTal(save.ch),acc:accStr(save.ch),team:soccer?0:undefined};
   const map=soccer?'stadium':MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)];
   beginMatch({map,mode:save.mode,dur:save.dur,diff:save.diff,players:fillBots([me],7,lv,save.diff,false,soccer)},0,true)}
-function beginMatch(cfg,myId,local,info){clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
+function beginMatch(cfg,myId,local,info){resetTouch();clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
   IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;supWas=false;ffT=0;finalOn=false;
   let vinfo;if(local){game=new Game(cfg);netState=null;vinfo={mode:game.mode,bx:game.bx,bz:game.bz}}else{game=null;vinfo=info}
   view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
@@ -1898,7 +1920,10 @@ function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.
       if(st.ball)view.burst(st.ball.x,1,st.ball.z,team===0?0xff4b4b:0x3a8bff,30,7,.2);feed(sc?`<em>${esc(sc.name)}</em> 踢進一球`:'進球了')}
     else if(ty==='emo'){const o=view.pm.get(e[1]);if(o&&o.lbl&&EMOTES[e[2]]!=null){o.lbl.emo.textContent=EMOTES[e[2]];o.lbl.emo.hidden=false;o.lbl.emoT=performance.now()+2200}}}}
 
+let lockWas='';
+function lockTxt(me){return !me||!me.alive?'':me.frozen?'被冰凍了！':me.hidden&&me.stun?'':me.root?'被定住了！':me.stun?'暈倒了！':''}
 function updHud(st,dt){
+  {const me=st.players[meId],lk=lockTxt(me);if(lk&&lk!==lockWas)floatText(me.x,me.z,lk,'mine');lockWas=lk}
   const tEl=$('#timer');let txt;
   if(st.mode==='royale'){const left=st.players.filter(p=>!p.out).length;txt='剩 '+left+' 人'}
   else{const tm=Math.ceil(st.time);txt=Math.floor(tm/60)+':'+String(tm%60).padStart(2,'0');tEl.classList.toggle('hot',tm<=10&&st.startT<=0);

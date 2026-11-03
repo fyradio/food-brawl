@@ -409,6 +409,10 @@ button,input{font:inherit;color:inherit}
 #pick .pc.locked .dot{filter:grayscale(1) brightness(.8)}
 #pick .pdet .chdesc{display:block;-webkit-line-clamp:unset;overflow:visible}#pick .pdet .perks{display:block;white-space:normal;overflow:visible}
 #pick .lv{white-space:nowrap}
+/* 戰鬥 HUD 縮放 */
+#board,#topbar,#feed,.tr,#emoPanel,#deadmsg{zoom:var(--hs,1)}
+.lbl{transform-origin:50% 100%}.dmg{transform-origin:50% 50%}
+#banner{font-size:calc(60px*var(--hs,1))}
 /* 頭像尺寸 */
 .pc .dot{width:46px;height:46px}.slots li i{width:22px;height:22px}.rlist li i{width:20px;height:20px}
 @media (max-height:460px){.pc .dot{width:36px;height:36px}}
@@ -559,7 +563,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.6.8</span>
+<span class="ver">v0.6.9</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1734,7 +1738,7 @@ function makeLabel(p,isMe,me){const el=document.createElement('div');
     am:[...el.querySelectorAll('.am u')],sp:el.querySelector('.sp u'),max:p.maxAmmo||3,c:{}}}
 function updLabel(L,p,vis,o,cam){if(!vis){if(L.c.v!==0){L.el.style.visibility='hidden';L.c.v=0}return}if(L.c.v!==1){L.el.style.visibility='visible';L.c.v=1}
   if(!_vv)_vv=new THREE.Vector3();_vv.set(o.dx,2.45,o.dz).project(cam);const x=(_vv.x*.5+.5)*innerWidth,y=(-_vv.y*.5+.5)*innerHeight;
-  L.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-100%)`;
+  L.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-100%) scale(${HS})`;
   if(L.c.s!==p.score){L.c.s=p.score;L.bdg.textContent=p.score}
   const hp=Math.ceil(p.hp);if(L.c.h!==hp||L.c.m!==p.maxHp){L.c.h=hp;L.c.m=p.maxHp;L.hp.style.width=(100*p.hp/p.maxHp).toFixed(1)+'%';L.hpt.textContent=hp}
   if(L.c.p!==p.power){L.c.p=p.power;L.pw.textContent=p.power?'+'+p.power*10+'%':''}
@@ -1746,8 +1750,12 @@ function updLabel(L,p,vis,o,cam){if(!vis){if(L.c.v!==0){L.el.style.visibility='h
 const floaters=[];
 function floatText(x,z,txt,cls){const el=document.createElement('div');el.className='dmg ot '+(cls||'');el.textContent=txt;$('#labels').appendChild(el);floaters.push({el,x:x+rnd(-.3,.3),z,y:2.6,life:.8})}
 function updFloaters(dt,cam){if(!_vv)_vv=new THREE.Vector3();for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.life-=dt;f.y+=dt*1.6;if(f.life<=0){f.el.remove();floaters.splice(i,1);continue}
-  _vv.set(f.x,f.y,f.z).project(cam);f.el.style.transform=`translate(${((_vv.x*.5+.5)*innerWidth).toFixed(1)}px,${((-_vv.y*.5+.5)*innerHeight).toFixed(1)}px) translate(-50%,-50%) scale(${f.life>.6?1.3:1})`;f.el.style.opacity=Math.min(1,f.life*3)}}
+  _vv.set(f.x,f.y,f.z).project(cam);f.el.style.transform=`translate(${((_vv.x*.5+.5)*innerWidth).toFixed(1)}px,${((-_vv.y*.5+.5)*innerHeight).toFixed(1)}px) translate(-50%,-50%) scale(${(f.life>.6?1.3:1)*HS})`;f.el.style.opacity=Math.min(1,f.life*3)}}
 
+/* ================= 戰鬥畫面字體跟著螢幕大小縮放（矮的螢幕字小一點，不擋畫面） ================= */
+let HS=1;
+function hudScale(){const land=innerWidth>=innerHeight,s=land?Math.min(innerHeight/520,innerWidth/1000):Math.min(innerWidth/520,innerHeight/1000);HS=clamp(Math.round(s*100)/100,.6,1);document.documentElement.style.setProperty('--hs',HS)}
+hudScale();addEventListener('resize',hudScale);addEventListener('orientationchange',()=>setTimeout(hudScale,200));
 /* ================= 頭像：用真的 3D 模型拍一張小照片 ================= */
 const AVC=new Map();let avR=null,avS=null,avCam=null;
 function initAvatar(){try{const c=document.createElement('canvas');c.width=c.height=144;avR=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:true,preserveDrawingBuffer:true});avR.setClearColor(0x000000,0);

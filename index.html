@@ -576,7 +576,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.7.0</span>
+<span class="ver">v0.8.0</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -605,7 +605,7 @@ const STEP=1/60, RESPAWN_T=3, INV_T=2, BUSH_HIDE=3, CRATE_HP=2200, CRATE_RESPAWN
 const lvMul=lv=>1+.15*(lv-1);
 const lvAmmo=lv=>3+.5*Math.floor((lv-1)/2);
 const shardReq=lv=>lv<=2?0:(lv-2)*5;
-const TIERS=[{name:'普通',col:'#6fae45'},{name:'稀有',col:'#2f7fff'},{name:'史詩',col:'#9b45f0'},{name:'傳說',col:'#f0a000'}];
+const TIERS=[{name:'普通',col:'#6fae45'},{name:'稀有',col:'#2f7fff'},{name:'史詩',col:'#9b45f0'},{name:'傳說',col:'#f0a000'},{name:'夢幻',col:'#ff2d7a'}];
 // want＝電腦喜歡的距離、psp＝子彈速度（電腦預判用）、sr＝電腦放大招的距離
 const CHARS={
   apple:{name:'蘋果',tier:0,role:'中距離',hp:3200,speed:5.2,reload:1.0,superCost:2400,range:9,col:'#ff5a22',want:6.5,psp:15,sr:11,
@@ -680,6 +680,10 @@ const CHARS={
     desc:'綁著紅頭帶的漢堡，丟出會反彈的肉排。大招：張開大嘴往前飛撲咬過去，咬到的人被吞進肚子，過一下再狠狠吐出去。',stat:[5,3,4]},
   fries:{name:'薯條',tier:3,role:'拳擊',hp:3800,speed:5.8,reload:.9,superCost:2500,range:6.5,col:'#ffd23a',want:4,psp:16,sr:3,unlock:1100,price:2500,
     desc:'戴拳擊手套的薯條，火箭拳把人打飛，撞到牆還會被打暈。大招：百裂拳，對最近的人一陣狂打。',stat:[3,5,3]},
+  cutlet:{name:'雞排',tier:4,role:'分裂＋從天而降',hp:4600,speed:5.4,reload:1.0,superCost:2600,range:8.5,col:'#d98a2a',want:6,psp:14,sr:10,unlock:1300,price:5000,
+    desc:'比臉還大的雞排。丟出大雞排，打到人或飛到底會裂成一把雞塊往前噴。大招：一塊超大雞排從天而降，砸到的人全部暈倒。',stat:[4,4,5]},
+  braisedrice:{name:'滷肉飯',tier:4,role:'滷汁＋回血',hp:4900,speed:5.0,reload:1.1,lobT:.6,superCost:2700,range:8,col:'#7a3e18',want:5.5,psp:10,sr:4,unlock:1400,price:5000,
+    desc:'舀一勺滷肉丟出去（會飛過牆），落地變成一灘滷汁：敵人踩到變慢扣血，自己和隊友站在上面會回血。大招：大鍋滷，身邊一大圈滷汁把敵人慢慢吸進來。',stat:[5,2,4]},
 };
 const CH_IDS=Object.keys(CHARS);
 const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸血','打中人回復傷害 15% 的血']],
@@ -708,6 +712,8 @@ const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸
   strawberry:[['加量連發','一次連射 8 顆'],['滿地地雷','大招埋 5 顆地雷']],
   cakeroll:[['大蛋糕','蛋糕滾得更大、傷害 +15%'],['超強漩渦','漩渦 4 秒、吸更快']],
   riceball:[['黏黏海苔','定住 2 秒'],['超大飯糰','滾更遠、範圍更大']],
+  cutlet:[['雞塊加量','裂成 8 塊雞塊'],['超大雞排','大招範圍更大、傷害 1950']],
+  braisedrice:[['滷更久','普攻滷汁留 4.5 秒'],['大鍋滷','大招範圍大 25%、回血多 50%']],
   lobster:[['長鉗子','鉗子射程 +2'],['旋風更久','旋風 3.5 秒']],
   duck:[['遠撲','飛撲距離 6.5'],['大地震','大招落地範圍大 30%']],
   stinkytofu:[['臭更久','毒氣留 4 秒'],['超臭爆發','爆發範圍 6.5']],
@@ -723,7 +729,7 @@ const ACCS={straw:{name:'草帽',slot:'head',price:300},bow:{name:'蝴蝶結',sl
 const MISSIONS={play:{t:3,txt:n=>`完成 ${n} 場比賽`},kills:{t:12,txt:n=>`淘汰 ${n} 個對手`},top:{t:1,txt:()=>'拿 1 次第一名（足球算贏球）'},
   crates:{t:8,txt:n=>`打破 ${n} 個木箱`},supers:{t:6,txt:n=>`放 ${n} 次大招`},goals:{t:2,txt:n=>`足球模式踢進 ${n} 球`},
   royale3:{t:1,txt:()=>'吃雞模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
-const CHEST_PRICE=300,CHEST_W=[60,25,11,4],SHARDS_PER=[10,8,6,4];
+const CHEST_PRICE=300,CHEST_W=[59,25,11,4,1],SHARDS_PER=[10,8,6,4,3];
 const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'吃雞',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
 const DIFF=[
   {name:'簡單',aimErr:.55,react:1.1,dodge:0,fireRate:.4,lead:0,gap:1.4,sight:9,supWait:3},
@@ -905,7 +911,7 @@ class Game{
   spawnLobTo(p,type,tx,tz,T,peak,dmg,r,fx,fz){if(fx===undefined){fx=p.x;fz=p.z}tx=clamp(tx,-this.bx+.3,this.bx-.3);tz=clamp(tz,-this.bz+.3,this.bz-.3);const L=Math.hypot(tx-fx,tz-fz);
     const b={id:this.nid++,type,owner:p.id,lob:true,sx:fx,sz:fz,tx,tz,x:fx,z:fz,h:0,t:0,T,peak,vx:(tx-fx)/T,vz:(tz-fz)/T,speed:L/T||1,dist:0,range:99,dmg,r,hit:null,bounce:0};this.proj.push(b);return b}
   spawnLob(p,type,a,d,T,peak,dmg,r){return this.spawnLobTo(p,type,p.x+Math.sin(a)*d,p.z+Math.cos(a)*d,T,peak,dmg,r)}
-  splash(x,z,R,dmg,own,type){for(const q of this.players){if(!q.alive||(own&&!foe(own,q)))continue;if(Math.hypot(q.x-x,q.z-z)<R+PR*.5){this.damage(q,dmg,own||null);if(type==='butter'&&own&&own.tal==='a')q.slowT=Math.max(q.slowT,1);if((type==='curry'||type==='soup')&&own)this.burnOn(q,own);if(type==='mine')q.slowT=Math.max(q.slowT,1.2)}}
+  splash(x,z,R,dmg,own,type){for(const q of this.players){if(!q.alive||(own&&!foe(own,q)))continue;if(Math.hypot(q.x-x,q.z-z)<R+PR*.5){this.damage(q,dmg,own||null);if(type==='butter'&&own&&own.tal==='a')q.slowT=Math.max(q.slowT,1);if((type==='curry'||type==='soup')&&own)this.burnOn(q,own);if(type==='mine')q.slowT=Math.max(q.slowT,1.2);if(type==='bigcut'&&q.alive&&q.rollT<=0){q.stunT=Math.max(q.stunT,1);q.dashT=0;q.dashQ=0;q.burstQ=[];q.spinT=0;q.flurT=0}}}
     for(const d of this.decoys)if(d.alive&&(!own||foe(own,d))&&Math.hypot(d.x-x,d.z-z)<R+PR*.5)this.popDecoy(d);
     for(const c of this.crates)if(c.alive&&Math.hypot(c.x-x,c.z-z)<R+.6)this.hitCrate(c,dmg,own);
     for(const w of this.walls)if(w.life>0&&Math.abs(w.x-x)<w.hw+R&&Math.abs(w.z-z)<w.hd+R)this.hitWall(w,dmg);
@@ -915,6 +921,7 @@ class Game{
     if(own&&b.type==='cornbomb')for(let i=0;i<8;i++)this.spawnAt(own,'kernel',b.x,b.z,i*TAU/8,12,4.5,Math.round(b.dmg*.3),.3);
     if(own&&b.type==='jelly'&&(b.bn||0)<(own.tal==='a'?2:1)){const dx=b.tx-b.sx,dz=b.tz-b.sz,L=Math.hypot(dx,dz)||1,nb=this.spawnLobTo(own,'jelly',b.x+dx/L*3,b.z+dz/L*3,.42,1.3,Math.round(b.dmg*.8),b.r,b.x,b.z);nb.bn=(b.bn||0)+1}
     if(own&&b.type==='pine'){const n=own.tal==='a'?9:6,hs=new Set(this.players.filter(q=>Math.hypot(q.x-b.x,q.z-b.z)<R+PR*.5).map(q=>q.id));for(let i=0;i<n;i++){const s=this.spawnAt(own,'spike',b.x,b.z,i*TAU/n+Math.random()*.3,11,3.6,Math.round(b.dmg*.35),.28);s.hit=new Set(hs)}}
+    if(own&&b.type==='lurou')this.puddles.push({id:this.nid++,kind:11,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.5,heal:.02});
     if(own&&b.type==='choco')this.puddles.push({id:this.nid++,kind:9,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.6});
     if(own&&b.type==='melon'){const n=own.tal==='a'?5:3;for(let i=0;i<n;i++)this.spawnAt(own,'mseed',b.x,b.z,Math.random()*TAU,10,3.2,Math.round(b.dmg*.3),.25)}
     this.ev(['land',b.type,r2(b.x),r2(b.z),R])}
@@ -958,6 +965,9 @@ class Game{
     const keep=[];for(const tr of this.turrets){if(tr.hp>0&&tr.life>0)keep.push(tr);else this.ev(['tbreak',r2(tr.x),r2(tr.z)])}this.turrets=keep}
   hitTurret(tr,dmg){tr.hp-=dmg;this.ev(['thit',tr.id])}
   eatOn(p,q,dmg){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0||q.eatT>0)return false;const T=p.tal==='b'?2:1.2;q.eatT=T;q.eatBy=p.id;q.stunT=Math.max(q.stunT,T);q.dashT=0;q.dashQ=0;q.pullT=0;q.slipT=0;q.burstQ=[];q.spinT=0;q.flurT=0;q.blizT=0;p.eatDmg=dmg;this.ev(['eat',p.id,q.id]);return true}
+  cutletSplit(b,own){const L=b.speed||1;let a=Math.atan2(b.vx/L,b.vz/L);if(b.hitQ==null&&this.solidAt(b.x+b.vx/L*.4,b.z+b.vz/L*.4,.08))a+=Math.PI;
+    const n=own.tal==='a'?8:5,hs=new Set(b.hitQ!=null?[b.hitQ]:[]);for(let i=0;i<n;i++){const s=this.spawnAt(own,'nugget',b.x,b.z,a+(i-(n-1)/2)*.22+(Math.random()-.5)*.08,12,3.6,Math.round(b.dmg*.25),.28);s.hit=new Set(hs)}
+    this.ev(['land','cutlet',r2(b.x),r2(b.z),.8])}
   curryBoom(b,own){this.splash(b.x,b.z,1.6,Math.round(b.dmg*.4),own,'curry');this.ev(['land','curry',r2(b.x),r2(b.z),1.6])}
   stepHazard(dt){this.hazT-=dt;if(this.hazT>0)return;this.hazT=12;const E=this.M.erupt;
     for(let i=0;i<7;i++){const a=Math.random()*TAU,d=rnd(E.r+.8,E.reach);this.puddles.push({id:this.nid++,kind:4,owner:-1,x:clamp(E.x+Math.cos(a)*d,-this.bx+1,this.bx-1),z:clamp(E.z+Math.sin(a)*d,-this.bz+1,this.bz-1),r:1.7,life:1.6,max:1.6,tick:0,dmg:800})}
@@ -1000,7 +1010,9 @@ class Game{
       case'rainbowcake':{const b=this.spawn(p,'rbw',a,14,9,Math.round(600*m),.34);b.ci=p.rbi;p.rbi=(p.rbi+1)%7;break}
       case'hotpotking':this.placeTurret(p,a,ad,m);break;
       case'burger':{const offs=p.tal==='a'?[-.1,.1]:[0];for(const o of offs){const b=this.spawn(p,'patty',a+o,13,8,Math.round((p.tal==='a'?560:760)*m),.4);b.bounce=1}break}
-      case'fries':{const big=p.tal==='a';this.spawn(p,'glove',a,16,6.5,Math.round(650*m*(big?1.15:1)),big?.56:.45);break}}
+      case'fries':{const big=p.tal==='a';this.spawn(p,'glove',a,16,6.5,Math.round(650*m*(big?1.15:1)),big?.56:.45);break}
+      case'cutlet':this.spawn(p,'cutlet',a,14,8.5,Math.round(740*m),.5);break;
+      case'braisedrice':{const b=this.spawnLob(p,'lurou',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(620*m),1.5);b.pdmg=Math.round(110*m);b.plife=p.tal==='a'?4.5:3;break}}
     this.ev(['fire',p.id])}
   superDist(p,ad,max,def){let d=ad;if(!(d>.3)){const t=this.nearestEnemy(p,max+.5);d=t?Math.hypot(t.x-p.x,t.z-p.z):def}return Math.min(d,max)}
   superAtk(p,ax,az,ad){if(p.sup<1||p.rollT>0||p.dashT>0||p.pullT>0||p.stunT>0||p.leapT>0||p.eatT>0)return;const C=CHARS[p.ch],a=this.aimAngle(p,ax,az,C.sr||10),m=this.mul(p);p.sup=0;p.supers++;this.attacked(p,a,.4);p.atkT=.35;
@@ -1055,7 +1067,9 @@ class Game{
       case'rainbowcake':{const L=p.tal==='b'?16:12,life=p.tal==='b'?6:4;this.lash(p,a,L,Math.round(900*m));for(let d=1.2;d<=L;d+=1.4){const x=p.x+sx*d,z=p.z+sz*d;if(Math.abs(x)>this.bx||Math.abs(z)>this.bz)break;this.puddles.push({id:this.nid++,kind:10,owner:p.id,x,z,r:1,life,max:life,tick:0,dmg:Math.round(100*m)})}break}
       case'hotpotking':{const R=3*(p.tal==='b'?1.3:1),mine=this.turrets.filter(u=>u.owner===p.id&&u.hp>0),spots=mine.length?mine:[{x:p.x,z:p.z}];for(const s of spots){this.splash(s.x,s.z,R,Math.round(1200*m),p,'soup');this.ev(['land','boil',r2(s.x),r2(s.z),R]);s.hp=0}break}
       case'burger':{const b=this.spawn(p,'gulp',a,17,8.5,0,.8);b.eatDmg=Math.round((p.tal==='b'?2200:1700)*m);break}
-      case'fries':p.flurT=p.tal==='b'?2.4:1.6;p.flurCd=0;p.flurDmg=Math.round(150*m);break}
+      case'fries':p.flurT=p.tal==='b'?2.4:1.6;p.flurCd=0;p.flurDmg=Math.round(150*m);break;
+      case'cutlet':{const big=p.tal==='b',d=this.superDist(p,ad,10,7);this.spawnLob(p,'bigcut',a,d,.85,6,Math.round((big?1950:1600)*m),big?4.2:3.2);break}
+      case'braisedrice':{const big=p.tal==='b',R=4.5*(big?1.25:1);this.splash(p.x,p.z,R*.7,Math.round(400*m),p,'lurou');this.puddles.push({id:this.nid++,kind:11,owner:p.id,x:p.x,z:p.z,r:R,life:4,max:4,tick:.5,dmg:Math.round(200*m),slow:.5,pull:2.6,heal:big?.045:.03});this.ev(['ring',p.id,R,0x8a4a1a]);break}}
     this.ev(['super',p.id])}
   hitDecoysNear(p,r){for(const d of this.decoys)if(d.alive&&foe(p,d)&&Math.hypot(d.x-p.x,d.z-p.z)<r)this.popDecoy(d)}
   popDecoy(d){if(!d.alive)return;d.alive=false;d.life=0;this.ev(['decoy',d.id,r2(d.x),r2(d.z),d.boom?1:0]);
@@ -1094,7 +1108,7 @@ class Game{
         if(!dead)for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0||q.eatT>0)continue;const dx=q.x-b.x,dz=q.z-b.z;
           if(dx*dx+dz*dz<(b.r+PR)**2){if(pierce){if(b.hit.has(q.id))continue;b.hit.add(q.id)}else if(b.hit&&b.hit.has(q.id))continue;
             if(b.type==='gulp'){if(own)this.eatOn(own,q,b.eatDmg);dead=true;this.ev(['pop','gulp',r2(b.x),r2(b.z)]);break}
-            this.damage(q,b.dmg,own);
+            this.damage(q,b.dmg,own);if(b.type==='cutlet')b.hitQ=q.id;
             if(b.type==='fire')this.burnOn(q,own);else if(b.type==='mallow')q.slowT=Math.max(q.slowT,own&&own.tal==='a'?3:1.5);
             else if(b.type==='nori'&&q.alive)q.rootT=Math.max(q.rootT,own&&own.tal==='a'?2:1.2);
             else if(b.type==='ice'&&q.alive)this.chillOn(q,own,1);
@@ -1108,7 +1122,7 @@ class Game{
             if(!pierce){if(b.pierceN>0){b.pierceN--;(b.hit=b.hit||new Set()).add(q.id);continue}dead=true;this.ev(['pop',b.type,r2(b.x),r2(b.z)]);break}}}
         if(!dead&&isB&&b.ret&&b.dist>b.range*3.5){dead=true;this.ev(['pop',b.type,r2(b.x),r2(b.z)])}
         if(!dead&&b.dist>=b.range&&!(isB&&b.ret)){if(isB){b.ret=true;b.hit=new Set()}else{dead=true;if(b.type==='shuri')this.addTrap(b,b.x,b.z);else this.ev(['pop',b.type,r2(b.x),r2(b.z)])}}}
-      if(!dead)out.push(b);else if(b.type==='curry')this.curryBoom(b,own);else if(b.type==='stink'){this.puddles.push({id:this.nid++,kind:8,owner:b.owner,x:b.x,z:b.z,r:1.6,life:b.clife,max:b.clife,tick:0,dmg:b.cdmg});this.ev(['land','stink',r2(b.x),r2(b.z),1.6])}}
+      if(!dead)out.push(b);else if(b.type==='curry')this.curryBoom(b,own);else if(b.type==='cutlet'&&own)this.cutletSplit(b,own);else if(b.type==='stink'){this.puddles.push({id:this.nid++,kind:8,owner:b.owner,x:b.x,z:b.z,r:1.6,life:b.clife,max:b.clife,tick:0,dmg:b.cdmg});this.ev(['land','stink',r2(b.x),r2(b.z),1.6])}}
     this.proj=out}
   stepTraps(dt){const out=[];
     for(const t of this.traps){t.life-=dt;if(t.life<=0)continue;let used=false;const own=this.players[t.owner];
@@ -1125,7 +1139,10 @@ class Game{
       if(u.life<=0)continue;u.tick-=dt;const tick=u.tick<=0;if(tick)u.tick=.5;const own=this.players[u.owner];
       if(u.kind===2){if(tick)for(const q of this.players){if(!q.alive||!own||(q!==own&&(q.team==null||q.team!==own.team)))continue;
           if(Math.hypot(q.x-u.x,q.z-u.z)<u.r&&q.hp<q.maxHp){const h=Math.round(q.maxHp*u.heal);q.hp=Math.min(q.maxHp,q.hp+h);q.burnT=0;this.ev(['heal',q.id,h])}}out.push(u);continue}
-      for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0)continue;const ux=u.x-q.x,uz=u.z-q.z,ud=Math.hypot(ux,uz);if(ud<u.r){if(u.kind===1)q.inkT=.6;else if(u.kind===7){if(q.rollT<=0&&q.dashT<=0&&q.leapT<=0&&ud>.4){const mvx=ux/ud*u.pull*dt,mvz=uz/ud*u.pull*dt;q.x+=mvx;q.z+=mvz;resolveOn(this.M,this.crates,q,PR,this.bx,this.bz,this.walls)}}else if(u.kind!==8&&u.kind!==10)q.slowT=Math.max(q.slowT,u.slow||.3);
+      if(u.kind===11&&tick&&own)for(const q of this.players){if(!q.alive||(q!==own&&(q.team==null||q.team!==own.team)))continue;
+          if(Math.hypot(q.x-u.x,q.z-u.z)<u.r&&q.hp<q.maxHp){const h=Math.round(q.maxHp*u.heal);q.hp=Math.min(q.maxHp,q.hp+h);this.ev(['heal',q.id,h])}}
+      for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0)continue;const ux=u.x-q.x,uz=u.z-q.z,ud=Math.hypot(ux,uz);if(ud<u.r){if(u.kind===1)q.inkT=.6;else if(u.kind===7||u.pull){if(q.rollT<=0&&q.dashT<=0&&q.leapT<=0&&ud>.4){const mvx=ux/ud*u.pull*dt,mvz=uz/ud*u.pull*dt;q.x+=mvx;q.z+=mvz;resolveOn(this.M,this.crates,q,PR,this.bx,this.bz,this.walls)}}else if(u.kind!==8&&u.kind!==10)q.slowT=Math.max(q.slowT,u.slow||.3);
+        if(u.kind===11)q.slowT=Math.max(q.slowT,u.slow||.5);
         if(u.root&&q.leapT<=0&&!u.rooted.has(q.id)){u.rooted.add(q.id);q.rootT=Math.max(q.rootT,u.root)}
         if(tick){this.damage(q,u.dmg,own);if(u.kind===6&&q.alive)this.burnOn(q,own)}}}
       out.push(u)}
@@ -1308,7 +1325,8 @@ const ALT={apple:{body:0x86d93a,hi:0xb8f06a,leaf:0xffc21f},sushi:{fish:0xd8263a,
   strawberry:{body:0xfff4f6,seed:0xff3a4a,leaf:0xffc21f},cakeroll:{sponge:0x5a3a1a,cream:0xfff8ea,swirl:0xffc21f},riceball:{rice:0xffc8d8,nori:0xffc21f},
   lobster:{shell:0x2a5ad8,claw:0xffc21f},duck:{skin:0xffc21f,beak:0xff4f38},stinkytofu:{tofu:0x3a3a3a,cab:0xffc21f},shaveice:{ice:0xffd6f0,syrup:0x3fae4a},
   chocofountain:{choc:0xfff4e0,drip:0xff9fcf},eggtart:{shell:0x5a3a1a,custard:0xffc21f},rainbowcake:{frost:0x2a2a3a,top:0xffc21f},hotpotking:{pot:0xffc21f,crown:0xff4f38},
-  burger:{bun:0x5a3a1a,band:0xffc21f},fries:{box:0xffc21f,fry:0xffe680,glove:0x2a5ad8}};
+  burger:{bun:0x5a3a1a,band:0xffc21f},fries:{box:0xffc21f,fry:0xffe680,glove:0x2a5ad8},
+  cutlet:{crust:0x8a3a1a,hi:0xffc21f,bag:0xff2d7a},braisedrice:{bowl:0xffc21f,rim:0xff2d7a,meat:0x3a1a0a}};
 function makeChar(ch,alt,acc){
   const group=new THREE.Group(),body=new THREE.Group();group.add(body);
   const mats=[],out=OUT();mats.push(out);const A=alt?ALT[ch]:null;
@@ -1428,7 +1446,19 @@ function makeChar(ch,alt,acc){
       ey=1.28;ez=.56;ex=.2;armX=.68;top=1.75;break}
     case'fries':{part(GEO.cup,mk(A?A.box:0xe8261b),0,1.0,0,.55,1.05,.4,1.06);part(GEO.box,mk(0xffffff),0,.72,.36,.5,.07,.02);
       const fr=mk(A?A.fry:0xffd23a);for(let i=0;i<10;i++){const x=-.4+(i%5)*.2,z=i<5?.1:-.12;const f=part(GEO.box,fr,x,1.7+((i*7)%3)*.08,z,.12,.75,.12,1.08);f.rotation.z=(i%5-2)*.08}
-      ey=1.15;ez=.42;ex=.18;armX=.6;top=2.15;break}}
+      ey=1.15;ez=.42;ex=.18;armX=.6;top=2.15;break}
+    case'cutlet':{part(GEO.cup,mk(A?A.bag:0xf4ead2),0,.8,0,.52,.62,.3,1.06);part(GEO.box,mk(0xe8261b),0,.78,.25,.62,.12,.03);
+      const cr=mk(A?A.crust:0xd98a2a),hi=mk(A?A.hi:0xf0b04a),pp=mk(0x3a2414);part(GEO.ico,cr,0,1.45,0,.74,.8,.22,1.06);
+      for(let i=0;i<18;i++){const a=i*2.4,r=.18+(i%5)*.11,x=Math.sin(a)*r*.95,y=1.45+Math.cos(a)*r*1.05;if(Math.abs(x)<.4&&y>1.32&&y<1.62)continue;part(GEO.ico0,hi,x,y,.16,.09,.08,.07)}
+      for(let i=0;i<10;i++){const a=i*1.9+.5,r=.15+(i%4)*.13;part(GEO.sph,pp,Math.sin(a)*r,1.45+Math.cos(a)*r*1.1,.2,.025,.025,.02)}
+      ey=1.47;ez=.22;ex=.2;armX=.78;top=2.3;break}
+    case'braisedrice':{const bw=part(GEO.dome,mk(A?A.bowl:0xffffff),0,1.0,0,.7,.52,.7,1.06);bw.rotation.x=Math.PI;part(GEO.cyl16,mk(A?A.rim:0x2a5ad8),0,.98,0,.71,.05,.71);
+      part(GEO.cyl16,mk(A?A.rim:0x2a5ad8),0,.6,0,.38,.03,.38);part(GEO.dome,mk(0xfffaf0),0,1.0,0,.66,.5,.66,1.04);
+      const mt=mk(A?A.meat:0x6a2e10);part(GEO.dome,mt,0,1.18,0,.56,.34,.56,1.04);for(let i=0;i<10;i++){const a=i*2.3,r=.08+(i%3)*.13;part(GEO.ico0,mk(0x9a5222),Math.sin(a)*r,1.47-r*.35,Math.cos(a)*r,.09,.06,.09)}
+      const eg=part(GEO.sph,mk(0x8a5226),.3,1.52,-.18,.24,.18,.26,1.06);eg.rotation.z=-.3;part(GEO.sph,mk(0xffc21f),.34,1.6,-.15,.1,.05,.1);
+      const rd=part(GEO.box,mk(0xffd23a),-.32,1.5,-.18,.34,.06,.14,1.08);rd.rotation.z=.35;rd.rotation.y=.4;
+      for(let i=0;i<4;i++){const c=part(GEO.cone5,mk(0x3fae4a),-.08+i*.08,1.62,-.05-i*.04,.05,.16,.05);c.rotation.z=(i-1.5)*.4}
+      ey=.86;ez=.66;ex=.22;armY=.8;armX=.74;top=1.85;break}}
   /* 眼睛貼在身體表面：從正前方往後打一條線，找到身體表面再放眼睛，左右才會對稱、不會陷進去 */
   const eyeZ=[ez,ez];try{group.updateMatrixWorld(true);const rc=new THREE.Raycaster(),solid=body.children.filter(m=>m.isMesh&&m.material!==out),dir=new THREE.Vector3(0,0,-1);
     [-1,1].forEach((s,i)=>{rc.set(new THREE.Vector3(s*ex,ey,5),dir);const h=rc.intersectObjects(solid,false)[0];const z=h&&h.point?+h.point.z:NaN;if(z>ez-.3&&z<ez+.4)eyeZ[i]=z-.015})}catch(e){}
@@ -1498,6 +1528,10 @@ function makeProj(type,o){const g=new THREE.Group();
     case'tart':case'tartback':{const s=type==='tart'?1:.6;const t2=new THREE.Mesh(GEO.cyl16,lam(0xd9862a));t2.scale.set(.32*s,.1*s,.32*s);g.add(t2);const c=new THREE.Mesh(GEO.cyl16,lam(0xffe04a));c.scale.set(.26*s,.11*s,.26*s);c.position.y=.01;g.add(c);break}
     case'rbw':{const cs=[0xff4a4a,0xff9a2a,0xffe23a,0x5fd04a,0x3a8bff,0x4a3ab8,0x9a5ae8],ci=o?(o.ci??o.r??0)|0:0;ball(cs[ci%7],.26,true);const h=ball(0xffffff,.1,true);h.position.set(.08,.1,0);break}
     case'broth':{ball(0xff6a2a,.22,true);ball(0xffd84a,.1,true).position.y=.05;break}
+    case'cutlet':case'bigcut':{const k=type==='bigcut'?6:1;const c1=new THREE.Mesh(GEO.ico,lam(0xd98a2a));c1.scale.set(.5*k,.1*k,.42*k);g.add(c1);
+      for(let i=0;i<6;i++){const bp=new THREE.Mesh(GEO.ico0,lam(0xf0b04a));bp.scale.setScalar(.09*k);bp.position.set(Math.sin(i*2.4)*.3*k,.07*k,Math.cos(i*2.4)*.25*k);g.add(bp)}break}
+    case'nugget':{const n1=new THREE.Mesh(GEO.ico0,lam(0xe8a040));n1.scale.set(.2,.15,.18);g.add(n1);break}
+    case'lurou':{const bw=new THREE.Mesh(GEO.dome,lam(0xffffff));bw.scale.set(.32,.24,.32);bw.rotation.x=Math.PI;g.add(bw);const mt=new THREE.Mesh(GEO.dome,lam(0x6a2e10));mt.scale.set(.28,.14,.28);g.add(mt);break}
     case'patty':{const p2=new THREE.Mesh(GEO.cyl16,lam(0x6a3a1a));p2.scale.set(.36,.12,.36);g.add(p2);const c=new THREE.Mesh(GEO.box,lam(0xffd23a));c.scale.set(.46,.03,.46);c.rotation.y=.78;c.position.y=.07;g.add(c);break}
     case'glove':{const gl=new THREE.Mesh(GEO.sph,lam(0xe8261b));gl.scale.set(.34,.3,.38);g.add(gl);const cf=new THREE.Mesh(GEO.cyl8,lam(0xffffff));cf.scale.set(.2,.15,.2);cf.rotation.x=Math.PI/2;cf.position.z=-.36;g.add(cf);break}
     case'nori':{const n=new THREE.Mesh(GEO.box,lam(0x1f2b1e));n.scale.set(.6,.04,.6);g.add(n);const w=new THREE.Mesh(GEO.box,lam(0x3a5a2a));w.scale.set(.66,.03,.08);w.position.y=.02;g.add(w);const w2=w.clone();w2.rotation.y=Math.PI/2;g.add(w2);break}}
@@ -1518,8 +1552,8 @@ function makeBall(){const g=new THREE.Group(),r=new THREE.Group();g.add(r);
   const nori=new THREE.Mesh(GEO.cyl16,lam(0x1f2b1e));nori.scale.set(BALL_R*1.02,.5,BALL_R*1.02);nori.rotation.z=Math.PI/2;r.add(nori);
   for(let i=0;i<6;i++){const s=new THREE.Mesh(GEO.sph,lam(0xff6a3a));s.scale.setScalar(.09);const a=i*1.1,b=i*.7;s.position.set(Math.cos(a)*Math.sin(b+1)*BALL_R,Math.cos(b+1)*BALL_R,Math.sin(a)*Math.sin(b+1)*BALL_R);r.add(s)}
   g.userData.roll=r;return g}
-const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff]];
-const LANDCOL={butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a};
+const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff],[0x5a2a10,.7,0xa8642a]];
+const LANDCOL={butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,cutlet:0xf0b04a};
 function beltTex(alongX){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#2e2e36';x.fillRect(0,0,64,64);x.fillStyle='#4a4a58';
   for(let i=0;i<4;i++){if(alongX)x.fillRect(i*16,0,6,64);else x.fillRect(0,i*16,64,6)}x.fillStyle='#ffffff';x.globalAlpha=.25;if(alongX){x.fillRect(0,2,64,2);x.fillRect(0,60,64,2)}else{x.fillRect(2,0,2,64);x.fillRect(60,0,2,64)}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
@@ -1692,7 +1726,7 @@ class View{
     this.syncSet(this.bm,st.proj,b=>makeProj(b.type,b),(m,b)=>{const y=b.h>0?.7+b.h:b.type==='big'?1:b.type==='juice'?.8:.9;m.position.set(b.x,y,b.z);
       if(b.type==='slice'||b.type==='shuri')m.rotation.y+=dt*(b.type==='shuri'?18:10);if(b.type==='boom')m.rotation.y+=dt*16;if(b.type==='tako')m.rotation.y+=dt*4;if(b.type==='sausage'||b.type==='sprinkle')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.h>0)m.rotation.x+=dt*6;
       if(b.type==='big'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*9}
-      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart')m.rotation.y+=dt*15;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
+      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart'||b.type==='cutlet'||b.type==='nugget')m.rotation.y+=dt*15;if(b.type==='bigcut')m.rotation.y+=dt*4;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
       if(b.type==='cake'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*7;const s=(b.r||.35)/.35;m.scale.setScalar(s);m.position.y=.35*s}});
     this.syncSet(this.tm,st.traps,o=>{if(o.kind===1)return makePeel();if(o.kind===2)return makeMine();const g=makeProj('shuri');g.scale.setScalar(.85);return g},(m,o)=>{m.position.set(o.x,o.kind===2?.02:.08,o.z);if(o.kind!==2)m.rotation.y+=dt*1.5;m.visible=o.life>.8||Math.floor(t*8)%2===0});
     this.syncSet(this.um,st.puddles,o=>{const pc=PCOL[o.kind|0]||PCOL[0],g=new THREE.Group();const d=new THREE.Mesh(GEO.disc,basic(pc[0],pc[1]));d.rotation.x=-Math.PI/2;g.add(d);
@@ -1939,7 +1973,7 @@ function finish(res){if(mode!=='game')return;ended=true;
 function leaveMatch(){clearTimeout(resTimer);resTimer=0;if(online)netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu')}
 function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
 function feed(html){const d=document.createElement('div');d.innerHTML=html;const f=$('#feed');f.prepend(d);while(f.children.length>4)f.lastChild.remove();setTimeout(()=>d.remove(),4500)}
-const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e};
+const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e,cutlet:0xf0b04a,nugget:0xf0b04a};
 function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.players[meId];
   for(const e of evs){const ty=e[0];
     if(ty==='hit'){const q=st.players[e[1]];if(!q)continue;const o=view.pm.get(q.id);if(o)o.flash=.08;
@@ -2084,7 +2118,7 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'']);
   players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz})}});
   pendingEv=[];beginMatch(cfg,0,true)}
-const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp'];
+const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou'];
 function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT)),
   P:g.players.map(p=>[p.id,r2(p.x),r2(p.z),r2(p.ang),Math.round(p.hp),p.maxHp,p.alive?1:0,p.score,p.deaths,r2(p.ammo),r2(p.sup),
     (p.hidden?1:0)|(p.inv?2:0)|(p.slip?4:0)|(p.moving?8:0)|(p.slow?16:0)|(p.atk?32:0)|(p.out?64:0)|(p.burn?128:0)|(p.ink?256:0)|(p.roll?512:0)|(p.dash?1024:0)|(p.stun?2048:0)|(p.orbit?4096:0)|(p.giant?8192:0)|(p.thorn?16384:0)|(p.root?32768:0)|(p.spin?65536:0)|(p.leap?131072:0)|(p.frozen?262144:0)|(p.bliz?524288:0)|(p.shield?1048576:0)|(p.flur?2097152:0),p.power,r2(Math.max(0,p.respawnT)),p.lives,p.place,r2(p.h||0)]),
@@ -2261,13 +2295,13 @@ function rvDone(){if(!rv)return;const o=rv;rvClear();rv=null;showScreen(o.back);
 $('#reveal').addEventListener('click',e=>{if(rv&&rv.phase===0&&!e.target.closest('button'))rvOpen()});
 $('#rvOk').addEventListener('click',rvDone);
 $('#rvMore').addEventListener('click',()=>{if(!rv||save.chests<=0)return;const r=openChest();startReveal(Object.assign({kind:'chest'},r))});
-function openChest(){let r=Math.random()*100,tier=0;for(let i=0;i<4;i++){if(r<CHEST_W[i]){tier=i;break}r-=CHEST_W[i]}
+function openChest(){let r=Math.random()*100,tier=0;for(let i=0;i<CHEST_W.length;i++){if(r<CHEST_W[i]){tier=i;break}r-=CHEST_W[i]}
   const pool=CH_IDS.filter(id=>CHARS[id].tier===tier);const id=pool[Math.floor(Math.random()*pool.length)];const coins=rndi(30,80);save.coins+=coins;
   let res;if(!save.owned.includes(id)){save.owned.push(id);res={id,isNew:true,coins}}else{const n=SHARDS_PER[tier];save.shards[id]+=n;res={id,shards:n,coins}}
   save.chests--;persist();return res}
 function chestSheet(last){const C=last&&CHARS[last.id],T=C&&TIERS[C.tier];
   const top=last?`<div class="chres" style="--tc:${T.col}"><div class="tier">${T.name}</div><div class="big">${last.isNew?'新角色！':'碎片'}</div><div class="nm">${C.name}${last.isNew?'':' 碎片 ×'+last.shards}</div><div class="cn">${coinIc} +${last.coins}</div></div>`
-    :`<p class="sp">寶箱裡可能是新角色，已經有的角色會變成升級用的碎片。<br>機率：普通 ${CHEST_W[0]}%、稀有 ${CHEST_W[1]}%、史詩 ${CHEST_W[2]}%、傳說 ${CHEST_W[3]}%</p>`;
+    :`<p class="sp">寶箱裡可能是新角色，已經有的角色會變成升級用的碎片。<br>機率：普通 ${CHEST_W[0]}%、稀有 ${CHEST_W[1]}%、史詩 ${CHEST_W[2]}%、傳說 ${CHEST_W[3]}%、夢幻 ${CHEST_W[4]}%</p>`;
   return top+`<p class="sp">有 <b>${save.chests}</b> 個寶箱。前 3 名、足球贏球、每打 5 場都會送寶箱。</p><div class="row2"><button class="btn main" data-act="open" ${save.chests>0?'':'disabled'}>打開寶箱</button><button class="btn blue" data-act="buyc" ${save.coins>=CHEST_PRICE?'':'disabled'}>買一個 ${coinIc} ${CHEST_PRICE}</button></div>`}
 $('#mbChest').addEventListener('click',()=>openSheet('寶箱',chestSheet(null)));
 function taskSheet(){ensureDaily();return'<ul class="tasks">'+save.daily.list.map((m,i)=>{const done=m.p>=m.t;const rw=m.rw==='chest'?'寶箱 ×1':`${coinIc} ${m.rw}`;
@@ -2314,7 +2348,7 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
     (!soccer?`<div class="chips">${chipsHTML('地圖','map',[['rand','隨機'],...MAP_POOL.map(k=>[k,MAPS[k].name])],o.map,!host)}</div>`:'');
   const rm=$('#rMy'),mc=roomCh();rm.hidden=o.rc==='rand'||!(host||NET.joined);rm.innerHTML=`<i class="rmi" style="${avStyle(mc)}"></i><span>我的角色：${CHARS[mc].name} ›</span>`;
   const sb=$('#rStart');sb.hidden=!host;sb.disabled=!(NET.peer&&NET.peer.open)}
-/* ---- 房間裡選角色：全部 36 隻都能選（沒擁有的只限這一場），也可以指定稀有度抽一隻 ---- */
+/* ---- 房間裡選角色：全部角色都能選（沒擁有的只限這一場），也可以指定稀有度抽一隻 ---- */
 function rSetCh(id){if(!CHARS[id])return;NET.myCh=id;if(NET.host)broadcastLobby();else sendHello();renderRoom()}
 function rpickSheet(){sheetKind='rpick';const cur=roomCh();
   const grid=TIERS.map((T,ti)=>`<div class="rgh" style="--tc:${T.col}">${T.name}</div><div class="rgg">${CH_IDS.filter(id=>CHARS[id].tier===ti).map(id=>`<button class="rgc${id===cur?' on':''}${save.owned.includes(id)?'':' no'}" data-act="rset" data-v="${id}" style="--tc:${T.col}"><i style="${avStyle(id)}"></i><b>${CHARS[id].name}</b>${save.owned.includes(id)?'':'<em>未擁有</em>'}</button>`).join('')}</div>`).join('');

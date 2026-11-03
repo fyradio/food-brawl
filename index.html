@@ -390,6 +390,9 @@ button,input{font:inherit;color:inherit}
 @media (max-height:460px){.rvTag{font-size:30px}.rvName{font-size:32px}.rvShard,.rvCoin{font-size:18px}#rvChest{transform:scale(.8)}.rvBtns .btn.big{font-size:22px;padding:.3em 1em}}
 @media (prefers-reduced-motion:reduce){#rvBg .rays,#rvChest.shake,.rvHint{animation:none}}
 
+/* 頭像尺寸 */
+.pc .dot{width:46px;height:46px}.slots li i{width:22px;height:22px}.rlist li i{width:20px;height:20px}
+@media (max-height:460px){.pc .dot{width:36px;height:36px}}
 /* v0.6.2 大廳小按鈕放大 */
 #menu .mbtns{gap:8px}
 #menu .mbtns .chip{font-family:var(--f-disp);font-size:19px;min-height:50px;min-width:70px;padding:0 16px;border:3px solid var(--ink);border-radius:12px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),0 4px 0 var(--ink);text-shadow:0 2px 0 rgba(0,0,0,.3)}
@@ -537,7 +540,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.6.4</span>
+<span class="ver">v0.6.5</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1241,7 +1244,12 @@ let R=null;
 const GEO={},MATC=new Map();
 function initGeo(){GEO.box=new THREE.BoxGeometry(1,1,1);GEO.cyl6=new THREE.CylinderGeometry(1,1,1,6);GEO.cyl8=new THREE.CylinderGeometry(1,1,1,8);GEO.cyl16=new THREE.CylinderGeometry(1,1,1,16);
   GEO.cone6=new THREE.ConeGeometry(1,1,6);GEO.cone5=new THREE.ConeGeometry(1,1,5);GEO.sph=new THREE.SphereGeometry(1,8,6);GEO.ico=new THREE.IcosahedronGeometry(1,1);GEO.ico0=new THREE.IcosahedronGeometry(1,0);
-  GEO.half=new THREE.CylinderGeometry(1,1,1,8,1,false,0,Math.PI);GEO.disc=new THREE.CircleGeometry(1,20);GEO.ring=new THREE.RingGeometry(.88,1,28);GEO.dome=new THREE.SphereGeometry(1,12,6,0,TAU,0,Math.PI/2);GEO.cup=new THREE.CylinderGeometry(1,.82,1,14);GEO.torus=new THREE.TorusGeometry(1,.05,4,24);GEO.torusD=new THREE.TorusGeometry(.5,.24,8,16);GEO.tri=new THREE.CylinderGeometry(1,1,1,3)}
+  GEO.half=new THREE.CylinderGeometry(1,1,1,8,1,false,0,Math.PI);GEO.disc=new THREE.CircleGeometry(1,20);GEO.ring=new THREE.RingGeometry(.88,1,28);GEO.dome=new THREE.SphereGeometry(1,12,6,0,TAU,0,Math.PI/2);GEO.cup=new THREE.CylinderGeometry(1,.82,1,14);GEO.torus=new THREE.TorusGeometry(1,.05,4,24);GEO.torusD=new THREE.TorusGeometry(.5,.24,8,16);GEO.tri=new THREE.CylinderGeometry(1,1,1,3);
+  /* 香蕉：沿一條彎曲的線做管子，兩端越來越細（不再是三顆球） */
+  const bananaGeo=extra=>{const cur=new THREE.CatmullRomCurve3([[.26,.34],[.05,.72],[-.03,1.12],[.03,1.5],[.2,1.82],[.34,2.0]].map(([x,y])=>new THREE.Vector3(x,y,0)));const TS=28,RS=10,g=new THREE.TubeGeometry(cur,TS,1,RS,false),pos=g.attributes.position;
+    for(let i=0;i<=TS;i++){const u=i/TS,c=cur.getPointAt(u),r=.06+.31*Math.pow(Math.sin(Math.PI*u),.65)+extra;for(let j=0;j<=RS;j++){const k=i*(RS+1)+j;pos.setXYZ(k,c.x+(pos.getX(k)-c.x)*r,c.y+(pos.getY(k)-c.y)*r,c.z+(pos.getZ(k)-c.z)*r*.92)}}
+    pos.needsUpdate=true;g.computeVertexNormals();return g};
+  GEO.banana=bananaGeo(0);GEO.bananaO=bananaGeo(.035)}
 function lam(c){const k='L'+c;if(!MATC.has(k))MATC.set(k,new THREE.MeshLambertMaterial({color:c,flatShading:true}));return MATC.get(k)}
 function basic(c,op){const m=new THREE.MeshBasicMaterial({color:c});if(op!==undefined){m.transparent=true;m.opacity=op;m.depthWrite=false}return m}
 const OUT=()=>new THREE.MeshBasicMaterial({color:0x14100c,side:THREE.BackSide});
@@ -1284,8 +1292,9 @@ function makeChar(ch,alt,acc){
       part(GEO.cyl6,mk(A?0xd99a10:0x3f7f20),0,2.04,0,.07,.24,.07);part(GEO.ico,mk(A?A.hi:0x8a52b8),-.18,1.45,.36,.12,.18,.07);ey=1.2;ez=.43;ex=.18;armX=.48;top=2.0;break;
     case'chili':part(GEO.ico,mk(A?A.body:0xe8261b),0,1.1,0,.42,.78,.42,1.07).rotation.z=.1;part(GEO.cone6,mk(A?A.cap:0x3f9a2a),0,1.85,0,.33,.22,.33,1.1).rotation.x=Math.PI;
       part(GEO.cyl6,mk(0x2f7a1f),.08,2.03,0,.05,.26,.05).rotation.z=-.6;part(GEO.ico,mk(A?A.hi:0xff7a6a),-.14,1.38,.3,.08,.22,.05);ey=1.22;ez=.36;ex=.15;armX=.42;top=1.98;break;
-    case'banana':{const y=mk(A?A.body:0xffd83a);part(GEO.ico,y,0,1.08,0,.38,.5,.38,1.08);part(GEO.ico,y,.13,1.56,-.03,.3,.38,.3,1.08).rotation.z=-.4;part(GEO.ico,y,.15,.66,-.03,.3,.32,.3,1.08).rotation.z=.4;
-      part(GEO.cyl6,mk(A?A.tip:0x5a3a12),.33,1.98,0,.07,.2,.07).rotation.z=-.7;part(GEO.sph,mk(0x6b4a1a),.25,.36,0,.07,.07,.07);ey=1.15;ez=.33;ex=.13;armX=.42;top=1.98;break}
+    case'banana':{const bm=new THREE.MeshLambertMaterial({color:A?A.body:0xffd83a});mats.push(bm);const bb=new THREE.Mesh(GEO.banana,bm);bb.castShadow=true;body.add(bb);body.add(new THREE.Mesh(GEO.bananaO,out));
+      const st=part(GEO.cyl6,mk(A?A.tip:0x6b4a1a),.37,2.06,0,.06,.18,.06,1.15);st.rotation.z=-.75;part(GEO.sph,mk(0x5a3a12),.27,.33,0,.065,.06,.065);
+      ey=1.18;ez=.3;ex=.13;armX=.4;top=2.0;break}
     case'avocado':part(GEO.ico,mk(A?A.skin:0x2f5f22),0,1.05,-.05,.6,.72,.5,1.07);part(GEO.ico,mk(A?A.flesh:0xcfe68a),0,1.05,.1,.52,.64,.42);part(GEO.ico,mk(A?A.pit:0x7a4a22),0,.9,.42,.24,.26,.16);
       ey=1.38;ez=.44;ex=.17;top=1.78;break;
     case'takoyaki':{part(GEO.ico,mk(A?A.body:0xc0702a),0,1.0,0,.6,.56,.6,1.07);part(GEO.ico,mk(A?A.sauce:0x5a2a0e),0,1.24,0,.55,.3,.55);
@@ -1307,7 +1316,7 @@ function makeChar(ch,alt,acc){
       part(GEO.cyl6,mk(0x6b3b17),0,1.7,0,.05,.18,.05);ey=1.12;ez=.58;ex=.22;top=1.72;break}
     case'hotdog':{const bun=mk(A?A.bun:0xe0a45a);part(GEO.ico,bun,-.21,1.0,0,.28,.62,.35,1.06);part(GEO.ico,bun,.21,1.0,0,.28,.62,.35,1.06);
       part(GEO.cyl8,mk(A?A.sausage:0xc0452a),0,1.1,0,.2,1.45,.2,1.06);const ms=mk(0xffd21f);for(let i=0;i<4;i++)part(GEO.box,ms,(i%2?.05:-.05),.62+i*.2,.2,.12,.05,.04);
-      ey=1.42;ez=.2;ex=.08;armX=.5;top=1.88;break}
+      ey=1.68;ez=.2;ex=.09;armX=.5;top=1.88;break}
     case'donut':{const d=new THREE.Mesh(GEO.torusD,mk(A?A.dough:0xd9a05b));d.position.set(0,1.05,0);d.castShadow=true;body.add(d);const o=new THREE.Mesh(GEO.torusD,out);o.scale.setScalar(1.06);d.add(o);
       const ic=new THREE.Mesh(GEO.torusD,mk(A?A.icing:0xff8fc0));ic.position.set(0,1.05,.08);ic.scale.set(1.02,1.02,.8);body.add(ic);
       const spc=[0xffffff,0x6ad0ff,0xffe23a,0x7ae05a];for(let i=0;i<10;i++){const a=i*TAU/10;part(GEO.box,mk(spc[i%4]),Math.cos(a)*.5,1.05+Math.sin(a)*.5,.3,.09,.03,.03).rotation.z=a}
@@ -1360,7 +1369,7 @@ function makeChar(ch,alt,acc){
       const cb=mk(A?A.cab:0xd8f0a0);for(let i=0;i<5;i++)part(GEO.box,cb,-.3+i*.15,1.58,(i%2)*.15-.08,.16,.08,.3).rotation.y=i;part(GEO.cyl6,mk(0xf0d8a0),.25,1.8,0,.03,.5,.03).rotation.z=-.3;
       ey=1.1;ez=.47;ex=.2;armX=.56;top=1.7;break}
     case'shaveice':{part(GEO.dome,mk(0xbfe0ff),0,.82,0,.62,.4,.62,1.05).rotation.x=Math.PI;part(GEO.cone6,mk(A?A.ice:0xffffff),0,1.32,0,.62,1.0,.62,1.06);
-      part(GEO.cone6,mk(A?A.syrup:0xff3a5a),0,1.66,0,.36,.34,.36);part(GEO.torus,mk(0xfff6d8),0,1.38,0,.48,1,.48);
+      part(GEO.cone6,mk(A?A.syrup:0xff3a5a),0,1.66,0,.36,.34,.36);part(GEO.torus,mk(0xfff6d8),0,1.38,0,.5,.5,.5).rotation.x=Math.PI/2;
       ey=1.15;ez=.4;ex=.18;armY=.9;armX=.62;top=1.88;break}
     case'chocofountain':{const ch=mk(A?A.choc:0x6a3a1a);part(GEO.cyl16,ch,0,.75,0,.66,.34,.66,1.06);part(GEO.cyl16,ch,0,1.15,0,.48,.32,.48,1.06);part(GEO.cyl16,ch,0,1.5,0,.3,.3,.3,1.06);
       part(GEO.sph,mk(A?A.drip:0x8a4a1a),0,1.75,0,.22,.2,.22,1.08);const dr=mk(A?A.drip:0x4a2410);for(let i=0;i<8;i++){const a=i*TAU/8;part(GEO.box,dr,Math.sin(a)*.62,.78,Math.cos(a)*.62,.07,.3,.07)}
@@ -1381,11 +1390,11 @@ function makeChar(ch,alt,acc){
       part(GEO.dome,bun,0,1.16,0,.64,.55,.64,1.06);const ss=mk(0xfff4d8);for(let i=0;i<7;i++){const a=i*2.3,r=.25+(i%3)*.1;part(GEO.box,ss,Math.sin(a)*r,1.66-r*.25,Math.cos(a)*r*.6-.1,.06,.03,.1).rotation.y=a}
       const bd=mk(A?A.band:0xe8261b);part(GEO.cyl16,bd,0,1.47,0,.54,.12,.54,1.03);for(const s of[-1,1]){const tl=part(GEO.box,bd,s*.16,1.36,-.62,.1,.36,.06,1.08);tl.rotation.z=s*.5;tl.rotation.x=-.4}
       ey=1.28;ez=.56;ex=.2;armX=.68;top=1.75;break}
-    case'fries':{part(GEO.cup,mk(A?A.box:0xe8261b),0,1.0,0,.55,1.05,.4,1.06);part(GEO.box,mk(0xffffff),0,1.1,.41,.6,.08,.02);
+    case'fries':{part(GEO.cup,mk(A?A.box:0xe8261b),0,1.0,0,.55,1.05,.4,1.06);part(GEO.box,mk(0xffffff),0,.72,.36,.5,.07,.02);
       const fr=mk(A?A.fry:0xffd23a);for(let i=0;i<10;i++){const x=-.4+(i%5)*.2,z=i<5?.1:-.12;const f=part(GEO.box,fr,x,1.7+((i*7)%3)*.08,z,.12,.75,.12,1.08);f.rotation.z=(i%5-2)*.08}
       ey=1.15;ez=.42;ex=.18;armX=.6;top=2.15;break}}
   /* 眼睛貼在身體表面：從正前方往後打一條線，找到身體表面再放眼睛，左右才會對稱、不會陷進去 */
-  const eyeZ=[ez,ez];try{group.updateMatrixWorld(true);const rc=new THREE.Raycaster(),solid=body.children.filter(m=>m.isMesh),dir=new THREE.Vector3(0,0,-1);
+  const eyeZ=[ez,ez];try{group.updateMatrixWorld(true);const rc=new THREE.Raycaster(),solid=body.children.filter(m=>m.isMesh&&m.material!==out),dir=new THREE.Vector3(0,0,-1);
     [-1,1].forEach((s,i)=>{rc.set(new THREE.Vector3(s*ex,ey,5),dir);const h=rc.intersectObjects(solid,false)[0];const z=h&&h.point?+h.point.z:NaN;if(z>ez-.3&&z<ez+.4)eyeZ[i]=z-.015})}catch(e){}
   const fz=Math.max(eyeZ[0],eyeZ[1]);eyeZ[0]=eyeZ[1]=fz;ez=fz;
   [-1,1].forEach((s,i)=>{const e=part(GEO.sph,blk,s*ex,ey,eyeZ[i],.13,.15,.08);const hl=new THREE.Mesh(GEO.sph,wht);hl.position.set(.35,.4,.7);hl.scale.setScalar(.32);e.add(hl)});
@@ -1718,6 +1727,17 @@ function floatText(x,z,txt,cls){const el=document.createElement('div');el.classN
 function updFloaters(dt,cam){if(!_vv)_vv=new THREE.Vector3();for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.life-=dt;f.y+=dt*1.6;if(f.life<=0){f.el.remove();floaters.splice(i,1);continue}
   _vv.set(f.x,f.y,f.z).project(cam);f.el.style.transform=`translate(${((_vv.x*.5+.5)*innerWidth).toFixed(1)}px,${((-_vv.y*.5+.5)*innerHeight).toFixed(1)}px) translate(-50%,-50%) scale(${f.life>.6?1.3:1})`;f.el.style.opacity=Math.min(1,f.life*3)}}
 
+/* ================= 頭像：用真的 3D 模型拍一張小照片 ================= */
+const AVC=new Map();let avR=null,avS=null,avCam=null;
+function initAvatar(){try{const c=document.createElement('canvas');c.width=c.height=144;avR=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:true,preserveDrawingBuffer:true});avR.setClearColor(0x000000,0);
+  avS=new THREE.Scene();avS.add(new THREE.HemisphereLight(0xffffff,0xd0902a,.85));const d=new THREE.DirectionalLight(0xffffff,.75);d.position.set(2,4,5);avS.add(d);avCam=new THREE.PerspectiveCamera(30,1,.1,40)}catch(e){avR=null}}
+function avatar(ch){if(AVC.has(ch))return AVC.get(ch);if(!avR||!CHARS[ch])return null;let url=null;
+  try{const o=makeChar(ch,false,'');o.group.rotation.y=-.3;avS.add(o.group);o.group.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(o.group);
+    const y0=.5,y1=box.max.y+.08,w=Math.max(box.max.x-box.min.x,1),size=Math.max(y1-y0,w)*1.04,cy=(y0+y1)/2,dist=size/2/Math.tan(15*Math.PI/180);
+    avCam.position.set(0,cy+.25,dist);avCam.lookAt(0,cy,0);avR.render(avS,avCam);url=avR.domElement.toDataURL('image/png');avS.remove(o.group);for(const m of o.mats)m.dispose()}catch(e){url=null}
+  if(!url||url.length<200)url=null;AVC.set(ch,url);return url}
+function avStyle(ch){const u=AVC.get(ch);return u?`background:#fff7e2 url(${u}) center/cover`:`background:${(CHARS[ch]||CHARS.apple).col}`}
+function warmAvatars(){if(!avR)return;const ids=CH_IDS.slice();const step=()=>{for(let k=0;k<3&&ids.length;k++)avatar(ids.shift());if(ids.length)setTimeout(step,0);else if(mode==='pick'||mode==='menu')refreshUI()};setTimeout(step,0)}
 /* ================= 大廳 3D 展示 ================= */
 let menuScene,menuCam,menuChar=null,menuCharId='',menuPod;
 function initMenu3D(){menuScene=new THREE.Scene();menuCam=new THREE.PerspectiveCamera(32,1,.1,50);
@@ -1867,7 +1887,7 @@ function finish(res){if(mode!=='game')return;ended=true;
   $('#resChest').hidden=!chest;$('#resChestN').textContent='+'+chest;
   $('#resList').innerHTML=list.map((r,i)=>{const n=res.mode==='royale'?(r.place||1):res.mode==='soccer'?'':i+1;
     const sc=res.mode==='soccer'?`${r.goals||0} 球・${r.score} 殺`:res.mode==='royale'?`${r.score} 殺`:r.score;
-    return`<li class="${r.id===meId?'me':''}"><span class="n">${n}</span><i class="${r.team!=null?'t'+r.team:''}" style="background:${CHARS[r.ch].col}"></i><span class="nm"></span><span class="sc">${sc}</span></li>`}).join('');
+    return`<li class="${r.id===meId?'me':''}"><span class="n">${n}</span><i class="${r.team!=null?'t'+r.team:''}" style="${avStyle(r.ch)}"></i><span class="nm"></span><span class="sc">${sc}</span></li>`}).join('');
   [...$('#resList').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=list[i].name+(list[i].bot?'（電腦）':''));
   $('#resAgain').textContent=online?'回房間':'再玩一次';
   const mine=curState().players[meId];setMenuChar(mine.ch,mine.lvl>=10,mine.acc);
@@ -2091,15 +2111,15 @@ function renderMenuUI(){ensureDaily();topUI();
   $('#mbChest').innerHTML='寶箱'+(save.chests>0?`<i class="badge">${save.chests}</i>`:'');
   const claim=save.daily.list.filter(m=>m.p>=m.t&&!m.claimed).length;$('#mbTask').innerHTML='任務'+(claim?`<i class="badge">${claim}</i>`:'');
   const id=save.ch,C=CHARS[id],lv=save.lvl[id];
-  $('#mcDot').style.background=C.col;$('#mcName').textContent=C.name;$('#mcSub').textContent='Lv '+lv+'・'+TIERS[C.tier].name;
+  $('#mcDot').style.cssText=avStyle(id);$('#mcName').textContent=C.name;$('#mcSub').textContent='Lv '+lv+'・'+TIERS[C.tier].name;
   setMenuChar(id,lv>=10,accStr(id))}
 /* ---- 選角畫面 ---- */
 function renderPickUI(){topUI();
   const cnt=t=>CH_IDS.filter(id=>t==='all'||CHARS[id].tier===t).length;
   $('#pkTabs').innerHTML=[['all','全部'],...TIERS.map((T,i)=>[i,T.name])].map(([k,n])=>`<button class="chip${pickTier===k?' on':''}" data-pt="${k}">${n} ${cnt(k)}</button>`).join('');
-  const ids=CH_IDS.filter(id=>pickTier==='all'||CHARS[id].tier===pickTier);
+  const ids=CH_IDS.filter(id=>pickTier==='all'||CHARS[id].tier===pickTier).sort((a,b)=>(save.owned.includes(b)?1:0)-(save.owned.includes(a)?1:0));
   $('#pkGrid').innerHTML=ids.length?ids.map(id=>{const C=CHARS[id],own=save.owned.includes(id);
-    return`<button class="pc${id===viewCh?' on':''}${own?'':' locked'}" data-ch="${id}" style="--tc:${TIERS[C.tier].col}">${id===save.ch?'<em class="use">使用中</em>':''}<i class="dot" style="background:${C.col}"></i><b>${C.name}</b><small>${own?'Lv '+save.lvl[id]:'未解鎖'}</small></button>`}).join(''):'<p class="sp">這個稀有度還沒有食物，之後會加。</p>';
+    return`<button class="pc${id===viewCh?' on':''}${own?'':' locked'}" data-ch="${id}" style="--tc:${TIERS[C.tier].col}">${id===save.ch?'<em class="use">使用中</em>':''}<i class="dot" style="${avStyle(id)}"></i><b>${C.name}</b><small>${own?'Lv '+save.lvl[id]:'未解鎖'}</small></button>`}).join(''):'<p class="sp">這個稀有度還沒有食物，之後會加。</p>';
   const id=viewCh,C=CHARS[id],own=save.owned.includes(id),lv=save.lvl[id],T=TIERS[C.tier];
   $('#chName').textContent=C.name;$('#chTier').textContent=T.name;$('#chTier').style.background=T.col;$('#chRole').textContent=C.role;$('#chDesc').textContent=C.desc;
   $('#chStats').innerHTML=[['血量',C.stat[0],Math.round(C.hp*lvMul(lv))],['速度',C.stat[1],C.speed.toFixed(1)],['射程',C.stat[2],C.range],['彈藥',lvAmmo(lv),lvAmmo(lv)+' 格']].map(s=>`<span>${s[0]}</span><div class="bar"><i style="width:${Math.min(100,s[1]*20)}%"></i></div><b>${s[2]}</b>`).join('');
@@ -2230,7 +2250,7 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
   $('#rHint').textContent=host?'同一個 WiFi 的朋友打開這個遊戲 → 加入房間 → 輸入代碼'+(soccer?'。點玩家可以換隊':''):NET.joined?'等房主按開始…':'連線中…';
   const rows=[];if(m){rows.push({...m.host,tag:'房主',idx:-1});m.list.forEach((l,i)=>rows.push({...l,idx:i}))}
   const humans=rows.length,bots=Math.min(o.bots,8-humans);
-  let html=rows.map(r=>`<li class="${host&&soccer?'tap':''}" data-i="${r.idx}" ${host&&soccer?'tabindex="0"':''}><i style="background:${(CHARS[r.ch]||CHARS.apple).col}"></i><span class="nm"></span>${soccer?`<span class="team t${r.team|0}">${r.team?'藍隊':'紅隊'}</span>`:''}${r.tag?'<span class="tag">房主</span>':''}</li>`).join('');
+  let html=rows.map(r=>`<li class="${host&&soccer?'tap':''}" data-i="${r.idx}" ${host&&soccer?'tabindex="0"':''}><i style="${avStyle(r.ch)}"></i><span class="nm"></span>${soccer?`<span class="team t${r.team|0}">${r.team?'藍隊':'紅隊'}</span>`:''}${r.tag?'<span class="tag">房主</span>':''}</li>`).join('');
   for(let i=0;i<bots;i++)html+='<li class="bot">電腦</li>';for(let i=humans+bots;i<8;i++)html+='<li class="empty">空位</li>';
   $('#rSlots').innerHTML=html;
   [...$('#rSlots').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=rows[i].name+'・'+(CHARS[rows[i].ch]||CHARS.apple).name+(o.lv==='own'?' Lv'+rows[i].lvl:''));
@@ -2258,7 +2278,7 @@ function boot(){
   if(typeof THREE==='undefined'){$('#loading').textContent='3D 引擎載不進來，請連上網路再開一次';return}
   try{R=new THREE.WebGLRenderer({canvas:cvEl,antialias:true,alpha:true});}catch(e){$('#loading').textContent='這台裝置不支援 3D 畫面';return}
   R.setPixelRatio(Math.min(devicePixelRatio||1,1.75));R.setSize(innerWidth,innerHeight,false);R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.setClearColor(0x000000,0);
-  initGeo();initMenu3D();$('#loading').remove();showScreen('menu');requestAnimationFrame(frame)}
+  initGeo();initMenu3D();initAvatar();warmAvatars();$('#loading').remove();showScreen('menu');requestAnimationFrame(frame)}
 boot();
 </script>
 

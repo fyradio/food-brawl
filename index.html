@@ -105,6 +105,18 @@ button,input{font:inherit;color:inherit}
 
 /* ===== 房間 ===== */
 #room{display:flex}
+.rmy{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:16px;padding:.35em .8em;min-height:44px}
+.rmy .rmi{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--ink);flex:none;background-size:115%!important;background-position:50% 40%!important}
+.rgh{font-family:var(--f-disp);font-size:18px;color:var(--paper);background:var(--tc);border:2.5px solid var(--ink);border-radius:8px;padding:0 10px;margin-top:4px;width:fit-content;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.rgg{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
+.rgc{position:relative;border:3px solid var(--ink);border-radius:10px;background:#fff7e2;padding:0 0 4px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font:inherit;color:var(--ink);overflow:hidden;box-shadow:inset 0 -5px 0 var(--tc)}
+.rgc i{display:block;width:100%;aspect-ratio:1/1;background-size:115%!important;background-position:50% 40%!important}
+.rgc b{font-family:var(--f-disp);font-weight:400;font-size:14px;padding-bottom:5px}
+.rgc em{position:absolute;top:3px;left:3px;font-style:normal;font-size:10px;font-weight:900;background:var(--brown);color:var(--cream);border-radius:5px;padding:0 4px}
+.rgc.no i{filter:grayscale(.7) brightness(.9)}
+.rgc.on{border-color:var(--tomato);box-shadow:0 0 0 3px var(--tomato),inset 0 -5px 0 var(--tc)}
+@keyframes nudge{50%{transform:scale(1.06);box-shadow:0 0 18px 4px rgba(255,201,60,.9)}}
+#resAgain.nudge{animation:nudge .9s ease-in-out infinite}
 .roompanel{padding:14px 16px;width:min(680px,100%);display:grid;grid-template-columns:1.1fr 1fr;gap:10px 18px;margin:auto}
 .rleft{grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;justify-content:center}
 .rtitle{font-size:15px}
@@ -517,6 +529,7 @@ button,input{font:inherit;color:inherit}
       <div class="rtitle">房間代碼</div>
       <div class="code ot" id="rCode">····</div>
       <p class="rhint" id="rHint"></p>
+      <button class="btn blue rmy" id="rMy" hidden></button>
     </div>
     <ol class="slots" id="rSlots"></ol>
     <div class="ropts" id="rOpts"></div>
@@ -563,7 +576,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.6.9</span>
+<span class="ver">v0.7.0</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1881,7 +1894,7 @@ function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=s
   const me={name:save.name,ch:save.ch,lvl:lv,tal:myTal(save.ch),acc:accStr(save.ch),team:soccer?0:undefined};
   const map=soccer?'stadium':MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)];
   beginMatch({map,mode:save.mode,dur:save.dur,diff:save.diff,players:fillBots([me],7,lv,save.diff,false,soccer)},0,true)}
-function beginMatch(cfg,myId,local,info){resetTouch();clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
+function beginMatch(cfg,myId,local,info){resetTouch();$('#sheet').hidden=true;sheetKind='';clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
   IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;supWas=false;ffT=0;finalOn=false;
   let vinfo;if(local){game=new Game(cfg);netState=null;vinfo={mode:game.mode,bx:game.bx,bz:game.bz}}else{game=null;vinfo=info}
   view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
@@ -1918,7 +1931,7 @@ function finish(res){if(mode!=='game')return;ended=true;
     const sc=res.mode==='soccer'?`${r.goals||0} 球・${r.score} 殺`:res.mode==='royale'?`${r.score} 殺`:r.score;
     return`<li class="${r.id===meId?'me':''}"><span class="n">${n}</span><i class="${r.team!=null?'t'+r.team:''}" style="${avStyle(r.ch)}"></i><span class="nm"></span><span class="sc">${sc}</span></li>`}).join('');
   [...$('#resList').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=list[i].name+(list[i].bot?'（電腦）':''));
-  $('#resAgain').textContent=online?'回房間':'再玩一次';
+  $('#resAgain').textContent=online?'回房間':'再玩一次';$('#resAgain').classList.remove('nudge');
   const mine=curState().players[meId];setMenuChar(mine.ch,mine.lvl>=10,mine.acc);
   clearTimeout(resTimer);resTimer=setTimeout(()=>{resTimer=0;if(mode!=='game')return;if(view){view.dispose();view=null}game=null;netState=null;showScreen('result');R.setClearColor(0x000000,0);
     if(doneM.length)toast('任務完成：'+doneM.join('、')+'，到「任務」領獎勵',4000)},1600);
@@ -2022,13 +2035,14 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-lastT)/1
 
 /* ================= 連線（房間代碼，PeerJS） ================= */
 let online=false;
-const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false};
+const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false,myCh:''};
+const roomCh=()=>NET.myCh&&CHARS[NET.myCh]?NET.myCh:save.ch;
 function peerOpts(){const u=new URLSearchParams(location.search),h=u.get('peerhost');return h?{host:h,port:+(u.get('peerport')||9000),path:u.get('peerpath')||'/',secure:u.get('peersecure')==='1',debug:1}:{debug:1}}
 function netClose(){try{NET.peer&&NET.peer.destroy()}catch(e){}NET.peer=null;NET.conns.clear();NET.conn=null;NET.lobby=[];NET.lobbyMsg=null;NET.host=false;NET.inGame=false;NET.joined=false;online=false}
 function netFail(msg){netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu');
   toast(msg+(location.hostname.endsWith('github.io')||location.hostname==='localhost'||location.hostname==='127.0.0.1'?'':'（Claude 試玩連結不能連線，請用 GitHub 網址開）'),5000)}
 function hostRoom(){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
-  netClose();const code=String(Math.floor(1000+Math.random()*9000));NET.code=code;NET.host=true;online=true;NET.opts.mode=save.mode;NET.opts.dur=save.dur;NET.opts.diff=save.diff;NET.hostTeam=0;
+  netClose();NET.myCh=save.ch;const code=String(Math.floor(1000+Math.random()*9000));NET.code=code;NET.host=true;online=true;NET.opts.mode=save.mode;NET.opts.dur=save.dur;NET.opts.diff=save.diff;NET.hostTeam=0;
   showScreen('room');$('#rCode').textContent='····';renderRoom();
   let peer;try{peer=new Peer(PEER_PREFIX+code,peerOpts())}catch(e){netFail('開房失敗');return}NET.peer=peer;
   const to=setTimeout(()=>{if(NET.peer===peer&&!peer.open)netFail('連不到連線伺服器')},10000);
@@ -2051,10 +2065,10 @@ function hostLeave(c){if(!NET.host)return;const had=NET.conns.delete(c.peer);con
   if(game){const p=game.players.find(p=>p.netId===c.peer);if(p){p.bot=true;p.netId=null;p.ai={}}}
   if(had&&name)toast(name+' 離開了'+(game?'，改由電腦接手':''));if(mode==='room')broadcastLobby()}
 function hostBroadcast(m){for(const[,c]of NET.conns)if(c.open)try{c.send(m)}catch(e){}}
-function lobbyMsg(){return{t:'lobby',code:NET.code,host:{name:save.name,ch:save.ch,lvl:save.lvl[save.ch],team:NET.hostTeam},list:NET.lobby.map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,team:l.team})),opts:NET.opts}}
+function lobbyMsg(){return{t:'lobby',code:NET.code,host:{name:save.name,ch:roomCh(),lvl:save.lvl[roomCh()],team:NET.hostTeam},list:NET.lobby.map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,team:l.team})),opts:NET.opts}}
 function broadcastLobby(){hostBroadcast(lobbyMsg());if(mode==='room')renderRoom()}
 function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o.lv==='own'?0:o.lv==='fair'?1:clamp(+o.lv||1,1,MAX_LV),soccer=o.mode==='soccer';
-  const humans=[{name:save.name,ch:save.ch,lvl:save.lvl[save.ch],tal:myTal(save.ch),acc:accStr(save.ch),netId:null,team:NET.hostTeam},
+  const humans=[{name:save.name,ch:roomCh(),lvl:save.lvl[roomCh()],tal:myTal(roomCh()),acc:accStr(roomCh()),netId:null,team:NET.hostTeam},
     ...NET.lobby.filter(l=>NET.conns.has(l.id)).map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,tal:l.tal,acc:l.acc,netId:l.id,team:l.team}))].slice(0,8);
   if(humans.length+o.bots<2){toast('至少要 2 個角色才能開始：等朋友加入，或加幾隻電腦');return}
   /* 隨機角色：範圍可以是全部或某個稀有度，每個人（含電腦）都從裡面抽 */
@@ -2082,16 +2096,17 @@ function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT))
   if(g.ball){m.BL=[r2(g.ball.x),r2(g.ball.z),r2(g.ball.vx),r2(g.ball.vz)];m.G=g.goals}
   if(g.zone)m.ZN=[r2(g.zone.cx),r2(g.zone.cz),r2(g.zone.r)];return m}
 function joinRoom(code){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
-  netClose();online=true;NET.code=code;showScreen('room');$('#rCode').textContent=code;renderRoom();
+  netClose();NET.myCh=save.ch;online=true;NET.code=code;showScreen('room');$('#rCode').textContent=code;renderRoom();
   let peer;try{peer=new Peer(peerOpts())}catch(e){netFail('連線失敗');return}NET.peer=peer;
   const to=setTimeout(()=>{if(NET.peer===peer&&!NET.joined)netFail('找不到房間 '+code)},12000);
   peer.on('open',()=>{if(NET.peer!==peer)return;const c=peer.connect(PEER_PREFIX+code,{reliable:true,serialization:'json'});NET.conn=c;
-    c.on('open',()=>{NET.joined=true;clearTimeout(to);c.send({t:'hello',name:save.name,ch:save.ch,lvl:save.lvl[save.ch],tal:myTal(save.ch),acc:accStr(save.ch)})});
+    c.on('open',()=>{NET.joined=true;clearTimeout(to);sendHello()});
     c.on('data',clientData);c.on('close',()=>{if(NET.peer===peer){netFail('房主離開了')}})});
   peer.on('error',e=>{if(NET.peer!==peer)return;if(e.type==='peer-unavailable'){clearTimeout(to);netFail('找不到房間 '+code)}else if(!NET.joined){clearTimeout(to);netFail('連線失敗')}})}
+function sendHello(){const c=NET.conn;if(!c||!c.open)return;const ch=roomCh();try{c.send({t:'hello',name:save.name,ch,lvl:save.lvl[ch],tal:myTal(ch),acc:accStr(ch)})}catch(e){}}
 function clientData(d){if(!d)return;
   if(d.t==='deny'){netFail(d.why)}
-  else if(d.t==='lobby'){NET.lobbyMsg=d;if(mode==='room')renderRoom()}
+  else if(d.t==='lobby'){NET.lobbyMsg=d;if(mode==='room')renderRoom();else if(mode==='result'&&online){const b=$('#resAgain');b.textContent='房主在房間等你 → 回房間';b.classList.add('nudge')}}
   else if(d.t==='start'){clientStart(d)}
   else if(d.t==='s'&&netState){applySnap(d)}
   else if(d.t==='end'&&netState){finish(d.res)}}
@@ -2263,7 +2278,8 @@ function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">
 $('#sheetBody').addEventListener('click',e=>{
   const kb=e.target.closest('[data-k]');if(kb&&sheetKind==='start'){const k=kb.dataset.k;save[k]=k==='mode'?kb.dataset.v:+kb.dataset.v;persist();startSheet();return}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const act=b.dataset.act;
-  if(act==='s-solo'){startStep=2;startSheet();return}
+  if(act==='rset'){closeSheet();rSetCh(b.dataset.v);return}
+  else if(act==='s-solo'){startStep=2;startSheet();return}
   else if(act==='s-back'){startStep=1;startSheet();return}
   else if(act==='s-mode'){save.mode=b.dataset.v;persist();startSheet();return}
   else if(act==='s-go'){$('#sheet').hidden=true;sheetKind='';audioOn();startSolo();return}
@@ -2296,7 +2312,14 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
     `<div class="chips">${chipsHTML('角色','rc',[['own','自己選'],['rand','隨機']],o.rc||'own',!host)}</div>`+
     (o.rc==='rand'?`<div class="chips">${chipsHTML('範圍','rt',[['all','全部'],...TIERS.map((T,i)=>[i,T.name])],o.rt??'all',!host)}</div>`:'')+
     (!soccer?`<div class="chips">${chipsHTML('地圖','map',[['rand','隨機'],...MAP_POOL.map(k=>[k,MAPS[k].name])],o.map,!host)}</div>`:'');
+  const rm=$('#rMy'),mc=roomCh();rm.hidden=o.rc==='rand'||!(host||NET.joined);rm.innerHTML=`<i class="rmi" style="${avStyle(mc)}"></i><span>我的角色：${CHARS[mc].name} ›</span>`;
   const sb=$('#rStart');sb.hidden=!host;sb.disabled=!(NET.peer&&NET.peer.open)}
+/* ---- 房間裡選角色：全部 36 隻都能選（沒擁有的只限這一場），也可以指定稀有度抽一隻 ---- */
+function rSetCh(id){if(!CHARS[id])return;NET.myCh=id;if(NET.host)broadcastLobby();else sendHello();renderRoom()}
+function rpickSheet(){sheetKind='rpick';const cur=roomCh();
+  const grid=TIERS.map((T,ti)=>`<div class="rgh" style="--tc:${T.col}">${T.name}</div><div class="rgg">${CH_IDS.filter(id=>CHARS[id].tier===ti).map(id=>`<button class="rgc${id===cur?' on':''}${save.owned.includes(id)?'':' no'}" data-act="rset" data-v="${id}" style="--tc:${T.col}"><i style="${avStyle(id)}"></i><b>${CHARS[id].name}</b>${save.owned.includes(id)?'':'<em>未擁有</em>'}</button>`).join('')}</div>`).join('');
+  openSheet('選角色',`<p class="sp">沒擁有的也能選，只有這一場可以用。</p>${grid}`,true)}
+$('#rMy').addEventListener('click',rpickSheet);
 $('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;const v=b.dataset.v;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+v:(k==='lv'||k==='rt')&&v!=='own'&&v!=='all'?+v:v;broadcastLobby()});
 $('#rSlots').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(!li||!NET.host||NET.opts.mode!=='soccer')return;const i=+li.dataset.i;
   if(i<0)NET.hostTeam=1-NET.hostTeam;else if(NET.lobby[i])NET.lobby[i].team=1-(NET.lobby[i].team|0);broadcastLobby()});

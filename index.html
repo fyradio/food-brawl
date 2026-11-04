@@ -107,6 +107,7 @@ button,input{font:inherit;color:inherit}
 #room{display:flex}
 .rmy{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:16px;padding:.35em .8em;min-height:44px}
 .rmy .rmi{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--ink);flex:none;background-size:115%!important;background-position:50% 40%!important}
+.scbox{width:100%;box-sizing:border-box;font:700 17px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.04em;border:3px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink);resize:none;word-break:break-all}
 .rgh{font-family:var(--f-disp);font-size:18px;color:var(--paper);background:var(--tc);border:2.5px solid var(--ink);border-radius:8px;padding:0 10px;margin-top:4px;width:fit-content;text-shadow:0 2px 0 rgba(0,0,0,.35)}
 .rgg{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
 .rgc{position:relative;border:3px solid var(--ink);border-radius:10px;background:#fff7e2;padding:0 0 4px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font:inherit;color:var(--ink);overflow:hidden;box-shadow:inset 0 -5px 0 var(--tc)}
@@ -576,7 +577,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.8.2</span>
+<span class="ver">v0.8.3</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -2259,8 +2260,29 @@ function startSheet(){sheetKind='start';
   openSheet('對戰電腦',`<div><button class="btn small blue" data-act="s-back">‹ 上一步</button></div><div class="mcards">${Object.entries(MODES).map(([k,v])=>`<button class="mc${save.mode===k?' on':''}" data-act="s-mode" data-v="${k}"><b>${v.name}</b><small>${MODE_SHORT[k]}</small></button>`).join('')}</div><p class="sp">${MODES[save.mode].desc}</p>`+
     (save.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],save.dur)}</div>`:'')+`<div class="chips">${chipsHTML('電腦','diff',DIFF.map((d,i)=>[i,d.name]),save.diff)}</div><button class="btn big main" data-act="s-go">開打！</button>`,true)}
 $('#btnStart').addEventListener('click',()=>{startStep=1;startSheet()});
+/* ---- 存檔碼：只記「擁有哪些角色＋每隻等級＋獎盃」。其餘（金幣、碎片、造型、寶箱、任務、天賦選擇）匯入後全部歸零 ---- */
+const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>!CHARS[id].unlock;
+function scSum(a){let x=0;for(const v of a)x=(x*31+v+7)%1021;return x}
+function scEncode(){const bits=[],w=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)};w(CH_IDS.length,6);w(clamp(save.trophies|0,0,8191),13);
+  for(const id of CH_IDS){const own=save.owned.includes(id);if(!SC_FREE(id))w(own?1:0,1);if(own)w(clamp((save.lvl[id]|0)||1,1,MAX_LV)-1,4)}
+  while(bits.length%5)bits.push(0);const ch=[];for(let i=0;i<bits.length;i+=5)ch.push(bits[i]*16+bits[i+1]*8+bits[i+2]*4+bits[i+3]*2+bits[i+4]);
+  const cs=scSum(ch);ch.push(cs>>5,cs&31);return ch.map(v=>SC_AL[v]).join('').replace(/(.{4})(?=.)/g,'$1-')}
+function scDecode(txt){const t=String(txt).toUpperCase().replace(/[^A-Z0-9]/g,'');if(t.length<6)throw new Error('short');
+  const ch=[...t].map(c=>{const v=SC_AL.indexOf(c);if(v<0)throw new Error('char');return v}),body=ch.slice(0,-2);
+  if(scSum(body)!==ch[ch.length-2]*32+ch[ch.length-1])throw new Error('sum');
+  const bits=[];for(const v of body)for(let j=4;j>=0;j--)bits.push((v>>j)&1);let p=0;const r=n=>{let v=0;for(let i=0;i<n;i++)v=v*2+(bits[p++]||0);return v};
+  const cnt=r(6);if(cnt<3||cnt>CH_IDS.length)throw new Error('count');const trophies=r(13),owned=[],lvl={};
+  for(let i=0;i<cnt;i++){const id=CH_IDS[i];const own=SC_FREE(id)?1:r(1);if(own){owned.push(id);lvl[id]=r(4)+1}}
+  if(p>bits.length+4)throw new Error('len');return{owned,lvl,trophies}}
+let scPending=null;
+function scSheet(mode,msg){sheetKind='savecode';if(mode!=='ok')scPending=null;
+  if(mode==='exp'){let c='';try{c=scEncode()}catch(e){}
+    openSheet('匯出存檔碼',`<p class="sp">把這串存檔碼複製起來（貼到備忘錄或傳給自己）。換手機或進度不見時，用「匯入」貼回來。<br>只記得<b>擁有的角色、等級、獎盃</b>。金幣、碎片、造型、寶箱匯入後會<b>歸零</b>。</p><textarea id="scBox" class="scbox" readonly rows="3"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-copy">複製</button></div>`);$('#scBox').value=c;$('#scMsg').textContent=`共 ${c.replace(/-/g,'').length} 個字，擁有 ${save.owned.length} 隻角色`}
+  else if(mode==='imp')openSheet('匯入存檔碼',`<p class="sp">貼上或輸入存檔碼，大小寫、空格、橫線都沒關係。<br><b>會取代這支手機的進度</b>：角色、等級、獎盃換成存檔碼的，金幣、碎片、造型、寶箱歸零。</p><textarea id="scBox" class="scbox" rows="3" placeholder="例如 K7QM-2XRA-9TWB-HN3…" autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-read">讀取</button></div>`);
+  else if(mode==='ok'){const o=scPending;const top=Math.max(...o.owned.map(i=>o.lvl[i]));openSheet('確認匯入',`<p class="sp">這組存檔碼有 <b>${o.owned.length}</b> 隻角色（最高 Lv ${top}）、獎盃 <b>${o.trophies}</b>。<br>這支手機現在有 <b>${save.owned.length}</b> 隻角色、獎盃 <b>${save.trophies}</b>、金幣 <b>${save.coins}</b>。<br>匯入後金幣、碎片、造型、寶箱都會<b>歸零</b>，確定嗎？</p><div class="row2"><button class="btn blue" data-act="sc-imp">不要，重輸入</button><button class="btn main" data-act="sc-apply">確定匯入</button></div>`)}}
+function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=0}save.trophies=o.trophies;save.coins=0;save.chests=0;save.matches=0;save.accOwned=[];save.accEq={};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
 function setSheet(){sheetKind='set';
-  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="chips"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。</p>`);
+  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="chips"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級和獎盃。</p>`);
   $('#nameIn').value=save.name}
 $('#mbSet').addEventListener('click',setSheet);
 function helpSheet(){sheetKind='help';
@@ -2331,6 +2353,14 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='s-join'){$('#sheet').hidden=true;sheetKind='';$('#joinBox').hidden=false;$('#codeIn').value='';setTimeout(()=>$('#codeIn').focus(),50);return}
   else if(act==='tgm'){commitName();save.music=!save.music;persist();if(save.music){musicCur='';playMusic('lobby')}else stopMusic();setSheet();return}
   else if(act==='tgs'){commitName();save.sfx=!save.sfx;persist();setSheet();return}
+  else if(act==='sc-exp'){commitName();scSheet('exp');return}
+  else if(act==='sc-imp'){scSheet('imp');return}
+  else if(act==='sc-back'){setSheet();return}
+  else if(act==='sc-copy'){const ta=$('#scBox');let ok=false;(async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(ta.value);ok=true}}catch(e){}
+      if(!ok){try{ta.readOnly=false;ta.focus();ta.setSelectionRange(0,ta.value.length);ok=document.execCommand('copy');ta.readOnly=true}catch(e){}}
+      $('#scMsg').textContent=ok?'已複製！現在可以貼到備忘錄了':'請長按上面的文字 →「全選」→「拷貝」'})();return}
+  else if(act==='sc-read'){try{scPending=scDecode($('#scBox').value);scSheet('ok')}catch(e){const m=e&&e.message;scSheet('imp',m==='sum'?'存檔碼有一個字打錯了，請再檢查一次':m==='char'?'有看不懂的字（存檔碼沒有 0、1、I、O）':'存檔碼不對，請確認整串都有貼上')}return}
+  else if(act==='sc-apply'){scApply();return}
   else if(act==='htab'){helpTab=b.dataset.v;helpSheet();return}
   else if(act==='hdev'){helpDev=b.dataset.v;helpSheet();return}
   if(act==='open'){if(save.chests<=0)return;const r=openChest();$('#sheet').hidden=true;sheetKind='';startReveal(Object.assign({kind:'chest'},r));return}

@@ -190,6 +190,7 @@ button,input{font:inherit;color:inherit}
 #topbar{position:absolute;top:max(8px,env(safe-area-inset-top,0px));left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:3px}
 #timer{font-family:var(--f-disp);font-size:34px;font-variant-numeric:tabular-nums;background:var(--hud);border:2px solid var(--ink);border-radius:12px;padding:0 14px;white-space:nowrap}
 #timer.hot{color:var(--red)}
+#ping{font-size:11px;font-weight:700;line-height:1;padding:1px 6px;border-radius:6px;background:rgba(0,0,0,.42);font-variant-numeric:tabular-nums;pointer-events:none}
 #sub{font-size:13px;background:var(--hud);border-radius:8px;padding:1px 10px}
 #goalbar{display:flex;align-items:center;gap:8px;font-family:var(--f-disp);font-size:24px}
 #goalbar span{min-width:38px;text-align:center;border:2px solid var(--ink);border-radius:8px;padding:0 8px}
@@ -464,7 +465,7 @@ button,input{font:inherit;color:inherit}
 <div id="hud" hidden>
   <div id="labels"></div>
   <div id="board"></div>
-  <div id="topbar"><div id="goalbar" class="ot" hidden><span class="g0" id="g0">0</span><span class="g1" id="g1">0</span></div><div id="timer" class="ot">3:00</div><div id="sub" class="ot" hidden></div></div>
+  <div id="topbar"><div id="goalbar" class="ot" hidden><span class="g0" id="g0">0</span><span class="g1" id="g1">0</span></div><div id="timer" class="ot">3:00</div><div id="sub" class="ot" hidden></div><div id="ping" hidden></div></div>
   <div id="feed"></div>
   <div id="banner" class="ot"></div>
   <div id="deadmsg" class="ot" hidden></div>
@@ -577,7 +578,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.9.0</span>
+<span class="ver">v0.9.1</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -2071,7 +2072,7 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-lastT)/1
 
 /* ================= 連線（房間代碼，PeerJS） ================= */
 let online=false;
-const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false,myCh:''};
+const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false,myCh:'',rtt:{}};
 const roomCh=()=>NET.myCh&&CHARS[NET.myCh]?NET.myCh:save.ch;
 /* 中繼伺服器（TURN）：兩支手機都用行動網路時，手機網路會擋住直接連線，要透過中繼轉送。TURN_API 填入取得通行證的網址後才會啟用 */
 const TURN_API='https://food-brawl-turn.cw-studio.workers.dev';
@@ -2081,7 +2082,7 @@ async function loadIce(){if(!TURN_API)return null;if(ICE&&Date.now()-ICE_T<20*60
     if(Array.isArray(L)&&L.length){ICE=[{urls:'stun:stun.l.google.com:19302'}].concat(L);ICE_T=Date.now();return ICE}}catch(e){console.warn('TURN',e)}return null}
 function peerOpts(ice){const u=new URLSearchParams(location.search),h=u.get('peerhost');const o=h?{host:h,port:+(u.get('peerport')||9000),path:u.get('peerpath')||'/',secure:u.get('peersecure')==='1',debug:1}:{debug:1};if(ice)o.config={iceServers:ice};return o}
 const MOBILE_TIP='兩支手機都用 4G／5G 時常會被電信網路擋住，可以一支開熱點給另一支連';
-function netClose(){try{NET.peer&&NET.peer.destroy()}catch(e){}NET.peer=null;NET.conns.clear();NET.conn=null;NET.lobby=[];NET.lobbyMsg=null;NET.host=false;NET.inGame=false;NET.joined=false;online=false}
+function netClose(){try{NET.peer&&NET.peer.destroy()}catch(e){}NET.peer=null;NET.conns.clear();NET.conn=null;NET.lobby=[];NET.lobbyMsg=null;NET.host=false;NET.inGame=false;NET.joined=false;NET.rtt={};online=false}
 function netFail(msg){netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu');
   toast(msg+(location.hostname.endsWith('github.io')||location.hostname==='localhost'||location.hostname==='127.0.0.1'?'':'（Claude 試玩連結不能連線，請用 GitHub 網址開）'),5000)}
 async function hostRoom(){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
@@ -2096,8 +2097,16 @@ async function hostRoom(){if(typeof Peer==='undefined'){toast('連線元件載�
     const full=NET.inGame||NET.conns.size>=7;if(!full)NET.conns.set(c.peer,c);
     c.on('open',()=>{if(full){c.send({t:'deny',why:NET.inGame?'比賽進行中，等這場打完再加入':'房間滿了（最多 8 人）'});setTimeout(()=>c.close(),600)}});
     c.on('data',d=>hostData(c,d));c.on('close',()=>hostLeave(c));c.on('error',()=>hostLeave(c))})}
+/* ---- 連線延遲：每 1.5 秒互相 ping 一次，量來回時間（ms），平滑後顯示在計時器下面。小＝淺綠、大＝紅 ---- */
+function onPong(id,c){const r=performance.now()-c;if(!(r>=0&&r<10000))return;NET.rtt[id]=NET.rtt[id]==null?r:NET.rtt[id]*.6+r*.4}
+function pingValue(){if(!online||!NET.peer)return null;if(NET.host){let m=null;for(const[id]of NET.conns){const v=NET.rtt[id];if(v!=null&&(m==null||v>m))m=v}return m}return NET.rtt.host==null?null:NET.rtt.host}
+function pingColor(ms){const k=clamp((ms-40)/160,0,1);return`hsl(${Math.round(125*(1-k))},${Math.round(70+25*k)}%,${Math.round(68-12*k)}%)`}
+setInterval(()=>{if(!online||!NET.peer)return;const now=performance.now();
+  if(NET.host){for(const[,c]of NET.conns)if(c.open)try{c.send({t:'ping',c:now})}catch(e){}}else if(NET.conn&&NET.conn.open)try{NET.conn.send({t:'ping',c:now})}catch(e){}},1500);
+setInterval(()=>{const el=$('#ping');if(!el)return;const v=mode==='game'?pingValue():null;if(v==null){el.hidden=true;return}el.hidden=false;const ms=Math.round(v);el.textContent=ms+'ms';el.style.color=pingColor(ms)},500);
 function humanCount(){return 1+NET.lobby.length}
 function hostData(c,d){if(!d||!NET.host)return;
+  if(d.t==='ping'){try{c.send({t:'pong',c:d.c})}catch(e){}return}if(d.t==='pong'){onPong(c.peer,d.c);return}
   if(d.t==='hello'){if(!NET.conns.has(c.peer))return;const ch=CHARS[d.ch]?d.ch:'apple';const i=NET.lobby.findIndex(l=>l.id===c.peer);
     const n0=(NET.hostTeam===0?1:0)+NET.lobby.filter(l=>l.team===0).length,n1=humanCount()-n0,lv=clamp(d.lvl|0,1,MAX_LV);
     const e={id:c.peer,name:String(d.name||'玩家').slice(0,8),ch,lvl:lv,tal:lv>=5&&(d.tal==='a'||d.tal==='b')?d.tal:null,acc:typeof d.acc==='string'?d.acc.slice(0,40):'',team:i>=0?NET.lobby[i].team:(n0<=n1?0:1)};
@@ -2151,6 +2160,7 @@ async function joinRoom(code){if(typeof Peer==='undefined'){toast('連線元件�
   peer.on('error',e=>{if(NET.peer!==peer)return;if(e.type==='peer-unavailable'){clearTimeout(to);netFail('找不到房間 '+code)}else if(!NET.joined){clearTimeout(to);netFail('連線失敗。'+MOBILE_TIP)}})}
 function sendHello(){const c=NET.conn;if(!c||!c.open)return;const ch=roomCh();try{c.send({t:'hello',name:save.name,ch,lvl:save.lvl[ch],tal:myTal(ch),acc:accStr(ch)})}catch(e){}}
 function clientData(d){if(!d)return;
+  if(d.t==='ping'){try{NET.conn.send({t:'pong',c:d.c})}catch(e){}return}if(d.t==='pong'){onPong('host',d.c);return}
   if(d.t==='deny'){netFail(d.why)}
   else if(d.t==='lobby'){NET.lobbyMsg=d;if(mode==='room')renderRoom();else if(mode==='result'&&online){const b=$('#resAgain');b.textContent='房主在房間等你 → 回房間';b.classList.add('nudge')}}
   else if(d.t==='start'){clientStart(d)}

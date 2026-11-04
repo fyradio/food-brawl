@@ -577,7 +577,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.8.4</span>
+<span class="ver">v0.9.0</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1283,14 +1283,15 @@ const SFX={shoot:()=>beep(760,320,.07,'square',.035),hit:()=>beep(220,90,.09,'sa
   pick:()=>{beep(620,1240,.12,'sine',.08)},slip:()=>beep(1000,180,.35,'sine',.07),sup:()=>beep(220,960,.3,'square',.06),crate:()=>beep(160,60,.15,'triangle',.1),tick:()=>beep(880,880,.08,'sine',.06),
   goal:()=>{beep(520,1040,.25,'square',.08);setTimeout(()=>beep(780,1560,.35,'square',.08),180)},zone:()=>beep(300,120,.6,'sawtooth',.06)};
 addEventListener('pointerdown',audioOn,{passive:true});addEventListener('keydown',audioOn);
-// 音樂檔放在 music/ 資料夾；檔案不存在時安靜跳過
-const MUSIC={lobby:'music/lobby.mp3',battle:'music/battle.mp3',final:'music/final.mp3'};
-const musicEls={},musicBad={};let musicCur='';
-function playMusic(name){if(musicCur===name)return;const old=musicEls[musicCur];if(old){try{old.pause()}catch(e){}}musicCur=name;
-  if(!save.music||!name||musicBad[name])return;let a=musicEls[name];
-  if(!a){try{a=new Audio(MUSIC[name]);a.loop=true;a.volume=name==='lobby'?.4:.5;a.addEventListener('error',()=>{musicBad[name]=true});musicEls[name]=a}catch(e){return}}
-  try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{if(musicCur===name)musicCur=''})}
-function stopMusic(){const a=musicEls[musicCur];if(a){try{a.pause()}catch(e){}}musicCur=''}
+// 音樂檔放在 music/ 資料夾；每種可以放多首，開始時隨機挑一首。檔案不存在時安靜跳過。沒有 final 就繼續放戰鬥音樂
+const MUSIC={lobby:['music/lobby-1.mp3'],battle:['music/battle-1.mp3']};
+const musicEls={},musicBad={};let musicCur='',musicTrk='';
+function pickTrack(name){const L=MUSIC[name].filter(u=>!musicBad[u]);return L.length?L[Math.floor(Math.random()*L.length)]:''}
+function playMusic(name){if(musicCur===name)return;if(name&&!MUSIC[name])return;const old=musicEls[musicTrk];if(old){try{old.pause()}catch(e){}}musicCur=name;musicTrk='';
+  if(!save.music||!name)return;const u=pickTrack(name);if(!u)return;let a=musicEls[u];
+  if(!a){try{a=new Audio(u);a.loop=true;a.addEventListener('error',()=>{musicBad[u]=true});musicEls[u]=a}catch(e){return}}
+  a.volume=name==='lobby'?.4:.5;musicTrk=u;try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{if(musicCur===name){musicCur='';musicTrk=''}})}
+function stopMusic(){const a=musicEls[musicTrk];if(a){try{a.pause()}catch(e){}}musicCur='';musicTrk=''}
 addEventListener('pointerdown',()=>{if(!musicCur&&save.music){const want=mode==='game'?'battle':'lobby';playMusic(want)}},{passive:true});
 
 /* ================= three.js 共用 ================= */

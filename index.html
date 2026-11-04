@@ -230,13 +230,13 @@ button,input{font:inherit;color:inherit}
 .joy .kn,.abtn .kn{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.75);border:3px solid var(--ink)}
 .abtn{position:absolute;border-radius:50%;pointer-events:auto!important;touch-action:none;border:3px solid var(--ink)}
 /* 三顆圓鈕：攻擊（最大）在右下，大招在攻擊左邊，聊天在攻擊上方，彼此不重疊 */
-#hud{--A:136px;--Es:88px;--Ec:70px;--g:14px;--er:calc(env(safe-area-inset-right,0px) + 18px);--ab:calc(env(safe-area-inset-bottom,0px) + 20px)}
+#hud{--A:136px;--Es:88px;--Ec:88px;--g:14px;--er:calc(env(safe-area-inset-right,0px) + 18px);--ab:calc(env(safe-area-inset-bottom,0px) + 20px)}
 #btnAtk{width:var(--A);height:var(--A);right:var(--er);bottom:var(--ab);background:rgba(255,80,40,.55)}
 #btnAtk .kn{background:#ff6a3a}
 #btnSup{width:var(--Es);height:var(--Es);right:calc(var(--er) + var(--A) + var(--g));bottom:calc(var(--ab) + (var(--A) - var(--Es))/2);
   background:conic-gradient(var(--cheese) calc(var(--p,0)*1turn),rgba(40,40,60,.55) 0)}
 #btnSup .kn{width:34px;height:34px;margin:-17px 0 0 -17px;background:#9aa0b4}
-#btnEmo{width:var(--Ec);height:var(--Ec);right:calc(var(--er) + (var(--A) - var(--Ec))/2);bottom:calc(var(--ab) + var(--A) + var(--g));background:rgba(40,40,60,.6);display:flex;align-items:center;justify-content:center;font-size:30px;line-height:1;padding:0;color:#fff;cursor:pointer}
+#btnEmo{width:var(--Ec);height:var(--Ec);right:calc(var(--er) + (var(--A) - var(--Ec))/2);bottom:calc(var(--ab) + var(--A) + var(--g));background:rgba(40,40,60,.6);display:flex;align-items:center;justify-content:center;font-size:36px;line-height:1;padding:0;color:#fff;cursor:pointer}
 #btnEmo.open{background:rgba(255,201,60,.85)}
 #btnSup.ready{animation:glow .7s infinite alternate}
 #btnSup.ready .kn{background:var(--cheese)}
@@ -300,7 +300,7 @@ button,input{font:inherit;color:inherit}
   .rlist li{padding:1px 8px}.coinpanel .cpt{font-size:19px;padding:4px 0 2px}.ctotal{margin-top:4px;padding:3px 14px 6px}.rbtns2 .btn.big{font-size:20px}
   .tdelta{font-size:40px}.tdelta .ic{width:44px;height:44px}.rhead .b{font-size:32px}
   .ctotal .v{font-size:30px}.ctotal .ic{width:30px;height:30px}.crow{font-size:15px;padding:2px 14px}
-  #hud{--A:116px;--Es:76px;--Ec:62px;--g:12px;--er:calc(env(safe-area-inset-right,0px) + 14px);--ab:calc(env(safe-area-inset-bottom,0px) + 14px)}#btnEmo{font-size:27px}
+  #hud{--A:116px;--Es:76px;--Ec:76px;--g:12px;--er:calc(env(safe-area-inset-right,0px) + 14px);--ab:calc(env(safe-area-inset-bottom,0px) + 14px)}#btnEmo{font-size:32px}
   #timer{font-size:28px}#banner{font-size:48px}
   .tab{min-width:50px;font-size:12px;padding:2px 5px}.tab small{display:none}.chips.tal small{display:none}.mbtns .chip{font-size:12px}.mright{gap:4px}
   .mright{display:grid;grid-template-columns:auto auto;justify-items:end;gap:4px 6px}.cur{grid-column:1/-1}
@@ -466,7 +466,7 @@ button,input{font:inherit;color:inherit}
 #menu .mbtns .chip,#menu .mcgo{white-space:nowrap}
 @media (max-width:640px) and (orientation:portrait){#menu .mtop{flex-wrap:wrap}#menu .mhr{margin-left:auto}#menu .mbtns .chip{font-size:17px;min-width:0;padding:0 14px}#pick .rtabs .chip{font-size:13px;padding:.3em .5em}}
 @media (max-width:640px) and (orientation:portrait) and (max-height:720px){#menu .mbtns .chip{min-height:44px;font-size:16px}#menu .mainCard{padding:6px 10px}#menu .mainCard .dot{width:40px;height:40px}#menu .mct b{font-size:22px}.mmain .btn.big{font-size:26px;padding:.35em 1em}.mmain .btn.blue{font-size:18px;padding:.3em 1em}#menu .mmain{gap:8px}}
-@media (max-width:640px) and (orientation:portrait){#hud{--A:112px;--Es:72px;--Ec:60px;--g:12px;--er:calc(env(safe-area-inset-right,0px) + 14px);--ab:calc(env(safe-area-inset-bottom,0px) + 36px)}#btnEmo{font-size:26px}#emoPanel button{font-size:14px;padding:6px 8px}}
+@media (max-width:640px) and (orientation:portrait){#hud{--A:112px;--Es:72px;--Ec:72px;--g:12px;--er:calc(env(safe-area-inset-right,0px) + 14px);--ab:calc(env(safe-area-inset-bottom,0px) + 36px)}#btnEmo{font-size:31px}#emoPanel button{font-size:14px;padding:6px 8px}}
 @media (prefers-reduced-motion:reduce){#banner.show,#btnSup.ready,#feed div,.lbl .emo{animation:none}#banner.show{opacity:1}}
 </style>
 
@@ -598,7 +598,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.11.3</span>
+<span class="ver">v0.11.4</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2063,7 +2063,8 @@ function finish(res){if(mode!=='game')return;ended=true;
     if(doneM.length)toast('任務完成：'+doneM.join('、')+'，到「任務」領獎勵',4000)},1600);
   banner(res.mode==='soccer'?head:res.mode==='royale'?(lastRank===0?'大吉大利！':'生存結束'):'時間到！')}
 function leaveMatch(){clearTimeout(resTimer);resTimer=0;if(online)netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu')}
-function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
+/* 橫幅一定要自己消失：開了「減少動態效果」的手機會關掉動畫，所以另外用計時器移除 */
+function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.remove('show');void b.offsetWidth;b.classList.add('show');clearTimeout(banner.h);banner.h=setTimeout(()=>b.classList.remove('show'),1300)}
 function feed(html){const d=document.createElement('div');d.innerHTML=html;const f=$('#feed');f.prepend(d);while(f.children.length>4)f.lastChild.remove();setTimeout(()=>d.remove(),4500)}
 const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e,cutlet:0xf0b04a,nugget:0xf0b04a,mian:0xf2c94a};
 function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.players[meId];

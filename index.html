@@ -221,22 +221,22 @@ button,input{font:inherit;color:inherit}
 #deadmsg b{font-family:var(--f-disp);font-size:46px;color:var(--cheese);display:block}
 .tr{position:absolute;top:max(8px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));display:flex;gap:6px}
 .tr button{pointer-events:auto;font-size:15px;padding:.5em 1.1em;min-height:40px;border:2px solid var(--ink);border-radius:8px;background:var(--hud);cursor:pointer}
-#emoPanel{position:absolute;bottom:calc(var(--ab) + 6px);right:calc(var(--ar) + var(--A) + var(--E)*.55 + 30px);pointer-events:auto;display:grid;grid-template-columns:repeat(3,auto);gap:5px;background:var(--hud);border:2px solid var(--ink);border-radius:12px;padding:6px}
+#emoPanel{position:absolute;bottom:calc(var(--ab) + 6px);right:calc(var(--er) + var(--E)*2 + var(--A) + var(--g)*2 + 14px);pointer-events:auto;display:grid;grid-template-columns:repeat(3,auto);gap:5px;background:var(--hud);border:2px solid var(--ink);border-radius:12px;padding:6px}
 #emoPanel button{border:2px solid var(--ink);border-radius:10px;background:var(--paper);color:var(--ink);font-size:15px;padding:7px 9px;cursor:pointer;white-space:nowrap}
 .abtn::after{content:'';position:absolute;inset:-16px;border-radius:50%}
-#btnSup::after,#btnEmo::after{inset:-5px}#btnAtk::after{inset:-6px}
+#btnSup::after,#btnEmo::after,#btnAtk::after{inset:-6px}
 .joyzone{position:absolute;left:0;bottom:0;width:55%;height:88%;pointer-events:auto!important;touch-action:none}
 .joy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.35)}
 .joy .kn,.abtn .kn{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.75);border:3px solid var(--ink)}
 .abtn{position:absolute;border-radius:50%;pointer-events:auto!important;touch-action:none;border:3px solid var(--ink)}
-/* 三顆圓鈕排成米奇：中間大的是攻擊（頭），左上耳朵大招、右上耳朵聊天 */
-#hud{--A:136px;--E:80px;--ar:calc(env(safe-area-inset-right,0px) + 55px);--ab:calc(env(safe-area-inset-bottom,0px) + 22px);--dd:calc((var(--A) + var(--E))*.33)}
-#btnAtk{width:var(--A);height:var(--A);right:var(--ar);bottom:var(--ab);background:rgba(255,80,40,.55)}
+/* 三顆圓鈕由左到右：大招、攻擊（最大）、聊天，彼此分開不疊在一起 */
+#hud{--A:136px;--E:84px;--g:24px;--er:calc(env(safe-area-inset-right,0px) + 16px);--ab:calc(env(safe-area-inset-bottom,0px) + 22px)}
+#btnAtk{width:var(--A);height:var(--A);right:calc(var(--er) + var(--E) + var(--g));bottom:var(--ab);background:rgba(255,80,40,.55)}
 #btnAtk .kn{background:#ff6a3a}
-#btnSup{width:var(--E);height:var(--E);right:calc(var(--ar) + var(--A)/2 + var(--dd) - var(--E)/2);bottom:calc(var(--ab) + var(--A)/2 + var(--dd) - var(--E)/2);
+#btnSup{width:var(--E);height:var(--E);right:calc(var(--er) + var(--E) + var(--g) + var(--A) + var(--g));bottom:calc(var(--ab) + (var(--A) - var(--E))/2);
   background:conic-gradient(var(--cheese) calc(var(--p,0)*1turn),rgba(40,40,60,.55) 0)}
 #btnSup .kn{width:34px;height:34px;margin:-17px 0 0 -17px;background:#9aa0b4}
-#btnEmo{width:var(--E);height:var(--E);right:calc(var(--ar) + var(--A)/2 - var(--dd) - var(--E)/2);bottom:calc(var(--ab) + var(--A)/2 + var(--dd) - var(--E)/2);background:rgba(40,40,60,.6);display:flex;align-items:center;justify-content:center;font-size:34px;line-height:1;padding:0;color:#fff;cursor:pointer}
+#btnEmo{width:var(--E);height:var(--E);right:var(--er);bottom:calc(var(--ab) + (var(--A) - var(--E))/2);background:rgba(40,40,60,.6);display:flex;align-items:center;justify-content:center;font-size:36px;line-height:1;padding:0;color:#fff;cursor:pointer}
 #btnEmo.open{background:rgba(255,201,60,.85)}
 #btnSup.ready{animation:glow .7s infinite alternate}
 #btnSup.ready .kn{background:var(--cheese)}
@@ -244,7 +244,7 @@ button,input{font:inherit;color:inherit}
 #btnSup.ready .suplab{color:var(--cheese);font-size:15px}
 @keyframes glow{to{box-shadow:0 0 22px 6px rgba(255,201,60,.85)}}
 .fine .joyzone,.fine .abtn{display:none}
-.fine #btnEmo{display:flex;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
+.fine #btnEmo{display:flex;bottom:calc(var(--ab) - 6px)}
 #keyhint{position:absolute;bottom:max(10px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);font-size:12px;opacity:.8;white-space:nowrap;display:none}
 .fine #keyhint{display:block}
 #toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:30;background:var(--ink);border:2px solid var(--cheese);border-radius:10px;padding:8px 14px;font-size:15px;max-width:min(90vw,460px);text-align:center;opacity:0;transition:opacity .25s;pointer-events:none}
@@ -300,7 +300,7 @@ button,input{font:inherit;color:inherit}
   .rlist li{padding:1px 8px}.coinpanel .cpt{font-size:19px;padding:4px 0 2px}.ctotal{margin-top:4px;padding:3px 14px 6px}.rbtns2 .btn.big{font-size:20px}
   .tdelta{font-size:40px}.tdelta .ic{width:44px;height:44px}.rhead .b{font-size:32px}
   .ctotal .v{font-size:30px}.ctotal .ic{width:30px;height:30px}.crow{font-size:15px;padding:2px 14px}
-  #hud{--A:118px;--E:68px;--ar:calc(env(safe-area-inset-right,0px) + 46px);--ab:calc(env(safe-area-inset-bottom,0px) + 16px)}#btnEmo{font-size:29px}
+  #hud{--A:118px;--E:76px;--g:22px;--er:calc(env(safe-area-inset-right,0px) + 12px);--ab:calc(env(safe-area-inset-bottom,0px) + 16px)}#btnEmo{font-size:32px}
   #timer{font-size:28px}#banner{font-size:48px}
   .tab{min-width:50px;font-size:12px;padding:2px 5px}.tab small{display:none}.chips.tal small{display:none}.mbtns .chip{font-size:12px}.mright{gap:4px}
   .mright{display:grid;grid-template-columns:auto auto;justify-items:end;gap:4px 6px}.cur{grid-column:1/-1}
@@ -597,7 +597,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.11.0</span>
+<span class="ver">v0.11.1</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>

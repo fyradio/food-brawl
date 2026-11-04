@@ -577,7 +577,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.8.3</span>
+<span class="ver">v0.8.4</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -2261,9 +2261,10 @@ function startSheet(){sheetKind='start';
     (save.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],save.dur)}</div>`:'')+`<div class="chips">${chipsHTML('電腦','diff',DIFF.map((d,i)=>[i,d.name]),save.diff)}</div><button class="btn big main" data-act="s-go">開打！</button>`,true)}
 $('#btnStart').addEventListener('click',()=>{startStep=1;startSheet()});
 /* ---- 存檔碼：只記「擁有哪些角色＋每隻等級＋獎盃」。其餘（金幣、碎片、造型、寶箱、任務、天賦選擇）匯入後全部歸零 ---- */
-const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>!CHARS[id].unlock;
+const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>id==='apple'||id==='sushi'||id==='eggplant';
+/* 規則：新角色一律加在 CHARS 最後面，不改順序、不改 id、不刪角色，舊存檔碼才讀得回來（角色數 7 位元，最多 127 隻） */
 function scSum(a){let x=0;for(const v of a)x=(x*31+v+7)%1021;return x}
-function scEncode(){const bits=[],w=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)};w(CH_IDS.length,6);w(clamp(save.trophies|0,0,8191),13);
+function scEncode(){const bits=[],w=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)};w(CH_IDS.length,7);w(clamp(save.trophies|0,0,8191),13);
   for(const id of CH_IDS){const own=save.owned.includes(id);if(!SC_FREE(id))w(own?1:0,1);if(own)w(clamp((save.lvl[id]|0)||1,1,MAX_LV)-1,4)}
   while(bits.length%5)bits.push(0);const ch=[];for(let i=0;i<bits.length;i+=5)ch.push(bits[i]*16+bits[i+1]*8+bits[i+2]*4+bits[i+3]*2+bits[i+4]);
   const cs=scSum(ch);ch.push(cs>>5,cs&31);return ch.map(v=>SC_AL[v]).join('').replace(/(.{4})(?=.)/g,'$1-')}
@@ -2271,7 +2272,7 @@ function scDecode(txt){const t=String(txt).toUpperCase().replace(/[^A-Z0-9]/g,''
   const ch=[...t].map(c=>{const v=SC_AL.indexOf(c);if(v<0)throw new Error('char');return v}),body=ch.slice(0,-2);
   if(scSum(body)!==ch[ch.length-2]*32+ch[ch.length-1])throw new Error('sum');
   const bits=[];for(const v of body)for(let j=4;j>=0;j--)bits.push((v>>j)&1);let p=0;const r=n=>{let v=0;for(let i=0;i<n;i++)v=v*2+(bits[p++]||0);return v};
-  const cnt=r(6);if(cnt<3||cnt>CH_IDS.length)throw new Error('count');const trophies=r(13),owned=[],lvl={};
+  const cnt=r(7);if(cnt>CH_IDS.length)throw new Error('newer');if(cnt<3)throw new Error('count');const trophies=r(13),owned=[],lvl={};
   for(let i=0;i<cnt;i++){const id=CH_IDS[i];const own=SC_FREE(id)?1:r(1);if(own){owned.push(id);lvl[id]=r(4)+1}}
   if(p>bits.length+4)throw new Error('len');return{owned,lvl,trophies}}
 let scPending=null;
@@ -2359,7 +2360,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='sc-copy'){const ta=$('#scBox');let ok=false;(async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(ta.value);ok=true}}catch(e){}
       if(!ok){try{ta.readOnly=false;ta.focus();ta.setSelectionRange(0,ta.value.length);ok=document.execCommand('copy');ta.readOnly=true}catch(e){}}
       $('#scMsg').textContent=ok?'已複製！現在可以貼到備忘錄了':'請長按上面的文字 →「全選」→「拷貝」'})();return}
-  else if(act==='sc-read'){try{scPending=scDecode($('#scBox').value);scSheet('ok')}catch(e){const m=e&&e.message;scSheet('imp',m==='sum'?'存檔碼有一個字打錯了，請再檢查一次':m==='char'?'有看不懂的字（存檔碼沒有 0、1、I、O）':'存檔碼不對，請確認整串都有貼上')}return}
+  else if(act==='sc-read'){try{scPending=scDecode($('#scBox').value);scSheet('ok')}catch(e){const m=e&&e.message;scSheet('imp',m==='sum'?'存檔碼有一個字打錯了，請再檢查一次':m==='char'?'有看不懂的字（存檔碼沒有 0、1、I、O）':m==='newer'?'這組存檔碼來自比較新的版本，請先把遊戲更新到最新（完全關掉再打開）':'存檔碼不對，請確認整串都有貼上')}return}
   else if(act==='sc-apply'){scApply();return}
   else if(act==='htab'){helpTab=b.dataset.v;helpSheet();return}
   else if(act==='hdev'){helpDev=b.dataset.v;helpSheet();return}

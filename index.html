@@ -598,7 +598,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.11.2</span>
+<span class="ver">v0.11.3</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2136,7 +2136,7 @@ function updHud(st,dt){
     if(dm.innerHTML!==h)dm.innerHTML=h}else dm.hidden=true;
   const sb=$('#btnSup'),ready=me.sup>=1;sb.style.setProperty('--p',me.sup.toFixed(3));sb.classList.toggle('ready',ready);
   const sl=ready?'大招好了！':'大招 '+Math.floor(me.sup*100)+'%';if($('#supLab').textContent!==sl)$('#supLab').textContent=sl;
-  if(ready&&!supWas&&me.alive){banner(FINE?'大招好了！按右鍵或 E':'大招好了！按黃色按鈕');SFX.sup()}supWas=ready}
+  if(ready&&!supWas&&me.alive){SFX.sup()}supWas=ready}
 
 /* ================= 主迴圈 ================= */
 let lastT=0,lastSnap=0,lastIn=0,pendingEv=[],lastInKey='';

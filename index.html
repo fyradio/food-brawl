@@ -579,7 +579,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.10.0</span>
+<span class="ver">v0.10.1</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -1287,7 +1287,8 @@ const SFX={shoot:()=>beep(760,320,.07,'square',.035),hit:()=>beep(220,90,.09,'sa
   goal:()=>{beep(520,1040,.25,'square',.08);setTimeout(()=>beep(780,1560,.35,'square',.08),180)},zone:()=>beep(300,120,.6,'sawtooth',.06)};
 addEventListener('pointerdown',audioOn,{passive:true});addEventListener('keydown',audioOn);
 // 音樂檔放在 music/ 資料夾；每種可以放多首，開始時隨機挑一首。檔案不存在時安靜跳過。沒有 final 就繼續放戰鬥音樂
-const MUSIC={lobby:['music/lobby-1.mp3'],battle:['music/battle-1.mp3']};
+const MUSIC={lobby:['music/lobby-1.mp3','music/lobby-2.mp3'],battle:['music/battle-1.mp3','music/battle-2.mp3']};
+const LOOP_LEN={'music/battle-2.mp3':150.857,'music/lobby-2.mp3':23.2997};
 /* 音樂走 WebAudio：整首解碼進記憶體，用 loopStart/loopEnd 在小節線上無縫循環（不會有 mp3 接縫空白）；
    音量走 gain，所以 iPhone 也能淡入淡出和調音量。WebAudio 失敗時退回 <audio> 標籤。 */
 const TRK_G={lobby:.5,battle:.55},BAR_S=240/130;
@@ -1311,7 +1312,7 @@ function playMusic(name,fade){if(musicCur===name)return;if(name&&!MUSIC[name])re
     musicTrk=u;const tok=musicTok;musBus();setMusicVol();
     loadBuf(u).then(b=>{if(tok!==musicTok)return;if(!b){playFallback(u,name,fade);return}
       const n=Math.max(1,Math.round(b.duration/BAR_S)),src=AC.createBufferSource(),g=AC.createGain(),t=AC.currentTime;
-      src.buffer=b;src.loop=true;src.loopStart=0;src.loopEnd=Math.min(b.duration,n*BAR_S);
+      src.buffer=b;src.loop=true;src.loopStart=0;src.loopEnd=Math.min(b.duration,LOOP_LEN[u]||n*BAR_S);
       g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(TRK_G[name]||.5,t+fade);src.connect(g);g.connect(MB);src.start(t);musicNode={src,g}});return}
   playFallback(u,name,fade)}
 function playFallback(u,name,fade){let a=musicEls[u];

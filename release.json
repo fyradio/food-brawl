@@ -1,1 +1,21 @@
-{"src": "/home/claude/foodbrawl.html", "repo": "/home/claude/food-brawl", "title": "食物大亂鬥 Food Brawl", "short": "食物大亂鬥", "theme": "#ffc93c", "lang": "zh-Hant", "sw": "food-brawl", "artifact": "https://claude.ai/artifact/PSYj4vt9kmYismg4DjrxSV", "icon": "/home/claude/food-brawl/icon.png", "trailers": ["Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>", "Claude-Session: https://claude.ai/code/session_01SMuF9McsPfRfEh25Xd5Srw"], "assets": ["music/lobby-1.mp3", "music/battle-1.mp3"]}
+{
+ "src": "/home/claude/foodbrawl.html",
+ "repo": "/home/claude/food-brawl",
+ "title": "食物大亂鬥 Food Brawl",
+ "short": "食物大亂鬥",
+ "theme": "#ffc93c",
+ "lang": "zh-Hant",
+ "sw": "food-brawl",
+ "artifact": "https://claude.ai/artifact/PSYj4vt9kmYismg4DjrxSV",
+ "icon": "/home/claude/food-brawl/icon.png",
+ "trailers": [
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+  "Claude-Session: https://claude.ai/code/session_01SMuF9McsPfRfEh25Xd5Srw"
+ ],
+ "assets": [
+  "music/battle-1.mp3",
+  "music/battle-2.mp3",
+  "music/lobby-1.mp3",
+  "music/lobby-2.mp3"
+ ]
+}

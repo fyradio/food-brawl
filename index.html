@@ -48,6 +48,7 @@ button,input{font:inherit;color:inherit}
   radial-gradient(circle 2px at 74% 72%,#fff 0 100%,transparent),radial-gradient(circle 1.5px at 92% 52%,#fff 0 100%,transparent),
   radial-gradient(circle 1.5px at 20% 86%,#fff 0 100%,transparent),radial-gradient(circle 2px at 55% 88%,#fff 0 100%,transparent),
   radial-gradient(circle at 64% 56%,#6a3fa6,#3d1f6b 52%,#1e0b3d 100%)}
+#updBar{position:fixed;z-index:60;left:50%;transform:translateX(-50%);top:max(8px,env(safe-area-inset-top,0px));box-shadow:0 4px 0 var(--ink),0 0 18px rgba(0,0,0,.35)}
 #cv{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none}
 .screen{position:fixed;inset:0;z-index:3;overflow:auto;touch-action:pan-y;
   padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px));
@@ -589,7 +590,8 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.10.3</span>
+<span class="ver">v0.10.4</span>
+<button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -603,6 +605,26 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const TAU=Math.PI*2;
 const r2=v=>Math.round(v*100)/100;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+/* ---- 版本檢查：主畫面 app 常卡在舊版。開啟／回到前景時抓最新 index.html 比版本號，較新就顯示更新鈕；按下去清掉 SW 和快取再重新載入（存檔在 localStorage，不受影響） ---- */
+const curVer=()=>(document.querySelector('.ver')||{}).textContent||'';
+const verNum=v=>(String(v).match(/\d+/g)||[]).slice(0,3).map(Number);
+const verNewer=(a,b)=>{const x=verNum(a),y=verNum(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)>(y[i]||0)}return false};
+let updLatest='',updLastChk=0;
+async function checkUpdate(manual){if(!/^https?:/.test(location.protocol)){if(manual)toast('這個版本不能線上更新');return}
+  updLastChk=Date.now();
+  try{const r=await fetch('./index.html?vc='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const t=await r.text();
+    const m=t.match(/class="ver[^"]*">(v\d+\.\d+\.\d+)</);if(!m)throw 0;updLatest=m[1];
+    if(verNewer(updLatest,curVer())){showUpd();if(manual)toast('有新版本 '+updLatest)}
+    else if(manual)toast('已經是最新版 '+curVer())}
+  catch(e){if(manual)toast('檢查不到，請確認有連上網路')}}
+function showUpd(){const b=$('#updBar');if(!updLatest||!verNewer(updLatest,curVer()))return;b.textContent=`有新版本 ${updLatest}，點這裡更新`;b.hidden=mode==='game'}
+async function forceUpdate(){toast('更新中…',8000);
+  try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}}catch(e){}
+  try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
+  location.replace(location.pathname+'?u='+Date.now())}
+setTimeout(()=>checkUpdate(false),2500);
+$('#updBar').addEventListener('click',forceUpdate);
+addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-updLastChk>60000)checkUpdate(false)});
 function toast(msg,ms=2600){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),ms)}
 
 /* ================= 存檔 ================= */
@@ -1957,7 +1979,7 @@ function sendEmote(k){const now=performance.now();if(now-lastEmo<1200)return;las
 /* ================= 流程 ================= */
 let mode='loading',game=null,view=null,netState=null,meId=0,acc=0,pred=null,lastRank=0,matchCfg=null,ffT=0;
 const curState=()=>game||netState;
-function showScreen(name){for(const s of['menu','pick','room','result','reveal'])$('#'+s).hidden=s!==name;$('#hud').hidden=name!=='game';$('#bg').hidden=name==='game';
+function showScreen(name){if(name==='game')$('#updBar').hidden=true;else showUpd();for(const s of['menu','pick','room','result','reveal'])$('#'+s).hidden=s!==name;$('#hud').hidden=name!=='game';$('#bg').hidden=name==='game';
   mode=name;if(name==='menu')renderMenuUI();if(name==='pick')renderPickUI();$('#joinBox').hidden=true;$('#confirmBox').hidden=true;$('#emoPanel').hidden=true;$('#sheet').hidden=true;$('#ink').style.opacity=0;
   if(name!=='game')playMusic('lobby');$('#rvBg').hidden=name!=='reveal'}
 function botName(used){const pool=BOT_NAMES.filter(n=>!used.has(n));const n=pool[Math.floor(Math.random()*pool.length)]||'電腦';used.add(n);return n}
@@ -2334,7 +2356,7 @@ function scSheet(mode,msg){sheetKind='savecode';if(mode!=='ok')scPending=null;
   else if(mode==='ok'){const o=scPending;const top=Math.max(...o.owned.map(i=>o.lvl[i]));openSheet('確認匯入',`<p class="sp">這組存檔碼有 <b>${o.owned.length}</b> 隻角色（最高 Lv ${top}）、獎盃 <b>${o.trophies}</b>。<br>這支手機現在有 <b>${save.owned.length}</b> 隻角色、獎盃 <b>${save.trophies}</b>、金幣 <b>${save.coins}</b>。<br>匯入後金幣、碎片、造型、寶箱都會<b>歸零</b>，確定嗎？</p><div class="row2"><button class="btn blue" data-act="sc-imp">不要，重輸入</button><button class="btn main" data-act="sc-apply">確定匯入</button></div>`)}}
 function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=0}save.trophies=o.trophies;save.coins=0;save.chests=0;save.matches=0;save.accOwned=[];save.accEq={};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
 function setSheet(){sheetKind='set';
-  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="vrow"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><input type="range" id="vMus" min="0" max="100" step="5" value="${save.musicVol}" aria-label="音樂音量"></div><div class="vrow"><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button><input type="range" id="vSfx" min="0" max="100" step="5" value="${save.sfxVol}" aria-label="音效音量"></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級和獎盃。</p>`);
+  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="vrow"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><input type="range" id="vMus" min="0" max="100" step="5" value="${save.musicVol}" aria-label="音樂音量"></div><div class="vrow"><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button><input type="range" id="vSfx" min="0" max="100" step="5" value="${save.sfxVol}" aria-label="音效音量"></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><div class="chips"><span class="lab">更新</span><button class="chip" data-act="upd-chk">檢查更新</button><button class="chip" data-act="upd-force">強制更新</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級和獎盃。</p>`);
   $('#nameIn').value=save.name}
 $('#mbSet').addEventListener('click',setSheet);
 function helpSheet(){sheetKind='help';
@@ -2409,6 +2431,8 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='s-join'){$('#sheet').hidden=true;sheetKind='';$('#joinBox').hidden=false;$('#codeIn').value='';setTimeout(()=>$('#codeIn').focus(),50);return}
   else if(act==='tgm'){commitName();save.music=!save.music;persist();if(save.music){musicCur='';playMusic(mode==='game'?'battle':'lobby')}else stopMusic();setSheet();return}
   else if(act==='tgs'){commitName();save.sfx=!save.sfx;persist();setSheet();return}
+  else if(act==='upd-chk'){checkUpdate(true);return}
+  else if(act==='upd-force'){forceUpdate();return}
   else if(act==='sc-exp'){commitName();scSheet('exp');return}
   else if(act==='sc-imp'){scSheet('imp');return}
   else if(act==='sc-back'){setSheet();return}

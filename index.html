@@ -576,7 +576,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.8.0</span>
+<span class="ver">v0.8.1</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -2071,14 +2071,22 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-lastT)/1
 let online=false;
 const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false,myCh:''};
 const roomCh=()=>NET.myCh&&CHARS[NET.myCh]?NET.myCh:save.ch;
-function peerOpts(){const u=new URLSearchParams(location.search),h=u.get('peerhost');return h?{host:h,port:+(u.get('peerport')||9000),path:u.get('peerpath')||'/',secure:u.get('peersecure')==='1',debug:1}:{debug:1}}
+/* 中繼伺服器（TURN）：兩支手機都用行動網路時，手機網路會擋住直接連線，要透過中繼轉送。TURN_API 填入取得通行證的網址後才會啟用 */
+const TURN_API='';
+let ICE=null,ICE_T=0;
+async function loadIce(){if(!TURN_API)return null;if(ICE&&Date.now()-ICE_T<20*60e3)return ICE;
+  try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),5000);const r=await fetch(TURN_API,{signal:ac.signal,cache:'no-store'});clearTimeout(t);const j=await r.json();const L=Array.isArray(j)?j:j&&j.iceServers;
+    if(Array.isArray(L)&&L.length){ICE=[{urls:'stun:stun.l.google.com:19302'}].concat(L);ICE_T=Date.now();return ICE}}catch(e){console.warn('TURN',e)}return null}
+function peerOpts(ice){const u=new URLSearchParams(location.search),h=u.get('peerhost');const o=h?{host:h,port:+(u.get('peerport')||9000),path:u.get('peerpath')||'/',secure:u.get('peersecure')==='1',debug:1}:{debug:1};if(ice)o.config={iceServers:ice};return o}
+const MOBILE_TIP='兩支手機都用 4G／5G 時常會被電信網路擋住，可以一支開熱點給另一支連';
 function netClose(){try{NET.peer&&NET.peer.destroy()}catch(e){}NET.peer=null;NET.conns.clear();NET.conn=null;NET.lobby=[];NET.lobbyMsg=null;NET.host=false;NET.inGame=false;NET.joined=false;online=false}
 function netFail(msg){netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu');
   toast(msg+(location.hostname.endsWith('github.io')||location.hostname==='localhost'||location.hostname==='127.0.0.1'?'':'（Claude 試玩連結不能連線，請用 GitHub 網址開）'),5000)}
-function hostRoom(){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
+async function hostRoom(){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
   netClose();NET.myCh=save.ch;const code=String(Math.floor(1000+Math.random()*9000));NET.code=code;NET.host=true;online=true;NET.opts.mode=save.mode;NET.opts.dur=save.dur;NET.opts.diff=save.diff;NET.hostTeam=0;
   showScreen('room');$('#rCode').textContent='····';renderRoom();
-  let peer;try{peer=new Peer(PEER_PREFIX+code,peerOpts())}catch(e){netFail('開房失敗');return}NET.peer=peer;
+  const ice=await loadIce();if(!NET.host||NET.code!==code||NET.peer)return;
+  let peer;try{peer=new Peer(PEER_PREFIX+code,peerOpts(ice))}catch(e){netFail('開房失敗');return}NET.peer=peer;
   const to=setTimeout(()=>{if(NET.peer===peer&&!peer.open)netFail('連不到連線伺服器')},10000);
   peer.on('open',()=>{clearTimeout(to);if(NET.peer!==peer)return;$('#rCode').textContent=code;renderRoom()});
   peer.on('error',e=>{if(NET.peer!==peer)return;if(e.type==='unavailable-id'){clearTimeout(to);hostRoom()}else if(!peer.open){clearTimeout(to);netFail('開房失敗')}else console.warn(e)});
@@ -2129,14 +2137,16 @@ function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT))
   if(g.decoys.length)m.DC=g.decoys.map(d=>[d.id,d.owner,r2(d.x),r2(d.z),r2(d.ang)]);
   if(g.ball){m.BL=[r2(g.ball.x),r2(g.ball.z),r2(g.ball.vx),r2(g.ball.vz)];m.G=g.goals}
   if(g.zone)m.ZN=[r2(g.zone.cx),r2(g.zone.cz),r2(g.zone.r)];return m}
-function joinRoom(code){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
+async function joinRoom(code){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
   netClose();NET.myCh=save.ch;online=true;NET.code=code;showScreen('room');$('#rCode').textContent=code;renderRoom();
-  let peer;try{peer=new Peer(peerOpts())}catch(e){netFail('連線失敗');return}NET.peer=peer;
-  const to=setTimeout(()=>{if(NET.peer===peer&&!NET.joined)netFail('找不到房間 '+code)},12000);
+  const ice=await loadIce();if(!online||NET.code!==code||NET.peer)return;
+  let peer;try{peer=new Peer(peerOpts(ice))}catch(e){netFail('連線失敗');return}NET.peer=peer;
+  /* 有連上連線伺服器、也沒說找不到房間，卻一直接不通 → 多半是手機網路擋住直接連線 */
+  const to=setTimeout(()=>{if(NET.peer===peer&&!NET.joined)netFail(peer.open?'連不上房主。'+MOBILE_TIP:'連不到連線伺服器，請確認有網路')},15000);
   peer.on('open',()=>{if(NET.peer!==peer)return;const c=peer.connect(PEER_PREFIX+code,{reliable:true,serialization:'json'});NET.conn=c;
     c.on('open',()=>{NET.joined=true;clearTimeout(to);sendHello()});
     c.on('data',clientData);c.on('close',()=>{if(NET.peer===peer){netFail('房主離開了')}})});
-  peer.on('error',e=>{if(NET.peer!==peer)return;if(e.type==='peer-unavailable'){clearTimeout(to);netFail('找不到房間 '+code)}else if(!NET.joined){clearTimeout(to);netFail('連線失敗')}})}
+  peer.on('error',e=>{if(NET.peer!==peer)return;if(e.type==='peer-unavailable'){clearTimeout(to);netFail('找不到房間 '+code)}else if(!NET.joined){clearTimeout(to);netFail('連線失敗。'+MOBILE_TIP)}})}
 function sendHello(){const c=NET.conn;if(!c||!c.open)return;const ch=roomCh();try{c.send({t:'hello',name:save.name,ch,lvl:save.lvl[ch],tal:myTal(ch),acc:accStr(ch)})}catch(e){}}
 function clientData(d){if(!d)return;
   if(d.t==='deny'){netFail(d.why)}
@@ -2245,7 +2255,7 @@ $('#sheetClose').addEventListener('click',closeSheet);
 $('#sheet').addEventListener('click',e=>{if(e.target===$('#sheet'))closeSheet()});
 const MODE_SHORT={score:'限時搶分',royale:'縮圈求生',soccer:'4 對 4 踢球'};
 function startSheet(){sheetKind='start';
-  if(startStep===1){openSheet('開始遊戲',`<button class="opt main" data-act="s-solo"><b>對戰電腦</b><small>自己玩，跟電腦打</small></button><button class="opt blue" data-act="s-host"><b>開房間</b><small>同一個 WiFi 的朋友一起玩</small></button><button class="opt blue" data-act="s-join"><b>加入房間</b><small>輸入朋友畫面上的 4 位數代碼</small></button>`);return}
+  if(startStep===1){openSheet('開始遊戲',`<button class="opt main" data-act="s-solo"><b>對戰電腦</b><small>自己玩，跟電腦打</small></button><button class="opt blue" data-act="s-host"><b>開房間</b><small>跟朋友一起玩（同一個 WiFi 最穩）</small></button><button class="opt blue" data-act="s-join"><b>加入房間</b><small>輸入朋友畫面上的 4 位數代碼</small></button>`);return}
   openSheet('對戰電腦',`<div><button class="btn small blue" data-act="s-back">‹ 上一步</button></div><div class="mcards">${Object.entries(MODES).map(([k,v])=>`<button class="mc${save.mode===k?' on':''}" data-act="s-mode" data-v="${k}"><b>${v.name}</b><small>${MODE_SHORT[k]}</small></button>`).join('')}</div><p class="sp">${MODES[save.mode].desc}</p>`+
     (save.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],save.dur)}</div>`:'')+`<div class="chips">${chipsHTML('電腦','diff',DIFF.map((d,i)=>[i,d.name]),save.diff)}</div><button class="btn big main" data-act="s-go">開打！</button>`,true)}
 $('#btnStart').addEventListener('click',()=>{startStep=1;startSheet()});
@@ -2258,7 +2268,7 @@ function helpSheet(){sheetKind='help';
   const li=a=>a.map(s=>`<li>${s}</li>`).join('');
   let b='';
   if(helpTab==='how')b=`<ul class="hl">${li(['<b>移動</b>：手指按住畫面左邊拖一拖（電腦：W A S D）。','<b>攻擊</b>：右下角大紅鈕。點一下就會打；按住拖曳再放開，會朝你拖的方向打（電腦：滑鼠瞄準、左鍵）。','<b>彈藥</b>：角色頭上的格子，用完要等它慢慢補滿。','<b>大招</b>：打中人會充能，滿了按攻擊鈕旁邊的大招鈕（電腦：右鍵或 E）。每隻食物的大招都不一樣。','<b>草叢</b>：躲進草叢待 3 秒，別人就看不到你了。','<b>表情</b>：比賽中按右上角「表情」，跟隊友和對手打招呼。','比賽結束會得到獎盃和金幣，金幣可以升級、買新食物。'])}</ul>`;
-  else if(helpTab==='mode')b=`<ul class="hl">${Object.entries(MODES).map(([k,v])=>`<li><b>${v.name}</b>：${v.desc}</li>`).join('')}<li>時間有 90 秒和 180 秒兩種（吃雞不限時間）。</li><li>電腦強度分簡單、普通、困難，電腦的等級會跟著你的等級走。</li><li>想跟朋友玩：大家連同一個 WiFi，一個人「開房間」，其他人「加入房間」輸入 4 位數代碼。房間裡空位會用電腦補滿。</li></ul>`;
+  else if(helpTab==='mode')b=`<ul class="hl">${Object.entries(MODES).map(([k,v])=>`<li><b>${v.name}</b>：${v.desc}</li>`).join('')}<li>時間有 90 秒和 180 秒兩種（吃雞不限時間）。</li><li>電腦強度分簡單、普通、困難，電腦的等級會跟著你的等級走。</li><li>想跟朋友玩：一個人「開房間」，其他人「加入房間」輸入 4 位數代碼。房間裡空位會用電腦補滿。連同一個 WiFi 最穩；兩支手機都用 4G／5G 可能連不上，可以一支開熱點給另一支連。</li></ul>`;
   else if(helpTab==='grow')b=`<ul class="hl">${li(['<b>等級</b>：每隻食物最高 '+MAX_LV+' 級，每升 1 級，血量和攻擊 +15%。','<b>彈藥</b>：Lv3、5、7、9 各多半格，最高 5 格。','<b>天賦</b>：Lv5 可以二選一，兩種玩法不一樣，隨時能換。','<b>異色造型</b>：Lv10 解鎖。','<b>怎麼升級</b>：要金幣；Lv3 以後還要「碎片」。開寶箱抽到重複的食物就會變成碎片。','<b>寶箱</b>：前 3 名、足球贏球、每打 5 場都會送，也可以用金幣買。','<b>稀有度</b>：普通、稀有、史詩、傳說，越高級的技能越神奇。獎盃夠了就能用金幣買，開寶箱也可能提前抽到。','<b>造型</b>：到「選角色」畫面點「造型」，只是好看，不影響能力。'])}</ul>`;
   else{const dev=helpDev;
     const st={ios:['用 <b>Safari</b> 打開這個遊戲（LINE、Facebook 內建瀏覽器不行，要先點「在 Safari 開啟」）。','點畫面下方（iPad 在右上方）的<b>分享</b>按鈕，就是方框加向上箭頭。','往下滑，點<b>加入主畫面</b>。','右上角按<b>新增</b>，主畫面就會多一個起司珍奶圖示。'],
@@ -2330,7 +2340,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='wear'){const k=b.dataset.k,a=ACCS[k];const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=eq[a.slot]===k?'':k;persist();openSheet('造型',wardSheet())}
   refreshUI()});
 function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.opts:NET.opts,soccer=o.mode==='soccer';
-  $('#rHint').textContent=host?'同一個 WiFi 的朋友打開這個遊戲 → 加入房間 → 輸入代碼'+(soccer?'。點玩家可以換隊':''):NET.joined?'等房主按開始…':'連線中…';
+  $('#rHint').textContent=host?'朋友打開這個遊戲 → 加入房間 → 輸入代碼（同一個 WiFi 最穩）'+(soccer?'。點玩家可以換隊':''):NET.joined?'等房主按開始…':'連線中…';
   const rows=[];if(m){rows.push({...m.host,tag:'房主',idx:-1});m.list.forEach((l,i)=>rows.push({...l,idx:i}))}
   const humans=rows.length,bots=Math.min(o.bots,8-humans);
   let html=rows.map(r=>`<li class="${host&&soccer?'tap':''}" data-i="${r.idx}" ${host&&soccer?'tabindex="0"':''}><i style="${avStyle(r.ch)}"></i><span class="nm"></span>${soccer?`<span class="team t${r.team|0}">${r.team?'藍隊':'紅隊'}</span>`:''}${r.tag?'<span class="tag">房主</span>':''}</li>`).join('');

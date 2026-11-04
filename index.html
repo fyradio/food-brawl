@@ -338,6 +338,7 @@ button,input{font:inherit;color:inherit}
 .mc{border:3px solid var(--ink);border-radius:12px;background:var(--cream-2);padding:8px 4px;text-align:center;cursor:pointer;color:var(--brown);display:flex;flex-direction:column;gap:2px;align-items:center;font:inherit;box-shadow:0 3px 0 var(--ink)}
 .mc b{font-family:var(--f-disp);font-weight:400;font-size:22px;color:var(--ink)}.mc small{font-size:12px;font-weight:700}
 .mc.on{background:var(--tomato);color:var(--paper)}.mc.on b{color:var(--paper)}
+#sheetBody .vrow{display:flex;align-items:center;gap:8px}#sheetBody .vrow input[type=range]{flex:1;min-width:0;accent-color:#ffb400;height:28px}
 #sheetBody .sp{margin:0;font-size:13px;font-weight:700;line-height:1.5}
 .htabs{gap:6px}.hbody{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:700;line-height:1.55}
 .hl{margin:0;padding-left:1.2em;display:grid;gap:6px}.hl b,.stp b{color:var(--tomato-deep)}
@@ -578,7 +579,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.9.1</span>
+<span class="ver">v0.10.0</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -596,7 +597,7 @@ function toast(msg,ms=2600){const t=$('#toast');t.textContent=msg;t.classList.ad
 
 /* ================= 存檔 ================= */
 const SAVE_KEY='foodbrawl-save-v1';
-let save={name:'',trophies:0,coins:0,lvl:{},ch:'apple',diff:1,mode:'score',dur:180,music:true,sfx:true,
+let save={name:'',trophies:0,coins:0,lvl:{},ch:'apple',diff:1,mode:'score',dur:180,music:true,sfx:true,musicVol:60,sfxVol:70,
   owned:['apple','sushi','eggplant'],shards:{},tal:{},chests:1,matches:0,accOwned:[],accEq:{},daily:null};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s)save=Object.assign(save,s)}catch(e){}
 if(!save.name)save.name='玩家'+Math.floor(rnd(100,999));
@@ -730,9 +731,9 @@ const ACCS={straw:{name:'草帽',slot:'head',price:300},bow:{name:'蝴蝶結',sl
   shades:{name:'墨鏡',slot:'face',price:400},cape:{name:'披風',slot:'back',price:800}};
 const MISSIONS={play:{t:3,txt:n=>`完成 ${n} 場比賽`},kills:{t:12,txt:n=>`淘汰 ${n} 個對手`},top:{t:1,txt:()=>'拿 1 次第一名（足球算贏球）'},
   crates:{t:8,txt:n=>`打破 ${n} 個木箱`},supers:{t:6,txt:n=>`放 ${n} 次大招`},goals:{t:2,txt:n=>`足球模式踢進 ${n} 球`},
-  royale3:{t:1,txt:()=>'吃雞模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
+  royale3:{t:1,txt:()=>'生存模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
 const CHEST_PRICE=300,CHEST_W=[59,25,11,4,1],SHARDS_PER=[10,8,6,4,3];
-const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'吃雞',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
+const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'生存模式',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。白天或黑夜隨機，黑夜只看得到身邊。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
 const DIFF=[
   {name:'簡單',aimErr:.55,react:1.1,dodge:0,fireRate:.4,lead:0,gap:1.4,sight:9,supWait:3},
   {name:'普通',aimErr:.28,react:.65,dodge:.15,fireRate:.65,lead:.3,gap:.85,sight:11,supWait:1.5},
@@ -818,7 +819,7 @@ class Game{
     [this.bx,this.bz]=boundsFor(this.mode,o.players.length);
     this.players=[];this.proj=[];this.traps=[];this.puddles=[];this.items=[];this.decoys=[];this.events=[];this.nid=1;this.clock=0;this.walls=[];this.turrets=[];this.hazT=8;
     this.crates=this.M.crates.map((c,i)=>{const off=Math.abs(c.x)>this.bx-1.2||Math.abs(c.z)>this.bz-1.2;return{i,x:c.x,z:c.z,hp:CRATE_HP,alive:!off,off,t:0}});
-    this.dur=o.dur||180;this.time=this.mode==='royale'?0:this.dur;this.startT=3;this.over=false;this.goals=[0,0];this.goalPause=0;
+    this.night=this.mode==='royale'&&(o.night!==undefined?!!o.night:Math.random()<.5);this.dur=o.dur||180;this.time=this.mode==='royale'?0:this.dur;this.startT=3;this.over=false;this.goals=[0,0];this.goalPause=0;
     if(this.mode==='soccer')this.ball={x:0,z:0,vx:0,vz:0,last:-1};
     if(this.mode==='royale'){const r0=Math.hypot(this.bx,this.bz)+1;this.zone={r0,r:r0,cx:0,cz:0,tx:rnd(-.3,.3)*this.bx,tz:rnd(-.3,.3)*this.bz,tick:0,stage:-1}}
     o.players.forEach((pp,i)=>this.addPlayer(pp,i))}
@@ -1233,9 +1234,9 @@ function botThink(g,p,dt){
   ai.lx=p.x;ai.lz=p.z;
   if(p.stunT>0){I.mx=I.mz=0;return}
   if(g.mode==='soccer'&&p.rollT<=0&&soccerChaser(g,p))return;
-  const inked=p.inkT>0,sight=inked?3:g.M.dark?Math.min(D.sight,7):D.sight,aimErr=D.aimErr+(inked?.35:0);
+  const inked=p.inkT>0,dk=g.M.dark||g.night,sight=inked?3:dk?Math.min(D.sight,7):D.sight,aimErr=D.aimErr+(inked?.35:0);
   let tgt=null,tw=1e9;
-  for(const q of g.targets()){if(!q.alive||!foe(p,q))continue;const d=Math.hypot(q.x-p.x,q.z-p.z);if(d>sight&&!(g.M.dark&&!inked&&d<D.sight&&inLight(g.M,q.x,q.z)))continue;if(q.inBush!==undefined&&g.isHidden(q)&&d>2.5)continue;const w=d+(q.hp/q.maxHp)*2+(q.inv||q.rollT>0?6:0);if(w<tw){tw=w;tgt=q}}
+  for(const q of g.targets()){if(!q.alive||!foe(p,q))continue;const d=Math.hypot(q.x-p.x,q.z-p.z);if(d>sight&&!(dk&&!inked&&d<D.sight&&inLight(g.M,q.x,q.z)))continue;if(q.inBush!==undefined&&g.isHidden(q)&&d>2.5)continue;const w=d+(q.hp/q.maxHp)*2+(q.inv||q.rollT>0?6:0);if(w<tw){tw=w;tgt=q}}
   if(tgt!==ai.tgt){ai.tgt=tgt;ai.seen=0}
   const hpF=p.hp/p.maxHp,want=C.want;
   if(p.ch==='broccoli'&&p.sup>=1&&hpF<.55)I.s++;
@@ -1278,22 +1279,47 @@ function botThink(g,p,dt){
 /* ================= 音效與音樂 ================= */
 let AC=null;
 function audioOn(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
+const volOf=v=>Math.pow(clamp((+v)||0,0,100)/100,2),sfxMul=()=>volOf(save.sfxVol)*.9;
 function beep(f1,f2,dur,type,vol){if(!save.sfx||!AC||AC.state!=='running')return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f2),t+dur);
-  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.02)}
+  vol*=sfxMul();if(vol<.0002)return;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.02)}
 const SFX={shoot:()=>beep(760,320,.07,'square',.035),hit:()=>beep(220,90,.09,'sawtooth',.05),ko:()=>beep(520,60,.45,'triangle',.12),
   pick:()=>{beep(620,1240,.12,'sine',.08)},slip:()=>beep(1000,180,.35,'sine',.07),sup:()=>beep(220,960,.3,'square',.06),crate:()=>beep(160,60,.15,'triangle',.1),tick:()=>beep(880,880,.08,'sine',.06),
   goal:()=>{beep(520,1040,.25,'square',.08);setTimeout(()=>beep(780,1560,.35,'square',.08),180)},zone:()=>beep(300,120,.6,'sawtooth',.06)};
 addEventListener('pointerdown',audioOn,{passive:true});addEventListener('keydown',audioOn);
 // 音樂檔放在 music/ 資料夾；每種可以放多首，開始時隨機挑一首。檔案不存在時安靜跳過。沒有 final 就繼續放戰鬥音樂
 const MUSIC={lobby:['music/lobby-1.mp3'],battle:['music/battle-1.mp3']};
-const musicEls={},musicBad={};let musicCur='',musicTrk='';
+/* 音樂走 WebAudio：整首解碼進記憶體，用 loopStart/loopEnd 在小節線上無縫循環（不會有 mp3 接縫空白）；
+   音量走 gain，所以 iPhone 也能淡入淡出和調音量。WebAudio 失敗時退回 <audio> 標籤。 */
+const TRK_G={lobby:.5,battle:.55},BAR_S=240/130;
+const musicBuf={},musicBad={},musicEls={};let musicCur='',musicTrk='',musicTok=0,MB=null,musicNode=null;
+const mvol=()=>volOf(save.musicVol);
+function musBus(){if(!AC)return null;if(!MB){MB=AC.createGain();MB.connect(AC.destination)}return MB}
+function setMusicVol(){const b=musBus();if(b){try{b.gain.setTargetAtTime(mvol(),AC.currentTime,.03)}catch(e){b.gain.value=mvol()}}
+  const a=musicEls[musicTrk];if(a)try{a.volume=clamp(mvol()*(TRK_G[musicCur]||.5),0,1)}catch(e){}}
 function pickTrack(name){const L=MUSIC[name].filter(u=>!musicBad[u]);return L.length?L[Math.floor(Math.random()*L.length)]:''}
-function playMusic(name){if(musicCur===name)return;if(name&&!MUSIC[name])return;const old=musicEls[musicTrk];if(old){try{old.pause()}catch(e){}}musicCur=name;musicTrk='';
-  if(!save.music||!name)return;const u=pickTrack(name);if(!u)return;let a=musicEls[u];
+function loadBuf(u){const m=musicBuf[u]||(musicBuf[u]={});if(m.p)return m.p;
+  m.p=fetch(u).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(ab=>new Promise((ok,no)=>{const r=AC.decodeAudioData(ab,ok,no);if(r&&r.then)r.then(ok,no)})).then(b=>{m.buf=b;return b}).catch(()=>{musicBad[u]=true;return null});return m.p}
+function preloadMusic(){if(!AC)return;for(const k in MUSIC)MUSIC[k].forEach(loadBuf)}
+function fadeOutNode(n,sec){if(!n)return;try{const t=AC.currentTime;n.g.gain.cancelScheduledValues(t);n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+sec);n.src.stop(t+sec+.05)}catch(e){try{n.src.stop()}catch(_){}}}
+function killMusic(sec){musicTok++;fadeOutNode(musicNode,sec);musicNode=null;const a=musicEls[musicTrk];if(a){try{a.pause()}catch(e){}}}
+function playMusic(name,fade){if(musicCur===name)return;if(name&&!MUSIC[name])return;killMusic(.35);musicCur=name;musicTrk='';
+  if(!save.music||!name)return;const u=pickTrack(name);if(!u)return;
+  if(fade==null)fade=name==='battle'?2.8:1;
+  const AC0=window.AudioContext||window.webkitAudioContext;
+  if(AC0){audioOn();
+    if(!AC||AC.state!=='running'){musicCur='';const r=AC&&AC.resume&&AC.resume();if(r&&r.then)r.then(()=>{if(!musicCur&&save.music&&AC.state==='running')playMusic(name,fade)},()=>{});return}
+    musicTrk=u;const tok=musicTok;musBus();setMusicVol();
+    loadBuf(u).then(b=>{if(tok!==musicTok)return;if(!b){playFallback(u,name,fade);return}
+      const n=Math.max(1,Math.round(b.duration/BAR_S)),src=AC.createBufferSource(),g=AC.createGain(),t=AC.currentTime;
+      src.buffer=b;src.loop=true;src.loopStart=0;src.loopEnd=Math.min(b.duration,n*BAR_S);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(TRK_G[name]||.5,t+fade);src.connect(g);g.connect(MB);src.start(t);musicNode={src,g}});return}
+  playFallback(u,name,fade)}
+function playFallback(u,name,fade){let a=musicEls[u];
   if(!a){try{a=new Audio(u);a.loop=true;a.addEventListener('error',()=>{musicBad[u]=true});musicEls[u]=a}catch(e){return}}
-  a.volume=name==='lobby'?.4:.5;musicTrk=u;try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{if(musicCur===name){musicCur='';musicTrk=''}})}
-function stopMusic(){const a=musicEls[musicTrk];if(a){try{a.pause()}catch(e){}}musicCur='';musicTrk=''}
-addEventListener('pointerdown',()=>{if(!musicCur&&save.music){const want=mode==='game'?'battle':'lobby';playMusic(want)}},{passive:true});
+  musicTrk=u;try{a.volume=clamp(mvol()*(TRK_G[name]||.5),0,1)}catch(e){}try{a.currentTime=0}catch(e){}const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{if(musicCur===name){musicCur='';musicTrk=''}})}
+function stopMusic(){killMusic(.3);musicCur='';musicTrk=''}
+addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running'){try{AC.resume()}catch(e){}}});
+addEventListener('pointerdown',()=>{audioOn();preloadMusic();if(!musicCur&&save.music){const want=mode==='game'?'battle':'lobby';playMusic(want)}},{passive:true});
 
 /* ================= three.js 共用 ================= */
 let R=null;
@@ -1587,11 +1613,11 @@ function groundTex(kind,bx,bz){const S=kind==='stadium'?1024:512,c=document.crea
 let CRATE_TEX=null;
 class View{
   constructor(mapId,info){
-    const M=MAPS[mapId],sc=this.scene=new THREE.Scene(),desert=mapId==='desert',stad=mapId==='stadium';this.M=M;this.mode=info.mode;this.bx=info.bx;this.bz=info.bz;
-    sc.background=new THREE.Color(M.th.bg);
+    const M=MAPS[mapId],sc=this.scene=new THREE.Scene(),desert=mapId==='desert',stad=mapId==='stadium';this.M=M;this.mode=info.mode;this.bx=info.bx;this.bz=info.bz;const night=this.night=!!info.night,dk=this.dk=!!M.dark||night;
+    sc.background=new THREE.Color(night?0x070a18:M.th.bg);if(night)sc.fog=new THREE.Fog(0x070a18,14,34);
     this.cam=new THREE.PerspectiveCamera(42,1,.5,200);this.camT=new THREE.Vector3();
-    sc.add(new THREE.HemisphereLight(0xffffff,M.th.hemi,M.dark?.3:.62));
-    const sun=this.sun=new THREE.DirectionalLight(M.dark?0x8aa0ff:0xfff4e0,M.dark?.25:.85);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+    sc.add(new THREE.HemisphereLight(0xffffff,M.th.hemi,dk?.3:.62));
+    const sun=this.sun=new THREE.DirectionalLight(dk?0x8aa0ff:0xfff4e0,dk?(night?.18:.25):.85);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
     const sc2=sun.shadow.camera;sc2.left=-18;sc2.right=18;sc2.top=18;sc2.bottom=-18;sc2.near=1;sc2.far=60;sun.shadow.bias=-.0015;sc.add(sun,sun.target);
     const gm=new THREE.MeshLambertMaterial({map:groundTex(M.th.ground,this.bx,this.bz)});const ground=new THREE.Mesh(new THREE.PlaneGeometry(2*H,2*H),gm);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;sc.add(ground);
     const B=new Batch();
@@ -1633,7 +1659,7 @@ class View{
     if(!CRATE_TEX)CRATE_TEX=crateTex();
     const cm=new THREE.MeshLambertMaterial({map:CRATE_TEX});
     this.crates=M.crates.map(c=>{const m=new THREE.Mesh(GEO.box,cm);m.scale.set(1.3,1.3,1.3);m.position.set(c.x,.65,c.z);m.castShadow=m.receiveShadow=true;sc.add(m);return{m,shake:0}});
-    if(this.mode==='royale'){this.zoneWall=new THREE.Mesh(new THREE.CylinderGeometry(1,1,3,64,1,true),new THREE.MeshBasicMaterial({color:0x8fd14a,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}));
+    if(this.mode==='royale'){this.zoneWall=new THREE.Mesh(new THREE.CylinderGeometry(1,1,3,64,1,true),new THREE.MeshBasicMaterial({color:night?0xb6ff5a:0x8fd14a,transparent:true,opacity:night?.5:.3,side:THREE.DoubleSide,depthWrite:false}));
       this.zoneWall.position.y=1.5;sc.add(this.zoneWall);this.zoneOut=new THREE.Mesh(new THREE.RingGeometry(1,2,64,1),basic(0x5fae2a,.35));this.zoneOut.rotation.x=-Math.PI/2;this.zoneOut.position.y=.05;sc.add(this.zoneOut);this.zoneR=-1}
     if(this.mode==='soccer'){this.ball=makeBall();sc.add(this.ball);this.ballP={x:0,z:0}}
     const aim=this.aim=new THREE.Group();aim.visible=false;sc.add(aim);
@@ -1696,7 +1722,7 @@ class View{
       let da=p.ang-o.da;da=Math.atan2(Math.sin(da),Math.cos(da));o.da+=da*(p.slip?1:Math.min(1,dt*16));
       o.group.position.set(o.dx,0,o.dz);o.group.rotation.y=o.da;
       const near=me&&Math.hypot(p.x-me.x,p.z-me.z)<2.5,mate=me&&p.team!=null&&p.team===me.team;
-      const lit=!this.M.dark||p.id===meId||mate||(me&&Math.hypot(p.x-me.x,p.z-me.z)<7)||inLight(this.M,p.x,p.z);
+      const lit=!this.dk||p.id===meId||mate||(me&&Math.hypot(p.x-me.x,p.z-me.z)<(this.night?9:7))||inLight(this.M,p.x,p.z);
       const vis=p.alive&&lit&&(!p.hidden||p.id===meId||near||mate);
       o.group.visible=vis&&!(p.inv&&Math.floor(t*10)%2===0);
       setAlpha(o,p.hidden&&(p.id===meId||near||mate)?.45:1);
@@ -1933,7 +1959,7 @@ function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=s
   beginMatch({map,mode:save.mode,dur:save.dur,diff:save.diff,players:fillBots([me],7,lv,save.diff,false,soccer)},0,true)}
 function beginMatch(cfg,myId,local,info){resetTouch();$('#sheet').hidden=true;sheetKind='';clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
   IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;supWas=false;ffT=0;finalOn=false;
-  let vinfo;if(local){game=new Game(cfg);netState=null;vinfo={mode:game.mode,bx:game.bx,bz:game.bz}}else{game=null;vinfo=info}
+  let vinfo;if(local){game=new Game(cfg);netState=null;vinfo={mode:game.mode,bx:game.bx,bz:game.bz,night:game.night}}else{game=null;vinfo=info}
   view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
   $('#goalbar').hidden=vinfo.mode!=='soccer';$('#sub').hidden=vinfo.mode!=='royale';$('#board').hidden=vinfo.mode==='soccer';$('#board').dataset.k='';
   playMusic('battle')}
@@ -1956,7 +1982,7 @@ function finish(res){if(mode!=='game')return;ended=true;
   if(res.mode==='soccer'){const g=res.goals,mt=me.team|0;win=g[mt]>g[1-mt];const draw=g[0]===g[1];td=win?8:draw?2:-3;c1=win?40:draw?25:15;c3=(me.goals||0)*10;l1='勝負';l3='進球';
     head=win?'你這隊贏了！':draw?'平手！':'差一點點！';sub=`紅 ${g[0]} : ${g[1]} 藍`;lastRank=win?0:1;rank=win?0:3}
   else{rank=res.mode==='royale'?Math.max(0,(me.place||1)-1):Math.max(0,myI);win=rank===0;td=TRO[rank]??-4;c1=COIN_RANK[rank]??5;c3=rank===0?20:0;
-    head=rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.mode==='royale'?'吃雞結束':'比賽結束';lastRank=rank}
+    head=rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.mode==='royale'?'生存結束':'比賽結束';lastRank=rank}
   const c2=me.score*4;save.trophies=Math.max(0,t0+td);save.coins+=c1+c2+c3;
   save.matches=(save.matches|0)+1;let chest=(res.mode==='soccer'?win:rank<=2)?1:0;if(save.matches%5===0)chest++;save.chests=(save.chests|0)+chest;
   const doneM=applyMissions(res,me,win,rank);persist();
@@ -1972,7 +1998,7 @@ function finish(res){if(mode!=='game')return;ended=true;
   const mine=curState().players[meId];setMenuChar(mine.ch,mine.lvl>=10,mine.acc);
   clearTimeout(resTimer);resTimer=setTimeout(()=>{resTimer=0;if(mode!=='game')return;if(view){view.dispose();view=null}game=null;netState=null;showScreen('result');R.setClearColor(0x000000,0);
     if(doneM.length)toast('任務完成：'+doneM.join('、')+'，到「任務」領獎勵',4000)},1600);
-  banner(res.mode==='soccer'?head:res.mode==='royale'?(lastRank===0?'大吉大利！':'吃雞結束'):'時間到！')}
+  banner(res.mode==='soccer'?head:res.mode==='royale'?(lastRank===0?'大吉大利！':'生存結束'):'時間到！')}
 function leaveMatch(){clearTimeout(resTimer);resTimer=0;if(online)netClose();if(view){view.dispose();view=null}game=null;netState=null;R.setClearColor(0x000000,0);showScreen('menu')}
 function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
 function feed(html){const d=document.createElement('div');d.innerHTML=html;const f=$('#feed');f.prepend(d);while(f.children.length>4)f.lastChild.remove();setTimeout(()=>d.remove(),4500)}
@@ -2029,7 +2055,7 @@ function updHud(st,dt){
     if(tm<=30&&st.startT<=0&&!finalOn){finalOn=true;playMusic('final')}}
   if(tEl.textContent!==txt)tEl.textContent=txt;
   if(st.startT>0){const n=Math.ceil(st.startT);if(n!==lastBanner){lastBanner=n;banner(String(n));SFX.tick()}}
-  else if(lastBanner>0){lastBanner=0;banner('開打！')}
+  else if(lastBanner>0){lastBanner=0;banner(view&&view.night?'黑夜降臨！':'開打！')}
   else if(lastBanner===0&&st.mode!=='royale'&&Math.ceil(st.time)<=10&&st.time>0){lastBanner=-2;banner('最後 10 秒！')}
   if(st.mode==='soccer'){const g=st.goals||[0,0];if($('#g0').textContent!=String(g[0]))$('#g0').textContent=g[0];if($('#g1').textContent!=String(g[1]))$('#g1').textContent=g[1]}
   const me=st.players[meId];
@@ -2132,10 +2158,10 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   if(!soccer)humans.forEach(h=>delete h.team);
   const players=fillBots(humans,o.bots,avg,o.diff,!!fixL,soccer,pool);
   const map=soccer?'stadium':o.map==='rand'?MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)]:o.map;
-  const cfg={map,mode:o.mode,dur:o.dur,diff:o.diff,players};NET.inGame=true;
+  const night=o.mode==='royale'&&Math.random()<.5;const cfg={map,mode:o.mode,dur:o.dur,diff:o.diff,players,night};NET.inGame=true;
   const[bx,bz]=boundsFor(o.mode,players.length);
   const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'']);
-  players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz})}});
+  players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz,night:night?1:0})}});
   pendingEv=[];beginMatch(cfg,0,true)}
 const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou'];
 function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT)),
@@ -2171,7 +2197,7 @@ function clientStart(d){const M=MAPS[d.map];const mode2=d.mode||'score';
     players:d.P.map((a,i)=>({id:i,name:a[0],ch:CHARS[a[1]]?a[1]:'apple',lvl:a[2],bot:!!a[3],team:a[4]>=0?a[4]:null,tal:a[5]||null,acc:a[6]||'',maxAmmo:lvAmmo(a[2]),x:0,z:0,ang:0,hp:1,maxHp:1,alive:true,score:0,deaths:0,ammo:3,sup:0,
       hidden:false,inv:false,slip:false,moving:false,slow:false,atk:false,burn:false,ink:false,roll:false,dash:false,power:0,respawnT:0,lives:2,out:false,place:0})),proj:[],traps:[],puddles:[],items:[],
     crates:M.crates.map(c=>({x:c.x,z:c.z,alive:!(Math.abs(c.x)>(d.bx||H)-1.2||Math.abs(c.z)>(d.bz||H)-1.2),hp:CRATE_HP}))};
-  beginMatch({map:d.map,players:d.P.map(a=>({name:a[0],ch:a[1]}))},d.you,false,{mode:mode2,bx:netState.bx,bz:netState.bz});netState.local=false;pred=null}
+  beginMatch({map:d.map,players:d.P.map(a=>({name:a[0],ch:a[1]}))},d.you,false,{mode:mode2,bx:netState.bx,bz:netState.bz,night:!!d.night});netState.local=false;pred=null}
 function applySnap(m){const st=netState;st.time=m.tm;st.startT=m.st;
   for(const a of m.P){const p=st.players[a[0]];if(!p)continue;p.x=a[1];p.z=a[2];p.ang=a[3];p.hp=a[4];p.maxHp=a[5];p.alive=!!a[6];p.score=a[7];p.deaths=a[8];p.ammo=a[9];p.sup=a[10];
     const f=a[11];p.hidden=!!(f&1);p.inv=!!(f&2);p.slip=!!(f&4);p.moving=!!(f&8);p.slow=!!(f&16);p.atk=!!(f&32);p.out=!!(f&64);p.burn=!!(f&128);p.ink=!!(f&256);p.roll=!!(f&512);p.dash=!!(f&1024);p.stun=!!(f&2048);p.orbit=!!(f&4096);p.giant=!!(f&8192);p.thorn=!!(f&16384);p.root=!!(f&32768);p.spin=!!(f&65536);p.leap=!!(f&131072);p.frozen=!!(f&262144);p.bliz=!!(f&524288);p.shield=!!(f&1048576);p.flur=!!(f&2097152);
@@ -2294,7 +2320,7 @@ function scSheet(mode,msg){sheetKind='savecode';if(mode!=='ok')scPending=null;
   else if(mode==='ok'){const o=scPending;const top=Math.max(...o.owned.map(i=>o.lvl[i]));openSheet('確認匯入',`<p class="sp">這組存檔碼有 <b>${o.owned.length}</b> 隻角色（最高 Lv ${top}）、獎盃 <b>${o.trophies}</b>。<br>這支手機現在有 <b>${save.owned.length}</b> 隻角色、獎盃 <b>${save.trophies}</b>、金幣 <b>${save.coins}</b>。<br>匯入後金幣、碎片、造型、寶箱都會<b>歸零</b>，確定嗎？</p><div class="row2"><button class="btn blue" data-act="sc-imp">不要，重輸入</button><button class="btn main" data-act="sc-apply">確定匯入</button></div>`)}}
 function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=0}save.trophies=o.trophies;save.coins=0;save.chests=0;save.matches=0;save.accOwned=[];save.accEq={};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
 function setSheet(){sheetKind='set';
-  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="chips"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級和獎盃。</p>`);
+  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="vrow"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><input type="range" id="vMus" min="0" max="100" step="5" value="${save.musicVol}" aria-label="音樂音量"></div><div class="vrow"><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button><input type="range" id="vSfx" min="0" max="100" step="5" value="${save.sfxVol}" aria-label="音效音量"></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級和獎盃。</p>`);
   $('#nameIn').value=save.name}
 $('#mbSet').addEventListener('click',setSheet);
 function helpSheet(){sheetKind='help';
@@ -2353,6 +2379,10 @@ function taskSheet(){ensureDaily();return'<ul class="tasks">'+save.daily.list.ma
 $('#mbTask').addEventListener('click',()=>openSheet('每日任務',taskSheet()));
 function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">替 <b>${CHARS[id].name}</b> 換造型（只是好看，不影響能力）。每隻角色可以分開穿。</p><ul class="wards">`+Object.entries(ACCS).map(([k,a])=>{const own=save.accOwned.includes(k),on=eq[a.slot]===k;
   return`<li><span class="an">${a.name}</span><span class="as">${{head:'頭上',face:'臉上',back:'背後'}[a.slot]}</span>${own?`<button class="btn small ${on?'blue':'main'}" data-act="wear" data-k="${k}">${on?'脫下':'穿上'}</button>`:`<button class="btn small main" data-act="buya" data-k="${k}" ${save.coins>=a.price?'':'disabled'}>${coinIc} ${a.price}</button>`}</li>`}).join('')+'</ul>'}
+$('#sheetBody').addEventListener('input',e=>{const t=e.target;
+  if(t.id==='vMus'){save.musicVol=+t.value;persist();setMusicVol()}
+  else if(t.id==='vSfx'){save.sfxVol=+t.value;persist()}});
+$('#sheetBody').addEventListener('change',e=>{if(e.target.id==='vSfx'){audioOn();SFX.pick()}});
 $('#sheetBody').addEventListener('click',e=>{
   const kb=e.target.closest('[data-k]');if(kb&&sheetKind==='start'){const k=kb.dataset.k;save[k]=k==='mode'?kb.dataset.v:+kb.dataset.v;persist();startSheet();return}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const act=b.dataset.act;
@@ -2363,7 +2393,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='s-go'){$('#sheet').hidden=true;sheetKind='';audioOn();startSolo();return}
   else if(act==='s-host'){$('#sheet').hidden=true;sheetKind='';audioOn();hostRoom();return}
   else if(act==='s-join'){$('#sheet').hidden=true;sheetKind='';$('#joinBox').hidden=false;$('#codeIn').value='';setTimeout(()=>$('#codeIn').focus(),50);return}
-  else if(act==='tgm'){commitName();save.music=!save.music;persist();if(save.music){musicCur='';playMusic('lobby')}else stopMusic();setSheet();return}
+  else if(act==='tgm'){commitName();save.music=!save.music;persist();if(save.music){musicCur='';playMusic(mode==='game'?'battle':'lobby')}else stopMusic();setSheet();return}
   else if(act==='tgs'){commitName();save.sfx=!save.sfx;persist();setSheet();return}
   else if(act==='sc-exp'){commitName();scSheet('exp');return}
   else if(act==='sc-imp'){scSheet('imp');return}
@@ -2390,7 +2420,7 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
   $('#rSlots').innerHTML=html;
   [...$('#rSlots').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=rows[i].name+'・'+(o.rc==='rand'?'隨機角色':(CHARS[rows[i].ch]||CHARS.apple).name)+(o.lv==='own'?' Lv'+rows[i].lvl:''));
   const maxBots=Math.max(0,8-Math.max(1,humans));const botVals=[];for(let i=0;i<=maxBots;i++)botVals.push([i,String(i)]);
-  $('#rOpts').innerHTML=`<div class="chips">${chipsHTML('模式','mode',[['score','搶分'],['royale','吃雞'],['soccer','足球']],o.mode,!host)}</div>`+
+  $('#rOpts').innerHTML=`<div class="chips">${chipsHTML('模式','mode',[['score','搶分'],['royale','生存'],['soccer','足球']],o.mode,!host)}</div>`+
     (o.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],o.dur,!host)}</div>`:'')+
     `<div class="chips">${chipsHTML('電腦','bots',botVals,bots,!host)}</div>`+
     `<div class="chips">${chipsHTML('強度','diff',DIFF.map((d,i)=>[i,d.name]),o.diff,!host)}</div>`+

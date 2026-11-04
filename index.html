@@ -576,7 +576,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.8.1</span>
+<span class="ver">v0.8.2</span>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
@@ -2072,7 +2072,7 @@ let online=false;
 const NET={peer:null,conns:new Map(),host:false,conn:null,code:'',lobby:[],lobbyMsg:null,opts:{mode:'score',dur:180,bots:7,diff:1,lv:1,map:'rand',rc:'own',rt:'all'},hostTeam:0,inGame:false,joined:false,myCh:''};
 const roomCh=()=>NET.myCh&&CHARS[NET.myCh]?NET.myCh:save.ch;
 /* 中繼伺服器（TURN）：兩支手機都用行動網路時，手機網路會擋住直接連線，要透過中繼轉送。TURN_API 填入取得通行證的網址後才會啟用 */
-const TURN_API='';
+const TURN_API='https://food-brawl-turn.cw-studio.workers.dev';
 let ICE=null,ICE_T=0;
 async function loadIce(){if(!TURN_API)return null;if(ICE&&Date.now()-ICE_T<20*60e3)return ICE;
   try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),5000);const r=await fetch(TURN_API,{signal:ac.signal,cache:'no-store'});clearTimeout(t);const j=await r.json();const L=Array.isArray(j)?j:j&&j.iceServers;

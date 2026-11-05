@@ -598,7 +598,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.11.4</span>
+<span class="ver">v0.11.5</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -776,7 +776,7 @@ const MISSIONS={play:{t:3,txt:n=>`完成 ${n} 場比賽`},kills:{t:12,txt:n=>`�
   crates:{t:8,txt:n=>`打破 ${n} 個木箱`},supers:{t:6,txt:n=>`放 ${n} 次大招`},goals:{t:2,txt:n=>`足球模式踢進 ${n} 球`},
   royale3:{t:1,txt:()=>'生存模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
 const CHEST_PRICE=300,CHEST_W=[59,25,11,4,1],SHARDS_PER=[10,8,6,4,3];
-const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'生存模式',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。白天或黑夜隨機，黑夜只看得到身邊。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
+const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'生存模式',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。白天或黑夜隨機，黑夜時毒圈外會變成一片黑，待在亮的地方。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
 const DIFF=[
   {name:'簡單',aimErr:.55,react:1.1,dodge:0,fireRate:.4,lead:0,gap:1.4,sight:9,supWait:3},
   {name:'普通',aimErr:.28,react:.65,dodge:.15,fireRate:.65,lead:.3,gap:.85,sight:11,supWait:1.5},
@@ -1281,7 +1281,7 @@ function botThink(g,p,dt){
   ai.lx=p.x;ai.lz=p.z;
   if(p.stunT>0){I.mx=I.mz=0;return}
   if(g.mode==='soccer'&&p.rollT<=0&&soccerChaser(g,p))return;
-  const inked=p.inkT>0,dk=g.M.dark||g.night,sight=inked?3:dk?Math.min(D.sight,7):D.sight,aimErr=D.aimErr+(inked?.35:0);
+  const inked=p.inkT>0,dk=g.M.dark,sight=inked?3:dk?Math.min(D.sight,7):D.sight,aimErr=D.aimErr+(inked?.35:0);
   let tgt=null,tw=1e9;
   for(const q of g.targets()){if(!q.alive||!foe(p,q))continue;const d=Math.hypot(q.x-p.x,q.z-p.z);if(d>sight&&!(dk&&!inked&&d<D.sight&&inLight(g.M,q.x,q.z)))continue;if(q.inBush!==undefined&&g.isHidden(q)&&d>2.5)continue;const w=d+(q.hp/q.maxHp)*2+(q.inv||q.rollT>0?6:0);if(w<tw){tw=w;tgt=q}}
   if(tgt!==ai.tgt){ai.tgt=tgt;ai.seen=0}
@@ -1676,11 +1676,11 @@ function groundTex(kind,bx,bz){const S=kind==='stadium'?1024:512,c=document.crea
 let CRATE_TEX=null;
 class View{
   constructor(mapId,info){
-    const M=MAPS[mapId],sc=this.scene=new THREE.Scene(),desert=mapId==='desert',stad=mapId==='stadium';this.M=M;this.mode=info.mode;this.bx=info.bx;this.bz=info.bz;const night=this.night=!!info.night,dk=this.dk=!!M.dark||night;
-    sc.background=new THREE.Color(night?0x070a18:M.th.bg);if(night)sc.fog=new THREE.Fog(0x070a18,14,34);
+    const M=MAPS[mapId],sc=this.scene=new THREE.Scene(),desert=mapId==='desert',stad=mapId==='stadium';this.M=M;this.mode=info.mode;this.bx=info.bx;this.bz=info.bz;const night=this.night=!!info.night,dk=this.dk=!!M.dark;
+    sc.background=new THREE.Color(night?0x1a2142:M.th.bg);
     this.cam=new THREE.PerspectiveCamera(42,1,.5,200);this.camT=new THREE.Vector3();
-    sc.add(new THREE.HemisphereLight(0xffffff,M.th.hemi,dk?.3:.62));
-    const sun=this.sun=new THREE.DirectionalLight(dk?0x8aa0ff:0xfff4e0,dk?(night?.18:.25):.85);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+    sc.add(new THREE.HemisphereLight(night?0xc8d0ff:0xffffff,night?0x3a4278:M.th.hemi,dk?.3:night?.5:.62));
+    const sun=this.sun=new THREE.DirectionalLight(dk?0x8aa0ff:night?0xc4ccff:0xfff4e0,dk?.25:night?.62:.85);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
     const sc2=sun.shadow.camera;sc2.left=-18;sc2.right=18;sc2.top=18;sc2.bottom=-18;sc2.near=1;sc2.far=60;sun.shadow.bias=-.0015;sc.add(sun,sun.target);
     const gm=new THREE.MeshLambertMaterial({map:groundTex(M.th.ground,this.bx,this.bz)});const ground=new THREE.Mesh(new THREE.PlaneGeometry(2*H,2*H),gm);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;sc.add(ground);
     const B=new Batch();
@@ -1722,8 +1722,8 @@ class View{
     if(!CRATE_TEX)CRATE_TEX=crateTex();
     const cm=new THREE.MeshLambertMaterial({map:CRATE_TEX});
     this.crates=M.crates.map(c=>{const m=new THREE.Mesh(GEO.box,cm);m.scale.set(1.3,1.3,1.3);m.position.set(c.x,.65,c.z);m.castShadow=m.receiveShadow=true;sc.add(m);return{m,shake:0}});
-    if(this.mode==='royale'){this.zoneWall=new THREE.Mesh(new THREE.CylinderGeometry(1,1,3,64,1,true),new THREE.MeshBasicMaterial({color:night?0xb6ff5a:0x8fd14a,transparent:true,opacity:night?.5:.3,side:THREE.DoubleSide,depthWrite:false}));
-      this.zoneWall.position.y=1.5;sc.add(this.zoneWall);this.zoneOut=new THREE.Mesh(new THREE.RingGeometry(1,2,64,1),basic(0x5fae2a,.35));this.zoneOut.rotation.x=-Math.PI/2;this.zoneOut.position.y=.05;sc.add(this.zoneOut);this.zoneR=-1}
+    if(this.mode==='royale'){this.zoneWall=new THREE.Mesh(new THREE.CylinderGeometry(1,1,3,64,1,true),new THREE.MeshBasicMaterial({color:night?0x3a1a78:0x8fd14a,transparent:true,opacity:night?.5:.3,side:THREE.DoubleSide,depthWrite:false}));
+      this.zoneWall.position.y=1.5;sc.add(this.zoneWall);this.zoneOut=new THREE.Mesh(new THREE.RingGeometry(1,2,64,1),basic(night?0x05030f:0x5fae2a,night?.72:.35));this.zoneOut.rotation.x=-Math.PI/2;this.zoneOut.position.y=.05;sc.add(this.zoneOut);this.zoneR=-1}
     if(this.mode==='soccer'){this.ball=makeBall();sc.add(this.ball);this.ballP={x:0,z:0}}
     const aim=this.aim=new THREE.Group();aim.visible=false;sc.add(aim);
     this.aimMat=basic(0xffffff,.35);
@@ -1785,7 +1785,7 @@ class View{
       let da=p.ang-o.da;da=Math.atan2(Math.sin(da),Math.cos(da));o.da+=da*(p.slip?1:Math.min(1,dt*16));
       o.group.position.set(o.dx,0,o.dz);o.group.rotation.y=o.da;
       const near=me&&Math.hypot(p.x-me.x,p.z-me.z)<2.5,mate=me&&p.team!=null&&p.team===me.team;
-      const lit=!this.dk||p.id===meId||mate||(me&&Math.hypot(p.x-me.x,p.z-me.z)<(this.night?9:7))||inLight(this.M,p.x,p.z);
+      const lit=!this.dk||p.id===meId||mate||(me&&Math.hypot(p.x-me.x,p.z-me.z)<7)||inLight(this.M,p.x,p.z);
       const vis=p.alive&&lit&&(!p.hidden||p.id===meId||near||mate);
       o.group.visible=vis&&!(p.inv&&Math.floor(t*10)%2===0);
       setAlpha(o,p.hidden&&(p.id===meId||near||mate)?.45:1);
@@ -1839,7 +1839,7 @@ class View{
     st.crates.forEach((c,i)=>{const v=this.crates[i];if(!v)return;v.m.visible=c.alive;if(v.shake>0){v.shake-=dt;v.m.position.x=c.x+Math.sin(t*60)*.06}else v.m.position.x=c.x});
     if(this.zoneWall&&st.zone){const z=st.zone;this.zoneWall.scale.set(z.r,1,z.r);this.zoneWall.position.x=z.cx;this.zoneWall.position.z=z.cz;
       if(Math.abs(z.r-this.zoneR)>.04){this.zoneR=z.r;this.zoneOut.geometry.dispose();this.zoneOut.geometry=new THREE.RingGeometry(z.r,z.r+70,64,1)}
-      this.zoneOut.position.x=z.cx;this.zoneOut.position.z=z.cz;if(Math.random()<.4){const a=Math.random()*TAU;this.burst(z.cx+Math.cos(a)*z.r,.3,z.cz+Math.sin(a)*z.r,0x9be05a,1,.6,.14)}}
+      this.zoneOut.position.x=z.cx;this.zoneOut.position.z=z.cz;if(Math.random()<.4){const a=Math.random()*TAU;this.burst(z.cx+Math.cos(a)*z.r,.3,z.cz+Math.sin(a)*z.r,this.night?0x7a5af0:0x9be05a,1,.6,.14)}}
     if(this.ball&&st.ball){const b=st.ball,kb=st.local?1:1-Math.exp(-dt*16);const ox=this.ballP.x,oz=this.ballP.z;
       this.ballP.x+=(b.x-this.ballP.x)*kb;this.ballP.z+=(b.z-this.ballP.z)*kb;if(Math.hypot(b.x-this.ballP.x,b.z-this.ballP.z)>4){this.ballP.x=b.x;this.ballP.z=b.z}
       this.ball.position.set(this.ballP.x,BALL_R,this.ballP.z);const r=this.ball.userData.roll;r.rotation.x+=(this.ballP.z-oz)/BALL_R;r.rotation.z-=(this.ballP.x-ox)/BALL_R}
@@ -2073,7 +2073,7 @@ function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.
       const mine=e[3]===meId,isMe=e[1]===meId;if(mine||isMe||Math.random()<.5)floatText(q.x,q.z,e[2],mine?'mine':'');if(mine||isMe)SFX.hit();if(isMe)view.shake=.12;
       view.burst(q.x,1,q.z,CHARS[q.ch].col,4,3)}
     else if(ty==='kill'){const k=st.players[e[1]],v=st.players[e[2]];if(v){view.burst(v.x,1,v.z,CHARS[v.ch].col,18,6,.18);view.burst(v.x,1,v.z,0xffffff,8,5)}
-      const vn=esc(v?v.name:'');feed(e[3]?(k?`<em>${esc(k.name)}</em> 讓 ${vn} 出局了`:`${vn} 被毒圈淘汰出局`):k?`<em>${esc(k.name)}</em> 淘汰了 ${vn}`:`${vn} 倒下了`);
+      const vn=esc(v?v.name:'');feed(e[3]?(k?`<em>${esc(k.name)}</em> 讓 ${vn} 出局了`:`${vn} 被${view&&view.night?'黑暗':'毒圈'}淘汰出局`):k?`<em>${esc(k.name)}</em> 淘汰了 ${vn}`:`${vn} 倒下了`);
       if(e[1]===meId||e[2]===meId)SFX.ko();if(e[2]===meId)$('#deadmsg').dataset.by=k?k.name:''}
     else if(ty==='pop'){const big=e[1]==='big';view.burst(e[2],.8,e[3],POPCOL[e[1]]||0xffffff,big?14:4,big?5:2.5)}
     else if(ty==='slip'){const q=st.players[e[1]];if(q){view.burst(q.x,1.6,q.z,0xfff36a,6,3,.1);if(me&&(e[1]===meId||Math.hypot(q.x-me.x,q.z-me.z)<10))SFX.slip()}}
@@ -2104,7 +2104,7 @@ function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.
     else if(ty==='thit'){}
     else if(ty==='wbreak'){view.burst(e[2],1,e[3],0xc8823a,16,4,.18);SFX.crate()}
     else if(ty==='warn'){banner('火鍋要噴發了！');SFX.zone()}
-    else if(ty==='zone'){banner(e[1]>=3?'最後一圈！':'毒圈縮小中！');SFX.zone();if(e[1]>=2&&!finalOn){finalOn=true;playMusic('final')}}
+    else if(ty==='zone'){banner(e[1]>=3?'最後一圈！':view&&view.night?'黑暗逼近！':'毒圈縮小中！');SFX.zone();if(e[1]>=2&&!finalOn){finalOn=true;playMusic('final')}}
     else if(ty==='goal'){const team=e[1],sc=st.players[e[2]];banner(team===0?'紅隊進球！':'藍隊進球！');SFX.goal();
       if(st.ball)view.burst(st.ball.x,1,st.ball.z,team===0?0xff4b4b:0x3a8bff,30,7,.2);feed(sc?`<em>${esc(sc.name)}</em> 踢進一球`:'進球了')}
     else if(ty==='emo'){const o=view.pm.get(e[1]);if(o&&o.lbl&&EMOTES[e[2]]!=null){o.lbl.emo.textContent=EMOTES[e[2]];o.lbl.emo.hidden=false;o.lbl.emoT=performance.now()+2200}}}}

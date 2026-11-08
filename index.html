@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.14.1</span>
+<span class="ver">v0.14.2</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -728,7 +728,7 @@ const CHARS={
     desc:'一次連射 4 顆珍珠，打到牆會反彈。大招：用吸管把附近的敵人全部吸到身邊。',stat:[3,3,4]},
   marshmallow:{name:'棉花糖',tier:3,role:'瞬移分身',hp:3700,speed:5.4,reload:.9,superCost:2400,range:7.5,col:'#ffd6e4',want:5.5,psp:12,sr:7,unlock:400,price:2500,
     desc:'黏黏棉花糖，打中會變慢。大招：瞬間移動到指定地點，原地留下一個會騙人的假分身。',stat:[3,4,3]},
-  lobster:{name:'龍蝦',tier:4,role:'夾人＋旋風',hp:4600,speed:5.2,reload:1.3,superCost:2700,range:7,col:'#e8402a',want:4.5,psp:16,sr:3,unlock:1250,price:5000,
+  lobster:{name:'龍蝦',tier:4,role:'夾人＋旋風',hp:4600,speed:5.2,reload:1.15,superCost:2700,range:7,col:'#e8402a',want:4.5,psp:16,sr:3,unlock:1250,price:5000,
     desc:'伸出大鉗子，夾到的人會被拖到你面前。大招：龍蝦旋風，原地轉圈，靠近的人一直被打飛。',stat:[5,3,3]},
   duck:{name:'北京烤鴨',tier:3,role:'飛撲',hp:4200,speed:5.3,reload:1.1,lobT:.45,superCost:2600,range:5.5,col:'#b84a1a',want:4,psp:99,sr:12,unlock:500,price:2500,
     desc:'普攻是飛撲：飛過牆壁砸到落點，在空中不會被打到。大招：展翅高飛，可以飛到很遠的地方重重砸下來，把人震開。',stat:[4,3,2]},
@@ -939,7 +939,7 @@ class Game{
     this.updFlags();
     if(this.mode==='royale'&&!this.over&&this.players.filter(p=>!p.out).length<=1)this.endMatch()}
   endMatch(){if(this.over)return;this.over=true;this.ev(['end'])}
-  updFlags(){for(const p of this.players){p.hidden=this.isHidden(p);p.inv=p.invT>0;p.slip=p.slipT>0;p.slow=p.slowT>0;p.atk=p.atkT>0;p.burn=p.burnT>0;p.ink=p.inkT>0;p.roll=p.rollT>0;p.dash=p.dashT>0;p.stun=p.stunT>0;p.orbit=p.orbitT>0;p.giant=p.bigT>0;p.thorn=p.thornT>0;p.root=p.rootT>0;p.spin=p.spinT>0;p.leap=p.leapT>0;p.frozen=p.frozenT>0;p.bliz=p.blizT>0;p.shield=p.shieldT>0;p.flur=p.flurT>0}}
+  updFlags(){for(const p of this.players){p.hidden=this.isHidden(p);p.inv=p.invT>0;p.slip=p.slipT>0;p.slow=p.slowT>0;p.atk=p.atkT>0;p.burn=p.burnT>0;p.ink=p.inkT>0;p.roll=p.rollT>0;p.dash=p.dashT>0;p.stun=p.stunT>0;p.orbit=p.orbitT>0;p.giant=p.bigT>0;p.thorn=p.thornT>0;p.root=p.rootT>0;p.spin=p.spinT>0;p.leap=p.leapT>0;p.frozen=p.frozenT>0;p.bliz=p.blizT>0;p.shield=p.shieldT>0;p.flur=p.flurT>0;p.pull=p.pullT>0}}
   burnOn(q,src){if(!q.alive||!src)return;q.burnT=(src.ch==='chili'||src.ch==='curry')&&src.tal==='a'?4:2;q.burnSrc=src.id;if(q.burnTick<=0)q.burnTick=.5}
   stepPlayer(p,dt){
     if(!p.alive){if(p.out)return;p.respawnT-=dt;if(p.respawnT<=0)this.respawn(p);return}
@@ -949,7 +949,7 @@ class Game{
     if(p.bot)botThink(this,p,dt);
     const C=CHARS[p.ch],I=p.inp;
     p.soakT=Math.max(0,(p.soakT||0)-dt);p.invT=Math.max(0,p.invT-dt);p.revealT=Math.max(0,p.revealT-dt);p.faceT-=dt;p.atkT-=dt;p.slowT-=dt;p.idleT+=dt;p.inkT-=dt;p.stunT-=dt;p.rootT-=dt;p.bigT-=dt;p.thornT-=dt;p.frozenT-=dt;p.shieldT-=dt;p.chillT-=dt;if(p.chillT<=0)p.chill=0;
-    if(p.burnT>0){p.burnT-=dt;p.burnTick-=dt;if(p.burnTick<=0){p.burnTick=.5;const s=this.players[p.burnSrc];this.damage(p,Math.round(110*(s?this.mul(s):1)),s||null);if(!p.alive)return}}
+    if(p.burnT>0){p.burnT-=dt;p.burnTick-=dt;if(p.burnTick<=0){p.burnTick=.5;const s=this.players[p.burnSrc];this.damage(p,Math.round(110*(s?this.mul(s):1)),s||null,false,!!(s&&s.ch==='steak'));if(!p.alive)return}}
     if(I.f!==p.lastF){p.lastF=I.f;if(p.stunT<=0)this.fire(p,+I.ax||0,+I.az||0,+I.ad||0)}
     if(I.s!==p.lastS){p.lastS=I.s;if(p.stunT<=0)this.superAtk(p,+I.ax||0,+I.az||0,+I.ad||0)}
     if(p.burstQ.length){for(const q of p.burstQ)q.t-=dt;while(p.burstQ.length&&p.burstQ[0].t<=0){const s=p.burstQ.shift();const b=this.spawn(p,s.type||'pearl',s.a,s.sp||14,s.rg||8,s.dmg,s.r||.26);b.bounce=s.bounce??1}}
@@ -1003,7 +1003,7 @@ class Game{
     for(const w of this.walls)if(w.life>0&&Math.abs(w.x-x)<w.hw+R&&Math.abs(w.z-z)<w.hd+R)this.hitWall(w,dmg);
     for(const tr of this.turrets)if(tr.hp>0&&(!own||foe(own,this.players[tr.owner]))&&Math.hypot(tr.x-x,tr.z-z)<R+.6)this.hitTurret(tr,dmg);
     if(this.ball){const b=this.ball,dx=b.x-x,dz=b.z-z,d=Math.hypot(dx,dz);if(d<R+BALL_R&&d>.01){b.vx+=dx/d*9;b.vz+=dz/d*9;if(own)b.last=own.id}}}
-  landLob(b,own){const R=b.r*(b.type==='cornbomb'&&own&&own.tal==='b'?1.3:1),vh=own&&b.type==='veggie'?this.players.filter(q=>q.alive&&foe(own,q)&&Math.hypot(q.x-b.x,q.z-b.z)<R+PR*.5).length:0;this.splash(b.x,b.z,R,b.dmg,own,b.type);
+  landLob(b,own){const R=b.r*(b.type==='cornbomb'&&own&&own.tal==='b'?1.3:1),hp0=own&&b.type==='veggie'?this.players.map(q=>q.alive&&foe(own,q)?q.hp:-1):null;this.splash(b.x,b.z,R,b.dmg,own,b.type);const vh=hp0?this.players.filter((q,i)=>hp0[i]>=0&&q.hp<hp0[i]).length:0;
     if(own&&b.type==='cornbomb')for(let i=0;i<8;i++)this.spawnAt(own,'kernel',b.x,b.z,i*TAU/8,12,4.5,Math.round(b.dmg*.3),.3);
     if(own&&b.type==='jelly'&&(b.bn||0)<(own.tal==='a'?2:1)){const dx=b.tx-b.sx,dz=b.tz-b.sz,L=Math.hypot(dx,dz)||1,nb=this.spawnLobTo(own,'jelly',b.x+dx/L*3,b.z+dz/L*3,.42,1.3,Math.round(b.dmg*.8),b.r,b.x,b.z);nb.bn=(b.bn||0)+1}
     if(own&&b.type==='pine'){const n=own.tal==='a'?9:6,hs=new Set(this.players.filter(q=>Math.hypot(q.x-b.x,q.z-b.z)<R+PR*.5).map(q=>q.id));for(let i=0;i<n;i++){const s=this.spawnAt(own,'spike',b.x,b.z,i*TAU/n+Math.random()*.3,11,3.6,Math.round(b.dmg*.35),.28);s.hit=new Set(hs)}}
@@ -1043,7 +1043,7 @@ class Game{
   leapLand(p){const R=p.leapR,stk=p.ch==='steak'&&p.leapKn;this.splash(p.x,p.z,R,p.leapDmg,p,stk?'steakland':'duck');
     if(stk){const m=this.mul(p),big=p.plateBig,L=big?5:4;for(const q of this.players)if(q.alive&&foe(p,q)&&Math.hypot(q.x-p.x,q.z-p.z)<R+PR)this.burnOn(q,p);
       for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0)continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d<R+PR&&d>.01){q.pullT=.25;q.pullX=dx/d*12;q.pullZ=dz/d*12}}
-      this.puddles.push({id:this.nid++,kind:13,owner:p.id,x:p.x,z:p.z,r:2.8*(big?1.3:1),life:L,max:L,tick:.5,dmg:Math.round(170*m),slow:.2});this.ev(['land','steak',r2(p.x),r2(p.z),R]);return}
+      this.puddles.push({id:this.nid++,kind:13,owner:p.id,x:p.x,z:p.z,r:2.8*(big?1.3:1),life:L,max:L,tick:.5,dmg:Math.round(120*m),slow:.2});this.ev(['land','steak',r2(p.x),r2(p.z),R]);return}
     if(p.leapKn)for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0)continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d<R+PR&&d>.01){q.pullT=.25;q.pullX=dx/d*12;q.pullZ=dz/d*12}}
     this.ev(['land','duck',r2(p.x),r2(p.z),R])}
   onRainbow(p){for(const u of this.puddles){if(u.kind!==10)continue;const o=this.players[u.owner];if((u.owner===p.id||(p.team!=null&&o&&o.team===p.team))&&Math.hypot(p.x-u.x,p.z-u.z)<u.r)return true}return false}
@@ -1093,7 +1093,7 @@ class Game{
       case'strawberry':{const n=p.tal==='a'?8:6;for(let i=0;i<n;i++)p.burstQ.push({t:i*.05,a:a+(Math.random()*2-1)*.07,dmg:Math.round(150*m),type:'sseed',sp:17,rg:8.5,r:.22,bounce:0});break}
       case'cakeroll':{const b=this.spawn(p,'cake',a,8.5,9,Math.round(560*m*(p.tal==='a'?1.15:1)),.35);b.hit=new Set();b.d0=b.dmg;b.g=p.tal==='a'?1.3:1;break}
       case'riceball':this.spawn(p,'nori',a,12,7.5,Math.round(680*m),.42);break;
-      case'lobster':this.spawn(p,'claw',a,16,p.tal==='a'?9:7,Math.round(800*m),.42);break;
+      case'lobster':this.spawn(p,'claw',a,16,p.tal==='a'?9:7,Math.round(950*m),.42);break;
       case'duck':{const mx=p.tal==='a'?6.5:5,d=this.superDist(p,ad,mx,mx*.6);this.leapTo(p,p.x+Math.sin(a)*d,p.z+Math.cos(a)*d,.45,1.6,1.6,Math.round(1000*m),false);break}
       case'stinkytofu':{const b=this.spawn(p,'stink',a,9,7.5,Math.round(600*m),.4);b.cdmg=Math.round(200*m);b.clife=p.tal==='a'?4:2.5;break}
       case'shaveice':this.spawn(p,'ice',a,15,9,Math.round(540*m),.3);break;
@@ -1106,7 +1106,7 @@ class Game{
       case'cutlet':this.spawn(p,'cutlet',a,14,8.5,Math.round(740*m),.5);break;
       case'braisedrice':{const b=this.spawnLob(p,'lurou',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(620*m),1.5);b.pdmg=Math.round(110*m);b.plife=p.tal==='a'?4.5:3;break}
       case'steak':{const big=p.tal==='a';this.spawn(p,'steak',a,14,7,Math.round(840*m*(big?1.15:1)),big?.56:.45);break}
-      case'croissant':{const b=this.spawn(p,'crois',a,15,9,Math.round(620*m),.42);b.pierceN=p.tal==='a'?2:1;break}
+      case'croissant':{const b=this.spawn(p,'crois',a,15,9,Math.round(800*m),.42);b.pierceN=p.tal==='a'?2:1;break}
       case'bento':this.spawnLob(p,'veggie',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(760*m),1.6);break;
       case'cornsoup':{const b=this.spawnLob(p,'cream',a,this.superDist(p,ad,8,6),.55,2,Math.round(650*m),1.5);b.pdmg=Math.round(90*m);b.plife=p.tal==='a'?4.5:3;break}
       case'noodle':{const soak=p.soakT>0,n=p.tal==='a'?5:3,dm=Math.round((p.tal==='a'?290:350)*m*(soak?1.2:1));for(let i=0;i<n;i++){const b=this.spawn(p,'mian',a+(i-(n-1)/2)*.13,13,8,dm,.32);if(soak)b.pierceN=1}break}}
@@ -1168,7 +1168,7 @@ class Game{
       case'cutlet':{const big=p.tal==='b',d=this.superDist(p,ad,10,7);this.spawnLob(p,'bigcut',a,d,.85,6,Math.round((big?1950:1600)*m),big?4.2:3.2);break}
       case'braisedrice':{const big=p.tal==='b',R=4.5*(big?1.25:1);this.splash(p.x,p.z,R*.7,Math.round(400*m),p,'lurou');this.puddles.push({id:this.nid++,kind:11,owner:p.id,x:p.x,z:p.z,r:R,life:4,max:4,tick:.5,dmg:Math.round(200*m),slow:.5,pull:2.6,heal:big?.045:.03});this.ev(['ring',p.id,R,0x8a4a1a]);break}
       case'steak':{const d=ad>.3?Math.min(ad,9):Math.min(9,this.superDist(p,0,9,6));p.plateBig=p.tal==='b';this.leapTo(p,p.x+sx*d,p.z+sz*d,.75,3.5,3,Math.round(1500*m),true);break}
-      case'croissant':{const n=p.tal==='b'?15:10;for(let i=0;i<n;i++){const b=this.spawn(p,'crois',a+i*TAU/n,13,6.5,Math.round(560*m),.42);b.pierceN=2}break}
+      case'croissant':{const n=p.tal==='b'?15:10;for(let i=0;i<n;i++){const b=this.spawn(p,'crois',a+i*TAU/n,13,6.5,Math.round(700*m),.42);b.pierceN=2}break}
       case'bento':{const big=p.tal==='b';this.puddles.push({id:this.nid++,kind:2,owner:p.id,x:p.x,z:p.z,r:3.4,life:5,max:5,tick:0,dmg:0,heal:big?.12:.08});
         const d=this.superDist(p,ad,8,6),cx=p.x+sx*d,cz=p.z+sz*d;for(let i=0;i<4;i++){const aa=i*TAU/3+.4,rr=i?1.7:0;this.spawnLobTo(p,'veggie',cx+Math.cos(aa)*rr,cz+Math.sin(aa)*rr,.6+i*.1,2.6,Math.round(600*m),1.5)}this.ev(['ring',p.id,3.4,0x6fd34a]);break}
       case'cornsoup':{const L=p.tal==='b'?12:9,W=p.tal==='b'?2:1.6,inL=(x,z)=>{const dx=x-p.x,dz=z-p.z,al=dx*sx+dz*sz;return al>=0&&al<=L&&Math.abs(dx*sz-dz*sx)<=W};
@@ -1253,7 +1253,7 @@ class Game{
       for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0)continue;const ux=u.x-q.x,uz=u.z-q.z,ud=Math.hypot(ux,uz);if(ud<u.r){if(u.kind===1)q.inkT=.6;else if(u.kind===7||u.pull){if(q.rollT<=0&&q.dashT<=0&&q.leapT<=0&&ud>.4){const mvx=ux/ud*u.pull*dt,mvz=uz/ud*u.pull*dt;q.x+=mvx;q.z+=mvz;resolveOn(this.M,this.crates,q,PR,this.bx,this.bz,this.walls)}}else if(u.kind!==8&&u.kind!==10)q.slowT=Math.max(q.slowT,u.slow||.3);
         if(u.kind===11)q.slowT=Math.max(q.slowT,u.slow||.5);
         if(u.root&&q.leapT<=0&&!u.rooted.has(q.id)){u.rooted.add(q.id);q.rootT=Math.max(q.rootT,u.root)}
-        if(tick){this.damage(q,u.dmg,own);if((u.kind===6||u.kind===13)&&q.alive)this.burnOn(q,own)}}}
+        if(tick){this.damage(q,u.dmg,own,false,u.kind===13);if((u.kind===6||u.kind===13)&&q.alive)this.burnOn(q,own)}}}
       out.push(u)}
     this.puddles=out}
   stepItems(){const out=[];
@@ -1265,10 +1265,10 @@ class Game{
     this.items=out}
   stepCrates(dt){for(const c of this.crates){if(c.alive||c.off)continue;c.t-=dt;if(c.t<=0&&!this.players.some(p=>p.alive&&Math.abs(p.x-c.x)<1.3&&Math.abs(p.z-c.z)<1.3)){c.alive=true;c.hp=CRATE_HP}}}
   hitCrate(c,dmg,src){c.hp-=dmg;this.ev(['chit',c.i]);if(c.hp<=0){c.alive=false;c.t=CRATE_RESPAWN;if(src)src.crates++;this.items.push({id:this.nid++,type:Math.random()<.5?'heal':'power',x:c.x,z:c.z});this.ev(['cbreak',c.i,src?src.id:-1])}}
-  damage(q,amt,src,nr){if(!q.alive||q.invT>0||q.rollT>0||q.leapT>0||q.eatT>0)return;if(src&&!foe(src,q))return;
+  damage(q,amt,src,nr,ns){if(!q.alive||q.invT>0||q.rollT>0||q.leapT>0||q.eatT>0)return;if(src&&!foe(src,q))return;
     if(q.ch==='chili'&&q.tal==='b')amt=Math.round(amt*.85);if(q.bigT>0)amt=Math.round(amt*.6);
     if(q.thornT>0){amt=Math.round(amt*.7);if(src&&!nr&&src.alive&&src!==q&&src.inBush!==undefined)this.damage(src,Math.round(amt*(q.tal==='b'?.8:.5)),q,true)}q.hp-=amt;q.idleT=0;
-    if(src){src.sup=Math.min(1,src.sup+amt/CHARS[src.ch].superCost);if(src.ch==='apple'&&src.tal==='b'&&src.alive)src.hp=Math.min(src.maxHp,src.hp+amt*.15)}
+    if(src&&!ns){src.sup=Math.min(1,src.sup+amt/CHARS[src.ch].superCost);}if(src){if(src.ch==='apple'&&src.tal==='b'&&src.alive)src.hp=Math.min(src.maxHp,src.hp+amt*.15)}
     this.ev(['hit',q.id,amt,src?src.id:-1]);
     if(q.hp<=0){q.hp=0;q.alive=false;q.deaths++;q.slipT=0;q.burnT=0;q.dashT=0;q.dashQ=0;q.pullT=0;q.burstQ=[];q.stunT=0;q.orbitT=0;q.bigT=0;q.thornT=0;q.rootT=0;q.spinT=0;q.blizT=0;q.shieldT=0;q.flurT=0;q.chill=0;q.frozenT=0;q.inBush=false;if(src)src.score++;
       if(this.mode==='royale'){q.lives--;if(q.lives<=0){q.out=true;q.place=this.players.filter(x=>!x.out).length+1;q.respawnT=0}else q.respawnT=RESPAWN_T}else q.respawnT=RESPAWN_T;
@@ -1443,8 +1443,12 @@ function initGeo(){GEO.box=new THREE.BoxGeometry(1,1,1);GEO.cyl6=new THREE.Cylin
     pos.needsUpdate=true;g.computeVertexNormals();return g};
   {const pts=[];for(let i=0;i<=16;i++){const t=i/16;pts.push(new THREE.Vector3((t-.5)*.5,Math.sin(t*TAU*1.5)*.05,Math.cos(t*TAU*1.5)*.03))}GEO.mianC=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),24,.028,5,false);
     const p2=[];for(let i=0;i<=20;i++){const t=i/20;p2.push(new THREE.Vector3(Math.sin(t*TAU*2)*.12,0,(t-.5)*.8))}GEO.mianP=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(p2),32,.05,5,false)}
-  GEO.banana=bananaGeo(0);GEO.bananaO=bananaGeo(.035)}
-function lam(c){const k='L'+c;if(!MATC.has(k))MATC.set(k,new THREE.MeshLambertMaterial({color:c,flatShading:true}));return MATC.get(k)}
+  GEO.banana=bananaGeo(0);GEO.bananaO=bananaGeo(.035);for(const k in GEO)GEO[k].userData.keep=true}
+function lam(c){const k='L'+c;if(!MATC.has(k)){const m=new THREE.MeshLambertMaterial({color:c,flatShading:true});m.userData.keep=true;MATC.set(k,m)}return MATC.get(k)}
+/* 釋放不再使用的 3D 物件（共用的幾何、材質、木箱貼圖不釋放），避免一場一場打下來 iPad 記憶體越用越多 */
+function freeObj(root){if(!root||!root.traverse)return;root.traverse(o=>{if(o.isInstancedMesh&&o.dispose)o.dispose();if(o.geometry&&!o.geometry.userData.keep)o.geometry.dispose();
+  const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];for(const m of ms){if(m.userData.keep)continue;if(m.map&&m.map!==CRATE_TEX)m.map.dispose();m.dispose()}
+  if(o.isLight&&o.shadow&&o.shadow.map){o.shadow.map.dispose();o.shadow.map=null}})}
 function basic(c,op){const m=new THREE.MeshBasicMaterial({color:c});if(op!==undefined){m.transparent=true;m.opacity=op;m.depthWrite=false}return m}
 const OUT=()=>new THREE.MeshBasicMaterial({color:0x14100c,side:THREE.BackSide});
 
@@ -1864,7 +1868,7 @@ class View{
   burst(x,y,z,col,n,sp,size=.12){for(let i=0;i<n;i++){const p=this.parts[this.pi++%this.parts.length];p.m.visible=true;p.m.material.color.set(col);p.m.position.set(x,y,z);
     p.vx=rnd(-1,1)*sp;p.vy=rnd(.4,1.2)*sp;p.vz=rnd(-1,1)*sp;p.life=rnd(.35,.7);p.m.scale.setScalar(size*rnd(.6,1.3))}}
   syncSet(map,list,make,upd){const seen=new Set();for(const o of list){seen.add(o.id);let m=map.get(o.id);if(!m){m=make(o);this.scene.add(m);map.set(o.id,m)}upd(m,o)}
-    for(const[id,m]of map)if(!seen.has(id)){this.scene.remove(m);map.delete(id)}}
+    for(const[id,m]of map)if(!seen.has(id)){this.scene.remove(m);map.delete(id);freeObj(m)}}
   sync(st,dt,meId,pred){
     this.t+=dt;const t=this.t,me=st.players[meId],k=1-Math.exp(-dt*(st.local?40:14));
     for(const p of st.players){let o=this.pm.get(p.id);
@@ -1954,7 +1958,7 @@ class View{
     this.aimFan.visible=fan;this.aimLine.visible=line>0;if(line){this.aimLine.scale.set(me.ch==='apple'&&kind==='sup'?1.8:.55,line,1);this.aimLine.position.z=line/2}
     this.aimRing.visible=ring;
     if(ring){if(me.ch==='sushi'){this.aimRing.position.set(px,.07,pz);this.aimRing.scale.setScalar(4.8/2.6)}else{const d=Math.min(6,Math.max(.5,len));this.aimRing.position.set(px+Math.sin(a)*d,.07,pz+Math.cos(a)*d);this.aimRing.scale.setScalar(1)}}}
-  dispose(){this.scene.traverse(o=>{if(o.isInstancedMesh&&o.dispose)o.dispose()});$('#labels').innerHTML=''}
+  dispose(){freeObj(this.scene);for(const m of[this.um].filter(Boolean))m.clear&&m.clear();$('#labels').innerHTML=''}
 }
 
 /* ---------- 頭上名牌 ---------- */
@@ -2003,7 +2007,7 @@ let menuScene,menuCam,menuChar=null,menuCharId='',menuPod;
 function initMenu3D(){menuScene=new THREE.Scene();menuCam=new THREE.PerspectiveCamera(32,1,.1,50);
   menuScene.add(new THREE.HemisphereLight(0xffffff,0xd0902a,.8));const d=new THREE.DirectionalLight(0xffffff,.7);d.position.set(3,6,5);menuScene.add(d);
   menuPod=new THREE.Mesh(GEO.disc,basic(0xb8741a,.35));menuPod.rotation.x=-Math.PI/2;menuPod.scale.setScalar(1.1);menuScene.add(menuPod)}
-function setMenuChar(ch,alt,acc){const key=ch+(alt?'*':'')+(acc||'');if(menuCharId===key)return;if(menuChar)menuScene.remove(menuChar.group);menuChar=makeChar(ch,alt,acc);menuCharId=key;menuScene.add(menuChar.group)}
+function setMenuChar(ch,alt,acc){const key=ch+(alt?'*':'')+(acc||'');if(menuCharId===key)return;if(menuChar){menuScene.remove(menuChar.group);freeObj(menuChar.group)}menuChar=makeChar(ch,alt,acc);menuCharId=key;menuScene.add(menuChar.group)}
 function renderMenu(dt,t){if(!menuChar)return;const asp=innerWidth/innerHeight;menuCam.aspect=asp;menuCam.updateProjectionMatrix();
   const halfH=7*Math.tan(16*Math.PI/180),halfW=halfH*asp;let x=0,y=0,sc=1.25;
   if(mode==='menu'||mode==='pick'||mode==='reveal'){
@@ -2131,7 +2135,7 @@ function applyMissions(res,me,win,rank){ensureDaily();const done=[];
       case'goals':add=res.mode==='soccer'?(me.goals||0):0;break;case'royale3':add=res.mode==='royale'&&rank<=2?1:0;break;case'charkills':add=me.ch===m.ch?me.score:0;break}
     if(add>0){m.p=Math.min(m.t,m.p+add);if(m.p>=m.t)done.push(missionText(m))}}
   return done}
-function finish(res){if(mode!=='game')return;ended=true;
+function finish(res){if(mode!=='game'||ended)return;ended=true;
   const list=res.list,myI=list.findIndex(r=>r.id===meId),me=list[myI]||{score:0,team:0};
   const t0=save.trophies;let td,c1,c3,head,l1='名次',l3='獎勵',sub='比賽結束',win=false,rank=0;
   if(res.mode==='soccer'){const g=res.goals,mt=me.team|0;win=g[mt]>g[1-mt];const draw=g[0]===g[1];td=win?8:draw?2:-3;c1=win?40:draw?25:15;c3=(me.goals||0)*10;l1='勝負';l3='進球';
@@ -2242,7 +2246,7 @@ function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-lastT)/1
       if(!online&&game.mode==='royale'&&me&&me.out&&!game.over){if(!ffT)ffT=t;else if(t-ffT>3000){let k=0;while(!game.over&&k<60*600){game.step(STEP);k++}game.events.length=0}}
       const ev=game.events.splice(0);handleEvents(ev);
       if(online){pendingEv.push(...ev);if(t-lastSnap>50){lastSnap=t;hostBroadcast(snapshot(game,pendingEv));pendingEv=[]}}
-      if(game.over&&!ended){const res=game.results();if(online){hostBroadcast({t:'end',res});NET.inGame=false}finish(res)}
+      if(game.over&&!ended){const res=game.results();if(online){hostBroadcast(snapshot(game,pendingEv));pendingEv=[];hostBroadcast({t:'end',res});NET.inGame=false}finish(res)}
       game.local=true;view.sync(game,dt,meId,null);updHud(game,dt)}
     else if(netState){clientTick(t,dt);view.sync(netState,dt,meId,pred);updHud(netState,dt)}
     const st=curState(),me=st&&st.players[meId];
@@ -2322,7 +2326,7 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
 const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou','mian','steak','crois','veggie','cream'];
 function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT)),
   P:g.players.map(p=>[p.id,r2(p.x),r2(p.z),r2(p.ang),Math.round(p.hp),p.maxHp,p.alive?1:0,p.score,p.deaths,r2(p.ammo),r2(p.sup),
-    (p.hidden?1:0)|(p.inv?2:0)|(p.slip?4:0)|(p.moving?8:0)|(p.slow?16:0)|(p.atk?32:0)|(p.out?64:0)|(p.burn?128:0)|(p.ink?256:0)|(p.roll?512:0)|(p.dash?1024:0)|(p.stun?2048:0)|(p.orbit?4096:0)|(p.giant?8192:0)|(p.thorn?16384:0)|(p.root?32768:0)|(p.spin?65536:0)|(p.leap?131072:0)|(p.frozen?262144:0)|(p.bliz?524288:0)|(p.shield?1048576:0)|(p.flur?2097152:0),p.power,r2(Math.max(0,p.respawnT)),p.lives,p.place,r2(p.h||0)]),
+    (p.hidden?1:0)|(p.inv?2:0)|(p.slip?4:0)|(p.moving?8:0)|(p.slow?16:0)|(p.atk?32:0)|(p.out?64:0)|(p.burn?128:0)|(p.ink?256:0)|(p.roll?512:0)|(p.dash?1024:0)|(p.stun?2048:0)|(p.orbit?4096:0)|(p.giant?8192:0)|(p.thorn?16384:0)|(p.root?32768:0)|(p.spin?65536:0)|(p.leap?131072:0)|(p.frozen?262144:0)|(p.bliz?524288:0)|(p.shield?1048576:0)|(p.flur?2097152:0)|(p.pull?4194304:0),p.power,r2(Math.max(0,p.respawnT)),p.lives,p.place,r2(p.h||0)]),
   B:g.proj.map(b=>b.type==='cake'||b.type==='rbw'?[b.id,PT.indexOf(b.type),r2(b.x),r2(b.z),r2(b.vx),r2(b.vz),0,b.type==='rbw'?b.ci:r2(b.r)]:[b.id,PT.indexOf(b.type),r2(b.x),r2(b.z),r2(b.vx),r2(b.vz),r2(b.h||0)]),T:g.traps.map(t=>[t.id,r2(t.x),r2(t.z),r2(t.life),t.kind]),
   Z:g.puddles.map(u=>[u.id,r2(u.x),r2(u.z),r2(u.r),r2(u.life),u.kind,u.max]),I:g.items.map(i=>[i.id,i.type==='heal'?0:1,r2(i.x),r2(i.z)]),C:g.crates.map(c=>c.alive?Math.max(1,Math.ceil(c.hp/CRATE_HP*10)):0),E:ev};
   if(g.walls.length)m.WL=g.walls.map(w=>[w.id,r2(w.x),r2(w.z),w.hw,w.hd]);
@@ -2356,7 +2360,7 @@ function clientStart(d){const M=MAPS[d.map];const mode2=d.mode||'score';
   beginMatch({map:d.map,players:d.P.map(a=>({name:a[0],ch:a[1]}))},d.you,false,{mode:mode2,bx:netState.bx,bz:netState.bz,night:!!d.night});netState.local=false;pred=null}
 function applySnap(m){const st=netState;st.time=m.tm;st.startT=m.st;
   for(const a of m.P){const p=st.players[a[0]];if(!p)continue;p.x=a[1];p.z=a[2];p.ang=a[3];p.hp=a[4];p.maxHp=a[5];p.alive=!!a[6];p.score=a[7];p.deaths=a[8];p.ammo=a[9];p.sup=a[10];
-    const f=a[11];p.hidden=!!(f&1);p.inv=!!(f&2);p.slip=!!(f&4);p.moving=!!(f&8);p.slow=!!(f&16);p.atk=!!(f&32);p.out=!!(f&64);p.burn=!!(f&128);p.ink=!!(f&256);p.roll=!!(f&512);p.dash=!!(f&1024);p.stun=!!(f&2048);p.orbit=!!(f&4096);p.giant=!!(f&8192);p.thorn=!!(f&16384);p.root=!!(f&32768);p.spin=!!(f&65536);p.leap=!!(f&131072);p.frozen=!!(f&262144);p.bliz=!!(f&524288);p.shield=!!(f&1048576);p.flur=!!(f&2097152);
+    const f=a[11];p.hidden=!!(f&1);p.inv=!!(f&2);p.slip=!!(f&4);p.moving=!!(f&8);p.slow=!!(f&16);p.atk=!!(f&32);p.out=!!(f&64);p.burn=!!(f&128);p.ink=!!(f&256);p.roll=!!(f&512);p.dash=!!(f&1024);p.stun=!!(f&2048);p.orbit=!!(f&4096);p.giant=!!(f&8192);p.thorn=!!(f&16384);p.root=!!(f&32768);p.spin=!!(f&65536);p.leap=!!(f&131072);p.frozen=!!(f&262144);p.bliz=!!(f&524288);p.shield=!!(f&1048576);p.flur=!!(f&2097152);p.pull=!!(f&4194304);
     p.power=a[12];p.respawnT=a[13];p.lives=a[14];p.place=a[15];p.h=a[16]||0}
   st.proj=m.B.map(b=>({id:b[0],type:PT[b[1]]||'slice',x:b[2],z:b[3],vx:b[4],vz:b[5],h:b[6]||0,r:b[7]}));st.walls=(m.WL||[]).map(w=>({id:w[0],x:w[1],z:w[2],hw:w[3],hd:w[4]}));st.traps=m.T.map(t=>({id:t[0],x:t[1],z:t[2],life:t[3],kind:t[4]|0}));
   st.puddles=m.Z.map(u=>({id:u[0],x:u[1],z:u[2],r:u[3],life:u[4],kind:u[5]|0,max:u[6]||4.5}));st.items=m.I.map(i=>({id:i[0],type:i[1]?'power':'heal',x:i[2],z:i[3]}));
@@ -2371,7 +2375,7 @@ function clientTick(t,dt){const st=netState;
   if(st.ball){st.ball.x+=st.ball.vx*dt;st.ball.z+=st.ball.vz*dt}
   if(st.mode!=='royale')st.time=Math.max(0,st.time-dt);else st.time+=dt;if(st.startT>0)st.startT-=dt;
   const me=st.players[meId];
-  if(me&&pred){if(!me.alive||me.slip||me.dash||me.roll||me.stun||me.root||me.leap||me.hidden&&me.stun||st.startT>0){pred.x=me.x;pred.z=me.z;pred.ivx=pred.ivz=0}else{const Mp=MAPS[matchCfg.map];
+  if(me&&pred){if(!me.alive||me.slip||me.pull||me.dash||me.roll||me.stun||me.root||me.leap||me.hidden&&me.stun||st.startT>0){pred.x=me.x;pred.z=me.z;pred.ivx=pred.ivz=0}else{const Mp=MAPS[matchCfg.map];
       let mx=IN.mx,mz=IN.mz;const L=Math.hypot(mx,mz);if(L>1){mx/=L;mz/=L}const sp=CHARS[me.ch].speed*(me.slow?.55:1)*(me.ch==='eggplant'&&me.tal==='a'?1.15:1)*(me.giant?.9:1);if(Mp.ice&&onRects(Mp.ice,pred.x,pred.z)){const k=Math.min(1,dt*2.2);pred.ivx=(pred.ivx||0)+(mx*sp-(pred.ivx||0))*k;pred.ivz=(pred.ivz||0)+(mz*sp-(pred.ivz||0))*k}else{pred.ivx=mx*sp;pred.ivz=mz*sp}
       pred.x+=pred.ivx*dt;pred.z+=pred.ivz*dt;if(Mp.belts){const bt=onRects(Mp.belts,pred.x,pred.z);if(bt){pred.x+=bt.vx*dt;pred.z+=bt.vz*dt}}
       resolveOn(Mp,st.crates,pred,PR,st.bx,st.bz,st.walls);const ex=me.x-pred.x,ez=me.z-pred.z;if(Math.hypot(ex,ez)>2.5){pred.x=me.x;pred.z=me.z}else{const k=1-Math.exp(-dt*4);pred.x+=ex*k;pred.z+=ez*k}}}

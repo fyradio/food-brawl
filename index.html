@@ -48,6 +48,12 @@ button,input{font:inherit;color:inherit}
   radial-gradient(circle 2px at 74% 72%,#fff 0 100%,transparent),radial-gradient(circle 1.5px at 92% 52%,#fff 0 100%,transparent),
   radial-gradient(circle 1.5px at 20% 86%,#fff 0 100%,transparent),radial-gradient(circle 2px at 55% 88%,#fff 0 100%,transparent),
   radial-gradient(circle at 64% 56%,#6a3fa6,#3d1f6b 52%,#1e0b3d 100%)}
+/* 足球（goal）心情：黑白介面；背景黑底加淡淡的白色放射線（同起司背景的線條），跟著 Goal 的拍子（152 BPM，兩拍一跳）黑白線條互換位置，不會整片閃 */
+:root[data-mood=goal]{--cheese:#e9e9e9;--cheese-lite:#ffffff;--cheese-deep:#8c8c8c;--hole:#1c1c1c;--cream:#ffffff;--cream-2:#e4e4e4;--brown:#1c1c1c;--tomato:#1fa94a;--tomato-deep:#137a30;--ink:#0b0b0b}
+:root[data-mood=goal] .ver{color:#fff;text-shadow:0 1px 2px #000}
+:root[data-mood=goal] #bg{background:radial-gradient(circle at 93% 78%,#2a2a2a 0 46px,transparent 48px),radial-gradient(circle at 12% 22%,#2a2a2a 0 30px,transparent 32px),radial-gradient(circle at 38% 48%,#262626 0 11px,transparent 13px),repeating-conic-gradient(from 0deg at 64% 56%,rgba(255,255,255,.13) 0 7deg,transparent 7deg 17deg),radial-gradient(circle at 64% 56%,#3a3a3a,#161616 48%,#000 100%);animation:goalJump 1.579s steps(1) infinite}
+@keyframes goalJump{0%{background:radial-gradient(circle at 93% 78%,#2a2a2a 0 46px,transparent 48px),radial-gradient(circle at 12% 22%,#2a2a2a 0 30px,transparent 32px),radial-gradient(circle at 38% 48%,#262626 0 11px,transparent 13px),repeating-conic-gradient(from 0deg at 64% 56%,rgba(255,255,255,.13) 0 7deg,transparent 7deg 17deg),radial-gradient(circle at 64% 56%,#3a3a3a,#161616 48%,#000 100%)}50%{background:radial-gradient(circle at 93% 78%,#2a2a2a 0 46px,transparent 48px),radial-gradient(circle at 12% 22%,#2a2a2a 0 30px,transparent 32px),radial-gradient(circle at 38% 48%,#262626 0 11px,transparent 13px),repeating-conic-gradient(from 8.5deg at 64% 56%,rgba(255,255,255,.13) 0 7deg,transparent 7deg 17deg),radial-gradient(circle at 64% 56%,#3a3a3a,#161616 48%,#000 100%)}}
+@media (prefers-reduced-motion:reduce){:root[data-mood=goal] #bg{animation:none}}
 #updBar{position:fixed;z-index:60;left:50%;transform:translateX(-50%);top:max(8px,env(safe-area-inset-top,0px));box-shadow:0 4px 0 var(--ink),0 0 18px rgba(0,0,0,.35)}
 #cv{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none}
 .screen{position:fixed;inset:0;z-index:3;overflow:auto;touch-action:pan-y;
@@ -623,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.16.0</span>
+<span class="ver">v0.17.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -1196,8 +1202,9 @@ class Game{
       case'braisedrice':{const big=p.tal==='b',R=4.5*(big?1.25:1);this.splash(p.x,p.z,R*.7,Math.round(400*m),p,'lurou');this.puddles.push({id:this.nid++,kind:11,owner:p.id,x:p.x,z:p.z,r:R,life:4,max:4,tick:.5,dmg:Math.round(200*m),slow:.5,pull:2.6,heal:big?.045:.03});this.ev(['ring',p.id,R,0x8a4a1a]);break}
       case'dachang':{const lg=p.tal==='b';p.dashT=lg?.5:.38;p.dashX=sx*17;p.dashZ=sz*17;p.dashHit=new Set();p.dashDmg=Math.round(1300*m);p.dashR=1.5;p.dashQ=0;p.dcStun=lg?1.6:1;break}
       case'squid':{const Rg=p.tal==='b'?6.5:5;for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0)continue;const dx=p.x-q.x,dz=p.z-q.z,d=Math.hypot(dx,dz);if(d>Rg)continue;
-          this.damage(q,Math.round(1000*m),p);if(q.alive&&d>1.3){q.pullT=.3;q.pullX=dx/d*(d-1.1)/.3;q.pullZ=dz/d*(d-1.1)/.3;q.slowT=Math.max(q.slowT,1.5);q.dashT=0;q.dashQ=0}}
-        for(const c of this.crates)if(c.alive&&Math.hypot(c.x-p.x,c.z-p.z)<Rg)this.hitCrate(c,Math.round(1000*m),p);this.ev(['ring',p.id,Rg,0xd8743a]);break}
+          this.damage(q,Math.round(1000*m),p);if(q.alive&&d>1.3){q.pullT=.45;q.pullX=dx/d*(d-1.1)/.45;q.pullZ=dz/d*(d-1.1)/.45;q.slowT=Math.max(q.slowT,1.5);q.dashT=0;q.dashQ=0}}
+        for(const c of this.crates)if(c.alive&&Math.hypot(c.x-p.x,c.z-p.z)<Rg)this.hitCrate(c,Math.round(1000*m),p);this.ev(['ring',p.id,Rg,0xd8743a]);
+        const gi=this.players.filter(q=>q.alive&&foe(p,q)&&Math.hypot(q.x-p.x,q.z-p.z)<=Rg+1.5).map(q=>q.id);this.ev(['grab',p.id,gi.length?gi:[],Rg]);break}
       case'sweetpotato':{const h=Math.round(p.maxHp*(p.tal==='b'?.45:.3));p.hp=Math.min(p.maxHp,p.hp+h);this.ev(['heal',p.id,h]);p.bigT=5;p.burnT=0;this.ev(['ring',p.id,2.5,0xffa040]);break}
       case'tanghulu':{const big=p.tal==='b',d=this.superDist(p,ad,8,6);const b=this.spawnLobTo(p,'sugar',p.x+sx*d,p.z+sz*d,.7,3,Math.round(1100*m),big?3.2:2.6);if(b)b.stun=big?1.8:1.2;break}
       case'popsicle':{const lg=p.tal==='b';p.dashT=lg?.55:.4;p.dashX=sx*17;p.dashZ=sz*17;p.dashHit=new Set();p.dashDmg=Math.round(1200*m);p.dashR=1.4;p.dashQ=0;p.popTrail=lg?5:3.5;p.popAcc=1;break}
@@ -1427,8 +1434,9 @@ const SFX={shoot:()=>beep(760,320,.07,'square',.035),hit:()=>beep(220,90,.09,'sa
   goal:()=>{beep(520,1040,.25,'square',.08);setTimeout(()=>beep(780,1560,.35,'square',.08),180)},zone:()=>beep(300,120,.6,'sawtooth',.06)};
 addEventListener('pointerdown',audioOn,{passive:true});addEventListener('keydown',audioOn);
 // 音樂檔放在 music/ 資料夾；每種可以放多首，開始時隨機挑一首。檔案不存在時安靜跳過。沒有 final 就繼續放戰鬥音樂
-const MUSIC={lobby:['music/lobby-1.mp3','music/lobby-2.mp3'],battle:['music/battle-1.mp3','music/battle-2.mp3']};
-const LOOP_LEN={'music/battle-2.mp3':150.857,'music/lobby-2.mp3':23.2997};
+const MUSIC={lobby:{luck:'music/lobby-1.mp3',moon:'music/lobby-2.mp3',goal:'music/goal.mp3'},battle:{luck:'music/battle-1.mp3',moon:'music/battle-2.mp3',goal:'music/goal.mp3'}};
+/* Goal：前奏 9.7 秒只播第一次，之後在 9.706～190.427 秒之間循環（結尾 2 秒已預先和開頭交叉淡化，接得順） */
+const LOOP_LEN={'music/battle-2.mp3':150.857,'music/lobby-2.mp3':23.2997,'music/goal.mp3':190.427},LOOP_ST={'music/goal.mp3':9.706};
 /* 音樂走 WebAudio：整首解碼進記憶體，用 loopStart/loopEnd 在小節線上無縫循環（不會有 mp3 接縫空白）；
    音量走 gain，所以 iPhone 也能淡入淡出和調音量。WebAudio 失敗時退回 <audio> 標籤。 */
 const TRK_G={lobby:.5,battle:.55},BAR_S=240/130;
@@ -1437,13 +1445,13 @@ const mvol=()=>volOf(save.musicVol);
 function musBus(){if(!AC)return null;if(!MB){MB=AC.createGain();MB.connect(AC.destination)}return MB}
 function setMusicVol(){const b=musBus();if(b){try{b.gain.setTargetAtTime(mvol(),AC.currentTime,.03)}catch(e){b.gain.value=mvol()}}
   const a=musicEls[musicTrk];if(a)try{a.volume=clamp(mvol()*(TRK_G[musicCur]||.5),0,1)}catch(e){}}
-/* 心情：luck＝白天（黃色起司介面＋Luck of the Sea），moon＝黑夜（紫暗介面＋Moonlit Forest Fight）。黑夜生存戰用 moon，其餘戰鬥用 luck；回到選單沿用上一場的心情，剛開啟 app 時隨機 */
+/* 心情：luck＝白天（黃色起司介面＋Luck of the Sea），moon＝黑夜（紫暗介面＋Moonlit Forest Fight），goal＝足球（黑白跳色介面＋Goal，足球賽專用）。黑夜生存戰用 moon，其餘戰鬥用 luck；回到選單沿用上一場的心情，剛開啟 app 時隨機 */
 let MOOD='luck';function setMood(m){MOOD=m;document.documentElement.dataset.mood=m}
-setMood(Math.random()<.5?'luck':'moon');
-function pickTrack(name){const L=MUSIC[name],a=L[MOOD==='moon'?1:0],b=L[MOOD==='moon'?0:1];return a&&!musicBad[a]?a:b&&!musicBad[b]?b:''}
+setMood(['luck','moon','goal'][Math.floor(Math.random()*3)]);
+function pickTrack(name){const L=MUSIC[name],a=L[MOOD]||L.luck,b=L.luck;return a&&!musicBad[a]?a:b&&!musicBad[b]?b:''}
 function loadBuf(u){const m=musicBuf[u]||(musicBuf[u]={});if(m.p)return m.p;
   m.p=fetch(u).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(ab=>new Promise((ok,no)=>{const r=AC.decodeAudioData(ab,ok,no);if(r&&r.then)r.then(ok,no)})).then(b=>{m.buf=b;return b}).catch(()=>{musicBad[u]=true;return null});return m.p}
-function preloadMusic(){if(!AC)return;for(const k in MUSIC)MUSIC[k].forEach(loadBuf)}
+function preloadMusic(){if(!AC)return;const seen=new Set();for(const k in MUSIC)for(const m in MUSIC[k])seen.add(MUSIC[k][m]);seen.forEach(loadBuf)}
 function fadeOutNode(n,sec){if(!n)return;try{const t=AC.currentTime;n.g.gain.cancelScheduledValues(t);n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+sec);n.src.stop(t+sec+.05)}catch(e){try{n.src.stop()}catch(_){}}}
 function killMusic(sec){musicTok++;fadeOutNode(musicNode,sec);musicNode=null;const a=musicEls[musicTrk];if(a){try{a.pause()}catch(e){}}}
 function playMusic(name,fade){if(musicCur===name)return;if(name&&!MUSIC[name])return;killMusic(.35);musicCur=name;musicTrk='';
@@ -1455,7 +1463,7 @@ function playMusic(name,fade){if(musicCur===name)return;if(name&&!MUSIC[name])re
     musicTrk=u;const tok=musicTok;musBus();setMusicVol();
     loadBuf(u).then(b=>{if(tok!==musicTok)return;if(!b){playFallback(u,name,fade);return}
       const n=Math.max(1,Math.round(b.duration/BAR_S)),src=AC.createBufferSource(),g=AC.createGain(),t=AC.currentTime;
-      src.buffer=b;src.loop=true;src.loopStart=0;src.loopEnd=Math.min(b.duration,LOOP_LEN[u]||n*BAR_S);
+      src.buffer=b;src.loop=true;src.loopStart=LOOP_ST[u]||0;src.loopEnd=Math.min(b.duration,LOOP_LEN[u]||n*BAR_S);
       g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(TRK_G[name]||.5,t+fade);src.connect(g);g.connect(MB);src.start(t);musicNode={src,g}});return}
   playFallback(u,name,fade)}
 function playFallback(u,name,fade){let a=musicEls[u];
@@ -1950,11 +1958,21 @@ class View{
     else if(o.t==='counter'){B.add('box',0x8a5a2a,x,.5,z,o.w,1,o.d);B.add('box',0xc8955a,x,1.04,z,o.w+.1,.08,o.d+.1)}
     else if(o.t==='post'){B.add('cyl8',0xffffff,x,1.1,z,o.r,2.2,o.r)}
     else if(o.t==='cup'){B.add('cyl8',0xffffff,x,.8,z,o.r,1.6,o.r);B.add('cyl8',0xff4f38,x,.8,z,o.r*1.03,.5,o.r*1.03);B.add('cyl8',0xeeeeee,x,1.65,z,o.r*.9,.1,o.r*.9);B.add('cyl6',0x3fa9ff,x+.2,2.05,z,.07,.9,.07,0,0,.2)}}
+  /* 烤魷魚大招：從魷魚伸出觸手抓住每個敵人（0.15 秒伸出、之後跟著被拉回來，0.6 秒消失） */
+  grab(sid,ids,Rg){this.tents=this.tents||[];const a=this.pm.get(sid);if(!ids.length&&a){for(let k=0;k<8;k++){const an=k*TAU/8;this.tents.push(this.mkTent(sid,null,a.group.position.x+Math.sin(an)*Rg,a.group.position.z+Math.cos(an)*Rg))}return}
+    for(const qid of ids)this.tents.push(this.mkTent(sid,qid))}
+  mkTent(sid,qid,fx,fz){const g=new THREE.Group(),c=new THREE.Mesh(GEO.cyl8,lam(0xd8743a)),o=new THREE.Mesh(GEO.cyl8,lam(0x5a1a10));c.rotation.x=o.rotation.x=Math.PI/2;g.add(o);g.add(c);
+    const tip=new THREE.Mesh(GEO.sph,lam(0xe88a4a));g.add(tip);const cups=[];for(let k=0;k<5;k++){const m=new THREE.Mesh(GEO.sph,lam(0xffd8b0));g.add(m);cups.push(m)}this.scene.add(g);return{g,c,o,tip,cups,sid,qid,fx,fz,t:0}}
+  stepTents(dt){const L0=this.tents;if(!L0||!L0.length)return;for(let i=L0.length-1;i>=0;i--){const T=L0[i];T.t+=dt;const a=this.pm.get(T.sid),b=T.qid==null?null:this.pm.get(T.qid);
+      if(!a||(T.qid!=null&&!b)||T.t>.8){this.scene.remove(T.g);L0.splice(i,1);continue}
+      const ax=a.group.position.x,az=a.group.position.z,bx=b?b.group.position.x:T.fx,bz=b?b.group.position.z:T.fz,f=T.t<.12?T.t/.12:b?1:Math.max(0,1-(T.t-.12)/.4),dx=(bx-ax)*f,dz=(bz-az)*f,L=Math.max(.05,Math.hypot(dx,dz)),w=1-Math.max(0,T.t-.6)/.2;
+      T.g.position.set(ax,1+Math.sin(T.t*28)*.08,az);T.g.rotation.y=Math.atan2(dx,dz);T.c.scale.set(.22*w,L,.22*w);T.c.position.z=L/2;T.o.scale.set(.27*w,L,.27*w);T.o.position.set(0,-.02,L/2);
+      T.tip.scale.setScalar(.36*w);T.tip.position.z=L;T.cups.forEach((m,k)=>{m.scale.setScalar(.09*w);m.position.set(0,-.2*w,L*(k+1)/6)})}}
   burst(x,y,z,col,n,sp,size=.12){for(let i=0;i<n;i++){const p=this.parts[this.pi++%this.parts.length];p.m.visible=true;p.m.material.color.set(col);p.m.position.set(x,y,z);
     p.vx=rnd(-1,1)*sp;p.vy=rnd(.4,1.2)*sp;p.vz=rnd(-1,1)*sp;p.life=rnd(.35,.7);p.m.scale.setScalar(size*rnd(.6,1.3))}}
   syncSet(map,list,make,upd){const seen=new Set();for(const o of list){seen.add(o.id);let m=map.get(o.id);if(!m){m=make(o);this.scene.add(m);map.set(o.id,m)}upd(m,o)}
     for(const[id,m]of map)if(!seen.has(id)){this.scene.remove(m);map.delete(id);freeObj(m)}}
-  sync(st,dt,meId,pred){
+  sync(st,dt,meId,pred){this.stepTents(dt);
     this.t+=dt;const t=this.t,me=st.players[meId],k=1-Math.exp(-dt*(st.local?40:14));
     for(const p of st.players){let o=this.pm.get(p.id);
       if(!o){o=makeChar(p.ch,p.lvl>=10,p.acc);o.dx=p.x;o.dz=p.z;o.da=p.ang;this.scene.add(o.group);this.pm.set(p.id,o);
@@ -2204,7 +2222,7 @@ function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=s
 function beginMatch(cfg,myId,local,info){resetTouch();$('#sheet').hidden=true;sheetKind='';clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
   IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;supWas=false;ffT=0;finalOn=false;
   let vinfo;if(local){game=new Game(cfg);netState=null;vinfo={mode:game.mode,bx:game.bx,bz:game.bz,night:game.night}}else{game=null;vinfo=info}
-  setMood(vinfo.night?'moon':'luck');view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
+  setMood(cfg.mode==='soccer'?'goal':vinfo.night?'moon':'luck');view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
   $('#goalbar').hidden=vinfo.mode!=='soccer';$('#sub').hidden=vinfo.mode!=='royale';$('#board').hidden=vinfo.mode==='soccer';$('#board').dataset.k='';
   playMusic('battle')}
 let ended=false,lastBanner=-1,supWas=false,finalOn=false,resTimer=0;
@@ -2272,6 +2290,7 @@ function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.
     else if(ty==='beam'){for(let i=0;i<=12;i++){const f=i/12;view.burst(e[2]+(e[4]-e[2])*f,1,e[3]+(e[5]-e[3])*f,0xfff36a,1,.7,.14)}}
     else if(ty==='sour'){const q=st.players[e[1]];if(q){for(let i=0;i<16;i++){const a=i*TAU/16;view.burst(q.x+Math.cos(a)*e[2],.8,q.z+Math.sin(a)*e[2],0xffe23a,1,1.5,.16)}if(e[1]===meId)SFX.sup()}}
     else if(ty==='lash'){for(let i=0;i<=14;i++){const f=i/14;view.burst(e[2]+(e[4]-e[2])*f,1+Math.sin(f*9)*.25,e[3]+(e[5]-e[3])*f,0xfff0b0,1,.6,.15)}}
+    else if(ty==='grab'){view.grab(e[1],e[2],e[3]);for(const id of e[2]){const q=st.players[id];if(q){view.burst(q.x,1,q.z,0xd8743a,10,4,.16);view.burst(q.x,1,q.z,0x2a1a10,5,3,.12)}}}
     else if(ty==='ring'){const q=st.players[e[1]];if(q){for(let i=0;i<18;i++){const a=i*TAU/18;view.burst(q.x+Math.cos(a)*e[2],.7,q.z+Math.sin(a)*e[2],e[3],1,1.6,.17)}if(e[1]===meId)SFX.sup()}}
     else if(ty==='bite'){const q=st.players[e[1]];if(q){const a=e[2];view.burst(q.x+Math.sin(a)*1.4,1,q.z+Math.cos(a)*1.4,0xffffff,10,4,.16);view.burst(q.x+Math.sin(a)*1.4,1,q.z+Math.cos(a)*1.4,0xb8662a,8,3,.16)}}
     else if(ty==='freeze'){const q=st.players[e[1]];if(q){view.burst(q.x,1.2,q.z,0xbfe8ff,16,4,.16);if(e[1]===meId)SFX.slip()}}

@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.14.0</span>
+<span class="ver">v0.14.1</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -1613,14 +1613,15 @@ function makeChar(ch,alt,acc){
       const ld=part(GEO.box,mk(A?A.lid:0x9fd8a0),0,1.42,-.6,1.32,.06,.94,1.06);ld.rotation.x=-1.25;
       for(const k of[-1,1])part(GEO.cyl6,mk(0xc8915a),.78+k*.04,1.05,.1,.025,.75,.025).rotation.x=.25;
       ey=.78;ez=.47;ex=.26;armY=.8;armX=.72;top=1.75;break}
-    case'cornsoup':{const bw=mk(A?A.bowl:0xffffff);
-      part(GEO.cyl16,bw,0,.47,0,.3,.08,.3);const d2=part(GEO.dome,bw,0,1.05,0,.72,.62,.72,1.06);d2.rotation.x=Math.PI;
-      part(GEO.cyl16,mk(A?A.rim:0x3a7ad8),0,1.03,0,.73,.05,.73);part(GEO.cyl16,mk(A?A.soup:0xffe07a),0,1.04,0,.67,.04,.67);
-      for(let i=0;i<9;i++)part(GEO.ico0,mk(0xffc21f),Math.sin(i*2.4)*(.15+(i%3)*.15),1.08,Math.cos(i*2.4)*(.12+(i%3)*.14),.06,.05,.06);
-      for(let i=0;i<4;i++)part(GEO.box,mk(0x3f9a2a),Math.sin(i*1.7+1)*.35,1.08,Math.cos(i*1.7+1)*.3,.06,.015,.04).rotation.y=i;
-      const sp=new THREE.Group();sp.position.set(.3,1.2,-.15);sp.rotation.set(.3,0,-.5);body.add(sp);const spm=mk(0xd8dde4);
-      const sh=new THREE.Mesh(GEO.box,spm);sh.scale.set(.06,.6,.03);sh.position.y=.3;sp.add(sh);const sb=new THREE.Mesh(GEO.sph,spm);sb.scale.set(.1,.04,.13);sp.add(sb);
-      ey=.74;ez=.6;ex=.2;armY=.82;armX=.74;top=1.6;break}
+    case'cornsoup':{const cp=mk(A?A.bowl:0xfffaf0),bd=mk(A?A.rim:0xffc21f),ld=mk(0xf2f2f4);
+      part(GEO.cup,cp,0,.95,0,.66,.95,.66,1.05);part(GEO.cup,bd,0,.66,0,.6,.34,.6);part(GEO.cyl16,mk(0xe8261b),0,.84,0,.645,.035,.645);
+      part(GEO.ico,mk(0xffc21f),0,.64,.56,.09,.14,.06);part(GEO.sph,mk(0x58ab2f),-.08,.6,.56,.04,.12,.03).rotation.z=.5;part(GEO.sph,mk(0x58ab2f),.08,.6,.56,.04,.12,.03).rotation.z=-.5;
+      part(GEO.cyl16,ld,0,1.45,0,.71,.07,.71,1.05);part(GEO.cyl16,ld,0,1.52,0,.58,.08,.58);part(GEO.cyl16,mk(A?A.soup:0xffe07a),.22,1.565,.1,.12,.01,.08);
+      part(GEO.box,ld,0,1.47,.72,.2,.03,.1);
+      const sp=new THREE.Group();sp.position.set(-.2,1.55,-.05);sp.rotation.set(-.2,0,.35);body.add(sp);const spm=mk(0xffffff);
+      const sh=new THREE.Mesh(GEO.box,spm);sh.scale.set(.07,.5,.03);sh.position.y=.22;sp.add(sh);
+      for(let k=0;k<2;k++){const st=part(GEO.sph,mk(0xffffff),.15+k*.12,1.75+k*.22,0,.07-k*.015,.1-k*.02,.07-k*.015);st.material.transparent=true;st.material.opacity=.55}
+      ey=1.08;ez=.6;ex=.2;armY=.9;armX=.7;top=2.0;break}
     case'noodle':{const cup=mk(A?A.cup:0xfffaf0),band=mk(A?A.band:0xe8261b),mn=mk(A?A.mian:0xf2c94a);
       part(GEO.cup,cup,0,.95,0,.62,1.1,.62,1.06);part(GEO.cup,band,0,1.18,0,.665,.28,.665);part(GEO.cyl16,band,0,1.5,0,.64,.04,.64);
       const lid=part(GEO.cyl16,mk(0xd8dde4),0,1.5,-.62,.34,.025,.34,1.08);lid.rotation.x=-1.25;

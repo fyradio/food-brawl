@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.17.3</span>
+<span class="ver">v0.17.4</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2529,7 +2529,7 @@ function renderPickUI(){topUI();
     up.innerHTML=lv>=MAX_LV?'已滿級':`升級 ${coinIc} ${cost}`+(need?` ＋${T.name}萬用碎片 ${have}/${need}`:'');up.disabled=lv>=MAX_LV||save.coins<cost||save.wild<need*unit;up.dataset.act='up'}
   else{const okT=save.trophies>=C.unlock;$('#chPerk').innerHTML=`獎盃到 <b>${C.unlock}</b> 可以用金幣買；開寶箱也可能提前抽到（${T.name}）。`;
     $('#chLv').innerHTML=`${troIc} ${save.trophies}/${C.unlock}`;up.innerHTML=`購買 ${coinIc} ${C.price}`;up.disabled=!okT||save.coins<C.price;up.dataset.act='buy'}
-  $('#chWild').innerHTML=`萬用碎片 <b>${wildTotalText(save.wild)}</b>`;$('#btnWild').disabled=false;
+  {const tt=CHARS[viewCh].tier;$('#chWild').innerHTML=`萬用碎片 <b>${TIERS[tt].name} ${Math.floor(save.wild/WILD_V[tt])}</b> 片`}$('#btnWild').disabled=false;
   const use=$('#pkUse');use.textContent=!own?'還沒擁有':id===save.ch?'使用中':'使用這隻';use.disabled=!own||id===save.ch;$('#pkWard').disabled=!own;
   setMenuChar(id,own&&lv>=10,own?accStr(id):'')}
 function openPick(){viewCh=save.ch;pickTier='all';showScreen('pick');
@@ -2572,11 +2572,11 @@ const WILD_PRICE=20,WILD_V=[1,3,9,27,81];
 const wildGrades=v=>[v%3,Math.floor(v/3)%3,Math.floor(v/9)%3,Math.floor(v/27)%3,Math.floor(v/81)];
 function wildTotalText(v){const g=wildGrades(v),o=[];for(let i=4;i>=0;i--)if(g[i])o.push(TIERS[i].name+' '+g[i]);return o.length?o.join('、'):'0'}
 function wildSheet(){sheetKind='wild';const id=viewCh,C=CHARS[id],T=TIERS[C.tier],own=save.owned.includes(id),lv=save.lvl[id],g=wildGrades(save.wild),unit=WILD_V[C.tier];
-  const hold=TIERS.map((T,i)=>`<div class="wg" style="--tc:${T.col}"><b>${g[i]}</b><small>${T.name}</small></div>`).join('');
+  const hold=TIERS.map((T2,i)=>`<div class="wg" style="--tc:${T2.col}${i===C.tier?';box-shadow:0 0 0 3px var(--tc)':''}"><b>${Math.floor(save.wild/WILD_V[i])}</b><small>當${T2.name}用</small></div>`).join('');
   const buy=[1,5,25,100].map(n=>`<button class="btn small main" data-act="wbuy" data-v="${n}"${save.coins<n*WILD_PRICE||save.wild+n>WILD_CAP?' disabled':''}>買 ${n} 片<br>${coinIc} ${n*WILD_PRICE}</button>`).join('');
   const need=own&&lv<MAX_LV?shardReq(lv):0;
   const info=own?`<p class="sp"><b>${C.name}</b>（${T.name}）升到 Lv${lv+1}${lv>=MAX_LV?'：已滿級':need?`要 ${T.name}萬用碎片 <b>${need}</b> 片（＝ ${need*unit} 片普通萬用碎片）`:'不需要碎片'}。</p>`:'';
-  openSheet('萬用碎片',`<p class="sp">升級用的碎片現在全部是萬用碎片。開寶箱抽到重複的食物，會得到<b>同稀有度</b>的萬用碎片 5～10 片。3 片低等級的萬用碎片＝1 片高一級的，用到時自動換算：升級${T.name}角色每片要 ${unit} 片普通萬用碎片。每片普通萬用碎片 ${coinIc} ${WILD_PRICE}。萬用碎片最多存 ${WILD_CAP} 片（普通），金幣最多 ${COIN_CAP}，滿了就拿不到更多。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${info}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
+  openSheet('萬用碎片',`<p class="sp">升級用的碎片現在全部是萬用碎片。開寶箱抽到重複的食物，會得到<b>同稀有度</b>的萬用碎片 5～10 片。3 片低等級的萬用碎片＝1 片高一級的，用到時自動換算：升級${T.name}角色每片要 ${unit} 片普通萬用碎片。<br>下面 5 格是<b>同一份</b>萬用碎片，換算成各等級可以用的片數（不是加總）。每片普通萬用碎片 ${coinIc} ${WILD_PRICE}。萬用碎片最多存 ${WILD_CAP} 片（普通），金幣最多 ${COIN_CAP}，滿了就拿不到更多。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${info}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
 $('#btnWild').addEventListener('click',wildSheet);
 /* ---- 存檔碼：記「擁有哪些角色、每隻等級、獎盃、碎片（5 片為單位，最多 35）、金幣（100 為單位）、萬用碎片」。造型、寶箱、任務、天賦選擇匯入後歸零。新欄位接在最後面，舊存檔碼讀得回來（那些欄位視為 0） ---- */
 const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>id==='apple'||id==='sushi'||id==='eggplant';

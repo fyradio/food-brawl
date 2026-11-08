@@ -600,7 +600,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.12.2</span>
+<span class="ver">v0.13.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -777,7 +777,7 @@ const ACCS={straw:{name:'草帽',slot:'head',price:300},bow:{name:'蝴蝶結',sl
 const MISSIONS={play:{t:3,txt:n=>`完成 ${n} 場比賽`},kills:{t:12,txt:n=>`淘汰 ${n} 個對手`},top:{t:1,txt:()=>'拿 1 次第一名（足球算贏球）'},
   crates:{t:8,txt:n=>`打破 ${n} 個木箱`},supers:{t:6,txt:n=>`放 ${n} 次大招`},goals:{t:2,txt:n=>`足球模式踢進 ${n} 球`},
   royale3:{t:1,txt:()=>'生存模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
-const CHEST_PRICE=300,CHEST_W=[59,25,11,4,1],SHARDS_PER=[10,8,6,4,3];
+const CHEST_PRICE=300,CHEST_W=[59,25,11,4,1];
 const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'生存模式',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。白天或黑夜隨機，黑夜時毒圈外會變成一片黑，待在亮的地方。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
 const DIFF=[
   {name:'簡單',aimErr:.55,react:1.1,dodge:0,fireRate:.4,lead:0,gap:1.4,sight:9,supWait:3},
@@ -792,6 +792,8 @@ const TEAM_SP=[[-6,9],[6,9],[-2.5,13],[2.5,13]];
 const PEER_PREFIX='foodbrawl-tw-';
 for(const k of CH_IDS){save.lvl[k]=clamp((save.lvl[k]|0)||1,1,MAX_LV);save.shards[k]=save.shards[k]|0}
 save.wild=Math.max(0,save.wild|0);
+/* 舊版每隻角色自己的碎片 → 依價值換成萬用碎片（v0.13.0 起所有碎片都是萬用碎片） */
+for(const k of CH_IDS){const n=save.shards[k]|0;if(n>0)save.wild+=n*Math.pow(3,CHARS[k].tier);save.shards[k]=0}
 for(const k of['apple','sushi','eggplant'])if(!save.owned.includes(k))save.owned.push(k);
 if(!save.owned.includes(save.ch))save.ch='apple';
 const accStr=ch=>{const e=save.accEq[ch]||{};return[e.head||'',e.face||'',e.back||''].join(',')};
@@ -2325,9 +2327,9 @@ function renderPickUI(){topUI();
   else tl.innerHTML=`<span class="lab">天賦</span><small>Lv5 解鎖：${TALENTS[id][0][0]}／${TALENTS[id][1][0]}</small>`;
   const up=$('#btnUp');
   if(own){$('#chPerk').innerHTML=perkText(lv);$('#chLv').textContent='等級 '+lv+(lv>=MAX_LV?'（滿級）':'');
-    const cost=lv*100,need=shardReq(lv),have=save.shards[id];
-    up.innerHTML=lv>=MAX_LV?'已滿級':`升級 ${coinIc} ${cost}`+(need?` ＋碎片 ${have}/${need}`:'');up.disabled=lv>=MAX_LV||save.coins<cost||have<need;up.dataset.act='up'}
-  else{const okT=save.trophies>=C.unlock;$('#chPerk').innerHTML=`獎盃到 <b>${C.unlock}</b> 可以用金幣買；開寶箱也可能提前抽到（${T.name}）。碎片 ${save.shards[id]}`;
+    const cost=lv*100,need=shardReq(lv),unit=WILD_V[C.tier],have=Math.floor(save.wild/unit);
+    up.innerHTML=lv>=MAX_LV?'已滿級':`升級 ${coinIc} ${cost}`+(need?` ＋${T.name}萬用碎片 ${have}/${need}`:'');up.disabled=lv>=MAX_LV||save.coins<cost||save.wild<need*unit;up.dataset.act='up'}
+  else{const okT=save.trophies>=C.unlock;$('#chPerk').innerHTML=`獎盃到 <b>${C.unlock}</b> 可以用金幣買；開寶箱也可能提前抽到（${T.name}）。`;
     $('#chLv').innerHTML=`${troIc} ${save.trophies}/${C.unlock}`;up.innerHTML=`購買 ${coinIc} ${C.price}`;up.disabled=!okT||save.coins<C.price;up.dataset.act='buy'}
   $('#chWild').innerHTML=`萬用碎片 <b>${wildTotalText(save.wild)}</b>`;$('#btnWild').disabled=false;
   const use=$('#pkUse');use.textContent=!own?'還沒擁有':id===save.ch?'使用中':'使用這隻';use.disabled=!own||id===save.ch;$('#pkWard').disabled=!own;
@@ -2344,8 +2346,8 @@ $('#pkUse').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return
 $('#pkWard').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return;wardId=viewCh;openSheet('造型',wardSheet())});
 $('#btnUp').addEventListener('click',()=>{const id=viewCh,C=CHARS[id];
   if($('#btnUp').dataset.act==='buy'){if(save.owned.includes(id)||save.trophies<C.unlock||save.coins<C.price)return;save.coins-=C.price;save.owned.push(id);save.ch=id;persist();startReveal({kind:'buy',id});return}
-  const lv=save.lvl[id],cost=lv*100,need=shardReq(lv);if(lv>=MAX_LV||save.coins<cost||save.shards[id]<need)return;
-  save.coins-=cost;save.shards[id]-=need;save.lvl[id]=lv+1;persist();renderPickUI();SFX.pick();
+  const lv=save.lvl[id],cost=lv*100,need=shardReq(lv)*WILD_V[C.tier];if(lv>=MAX_LV||save.coins<cost||save.wild<need)return;
+  save.coins-=cost;save.wild-=need;save.lvl[id]=lv+1;persist();renderPickUI();SFX.pick();
   toast(C.name+' 升到 '+(lv+1)+' 級！'+(lvAmmo(lv+1)>lvAmmo(lv)?'彈藥變 '+lvAmmo(lv+1)+' 格':lv+1===5?'可以選天賦了':lv+1===10?'解鎖異色造型！':''))});
 /* ---- 加入房間 ---- */
 $('#joinCancel').addEventListener('click',()=>{$('#joinBox').hidden=true});
@@ -2371,14 +2373,12 @@ $('#btnStart').addEventListener('click',()=>{startStep=1;startSheet()});
 const WILD_PRICE=20,WILD_V=[1,3,9,27,81];
 const wildGrades=v=>[v%3,Math.floor(v/3)%3,Math.floor(v/9)%3,Math.floor(v/27)%3,Math.floor(v/81)];
 function wildTotalText(v){const g=wildGrades(v),o=[];for(let i=4;i>=0;i--)if(g[i])o.push(TIERS[i].name+' '+g[i]);return o.length?o.join('、'):'0'}
-const shardWildCost=id=>WILD_V[CHARS[id].tier];
-function wildSheet(){sheetKind='wild';const id=viewCh,C=CHARS[id],own=save.owned.includes(id),lv=save.lvl[id],g=wildGrades(save.wild),c1=shardWildCost(id);
-  const need=lv<MAX_LV?Math.max(0,shardReq(lv)-save.shards[id]):0;
+function wildSheet(){sheetKind='wild';const id=viewCh,C=CHARS[id],T=TIERS[C.tier],own=save.owned.includes(id),lv=save.lvl[id],g=wildGrades(save.wild),unit=WILD_V[C.tier];
   const hold=TIERS.map((T,i)=>`<div class="wg" style="--tc:${T.col}"><b>${g[i]}</b><small>${T.name}</small></div>`).join('');
   const buy=[1,5,25,100].map(n=>`<button class="btn small main" data-act="wbuy" data-v="${n}"${save.coins<n*WILD_PRICE?' disabled':''}>買 ${n} 片<br>${coinIc} ${n*WILD_PRICE}</button>`).join('');
-  const can=n=>save.wild>=c1*n;
-  const ex=own?`<p class="sp"><b>${C.name}</b>（${TIERS[C.tier].name}）：1 片碎片＝<b>${c1}</b> 片普通萬用碎片。目前碎片 ${save.shards[id]}${need?`，升級還差 ${need} 片`:''}。</p><div class="row2 wx"><button class="btn small blue" data-act="wex" data-v="1"${can(1)?'':' disabled'}>換 1 片<br>花 ${c1}</button><button class="btn small blue" data-act="wex" data-v="5"${can(5)?'':' disabled'}>換 5 片<br>花 ${c1*5}</button>${need?`<button class="btn small main" data-act="wex" data-v="${need}"${can(need)?'':' disabled'}>補齊 ${need} 片<br>花 ${c1*need}</button>`:''}</div>`:`<p class="sp">先擁有 ${C.name} 才能換它的碎片。</p>`;
-  openSheet('萬用碎片',`<p class="sp">3 片低等級的萬用碎片＝1 片高一級的。可以換成任何<b>已擁有</b>角色的碎片：普通 1 片要 1 片萬用、稀有 3 片、史詩 9 片、傳說 27 片、夢幻 81 片（都算普通萬用碎片）。每片普通萬用碎片 ${coinIc} ${WILD_PRICE}。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${ex}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
+  const need=own&&lv<MAX_LV?shardReq(lv):0;
+  const info=own?`<p class="sp"><b>${C.name}</b>（${T.name}）升到 Lv${lv+1}${lv>=MAX_LV?'：已滿級':need?`要 ${T.name}萬用碎片 <b>${need}</b> 片（＝ ${need*unit} 片普通萬用碎片）`:'不需要碎片'}。</p>`:'';
+  openSheet('萬用碎片',`<p class="sp">升級用的碎片現在全部是萬用碎片。開寶箱抽到重複的食物，會得到<b>同稀有度</b>的萬用碎片 5～10 片。3 片低等級的萬用碎片＝1 片高一級的，用到時自動換算：升級${T.name}角色每片要 ${unit} 片普通萬用碎片。每片普通萬用碎片 ${coinIc} ${WILD_PRICE}。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${info}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
 $('#btnWild').addEventListener('click',wildSheet);
 /* ---- 存檔碼：記「擁有哪些角色、每隻等級、獎盃、碎片（5 片為單位，最多 35）、金幣（100 為單位）、萬用碎片」。造型、寶箱、任務、天賦選擇匯入後歸零。新欄位接在最後面，舊存檔碼讀得回來（那些欄位視為 0） ---- */
 const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>id==='apple'||id==='sushi'||id==='eggplant';
@@ -2386,9 +2386,7 @@ const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>id==='apple'||id==='s
 function scSum(a){let x=0;for(const v of a)x=(x*31+v+7)%1021;return x}
 function scEncode(){const bits=[],w=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)};w(CH_IDS.length,7);w(clamp(save.trophies|0,0,8191),13);
   for(const id of CH_IDS){const own=save.owned.includes(id);if(!SC_FREE(id))w(own?1:0,1);if(own)w(clamp((save.lvl[id]|0)||1,1,MAX_LV)-1,4)}
-  for(const id of CH_IDS)if(save.owned.includes(id))w(clamp(Math.floor((save.shards[id]|0)/5),0,7),3);
-  let wv=save.wild|0;for(const id of CH_IDS)if(save.owned.includes(id)){const sh=save.shards[id]|0;wv+=(sh-5*clamp(Math.floor(sh/5),0,7))*WILD_V[CHARS[id].tier]}
-  w(clamp(Math.floor(save.coins/100),0,4095),12);w(clamp(wv,0,8191),13);
+  w(clamp(Math.floor(save.coins/100),0,4095),12);w(clamp(save.wild|0,0,32767),15);
   while(bits.length%5)bits.push(0);const ch=[];for(let i=0;i<bits.length;i+=5)ch.push(bits[i]*16+bits[i+1]*8+bits[i+2]*4+bits[i+3]*2+bits[i+4]);
   const cs=scSum(ch);ch.push(cs>>5,cs&31);return ch.map(v=>SC_AL[v]).join('').replace(/(.{4})(?=.)/g,'$1-')}
 function scDecode(txt){const t=String(txt).toUpperCase().replace(/[^A-Z0-9]/g,'');if(t.length<6)throw new Error('short');
@@ -2397,17 +2395,20 @@ function scDecode(txt){const t=String(txt).toUpperCase().replace(/[^A-Z0-9]/g,''
   const bits=[];for(const v of body)for(let j=4;j>=0;j--)bits.push((v>>j)&1);let p=0;const r=n=>{let v=0;for(let i=0;i<n;i++)v=v*2+(bits[p++]||0);return v};
   const cnt=r(7);if(cnt>CH_IDS.length)throw new Error('newer');if(cnt<3)throw new Error('count');const trophies=r(13),owned=[],lvl={};
   for(let i=0;i<cnt;i++){const id=CH_IDS[i];const own=SC_FREE(id)?1:r(1);if(own){owned.push(id);lvl[id]=r(4)+1}}
-  const sh={};let coins=0,wild=0;if(bits.length-p>=owned.length*3+25){for(const id of owned)sh[id]=r(3)*5;coins=r(12)*100;wild=r(13)}
+  /* 三種格式：舊版（沒有金幣）／v0.12（每隻碎片 3 位元＋金幣 12＋萬用 13）／現在（金幣 12＋萬用 15），用剩下的位元數分辨 */
+  const sh={};let coins=0,wild=0;const left=bits.length-p;
+  if(left>=owned.length*3+25){for(const id of owned)sh[id]=r(3)*5;coins=r(12)*100;wild=r(13)}
+  else if(left>=27){coins=r(12)*100;wild=r(15)}
   if(p>bits.length+4)throw new Error('len');return{owned,lvl,trophies,sh,coins,wild}}
 let scPending=null;
 function scSheet(mode,msg){sheetKind='savecode';if(mode!=='ok')scPending=null;
   if(mode==='exp'){let c='';try{c=scEncode()}catch(e){}
-    openSheet('匯出存檔碼',`<p class="sp">把這串存檔碼複製起來（貼到備忘錄或傳給自己）。換手機或進度不見時，用「匯入」貼回來。<br>會記得<b>擁有的角色、等級、獎盃、碎片（5 片為單位）、金幣（100 為單位）、萬用碎片</b>。不滿 5 片的零碎碎片會<b>換成萬用碎片</b>一起記，不會浪費。造型、寶箱、任務、天賦選擇匯入後會<b>歸零</b>。</p><textarea id="scBox" class="scbox" readonly rows="3"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-copy">複製</button></div>`);$('#scBox').value=c;$('#scMsg').textContent=`共 ${c.replace(/-/g,'').length} 個字，擁有 ${save.owned.length} 隻角色`}
-  else if(mode==='imp')openSheet('匯入存檔碼',`<p class="sp">貼上或輸入存檔碼，大小寫、空格、橫線都沒關係。<br><b>會取代這支手機的進度</b>：角色、等級、獎盃、碎片、金幣、萬用碎片換成存檔碼的，造型、寶箱、任務、天賦選擇歸零。</p><textarea id="scBox" class="scbox" rows="3" placeholder="例如 K7QM-2XRA-9TWB-HN3…" autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-read">讀取</button></div>`);
+    openSheet('匯出存檔碼',`<p class="sp">把這串存檔碼複製起來（貼到備忘錄或傳給自己）。換手機或進度不見時，用「匯入」貼回來。<br>會記得<b>擁有的角色、等級、獎盃、金幣（100 為單位）、萬用碎片（1 片為單位）</b>。造型、寶箱、任務、天賦選擇匯入後會<b>歸零</b>。</p><textarea id="scBox" class="scbox" readonly rows="3"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-copy">複製</button></div>`);$('#scBox').value=c;$('#scMsg').textContent=`共 ${c.replace(/-/g,'').length} 個字，擁有 ${save.owned.length} 隻角色`}
+  else if(mode==='imp')openSheet('匯入存檔碼',`<p class="sp">貼上或輸入存檔碼，大小寫、空格、橫線都沒關係。<br><b>會取代這支手機的進度</b>：角色、等級、獎盃、金幣、萬用碎片換成存檔碼的，造型、寶箱、任務、天賦選擇歸零。</p><textarea id="scBox" class="scbox" rows="3" placeholder="例如 K7QM-2XRA-9TWB-HN3…" autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-read">讀取</button></div>`);
   else if(mode==='ok'){const o=scPending;const top=Math.max(...o.owned.map(i=>o.lvl[i]));openSheet('確認匯入',`<p class="sp">這組存檔碼有 <b>${o.owned.length}</b> 隻角色（最高 Lv ${top}）、獎盃 <b>${o.trophies}</b>。<br>這支手機現在有 <b>${save.owned.length}</b> 隻角色、獎盃 <b>${save.trophies}</b>、金幣 <b>${save.coins}</b>。<br>存檔碼裡的金幣是 <b>${o.coins}</b>，萬用碎片 <b>${wildTotalText(o.wild)}</b>。匯入後造型、寶箱、任務、天賦選擇會<b>歸零</b>，確定嗎？</p><div class="row2"><button class="btn blue" data-act="sc-imp">不要，重輸入</button><button class="btn main" data-act="sc-apply">確定匯入</button></div>`)}}
-function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=(o.sh&&o.sh[id])||0}save.trophies=o.trophies;save.coins=o.coins||0;save.wild=o.wild||0;save.chests=0;save.matches=0;save.accOwned=[];save.accEq={};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
+function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=0}save.trophies=o.trophies;save.coins=o.coins||0;save.wild=(o.wild||0)+CH_IDS.reduce((a,id)=>a+(((o.sh&&o.sh[id])||0)*Math.pow(3,CHARS[id].tier)),0);save.chests=0;save.matches=0;save.accOwned=[];save.accEq={};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
 function setSheet(){sheetKind='set';
-  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="vrow"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><input type="range" id="vMus" min="0" max="100" step="5" value="${save.musicVol}" aria-label="音樂音量"></div><div class="vrow"><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button><input type="range" id="vSfx" min="0" max="100" step="5" value="${save.sfxVol}" aria-label="音效音量"></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><div class="chips"><span class="lab">更新</span><button class="chip" data-act="upd-chk">檢查更新</button><button class="chip" data-act="upd-force">強制更新</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級、獎盃、碎片、金幣和萬用碎片。</p>`);
+  openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="vrow"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><input type="range" id="vMus" min="0" max="100" step="5" value="${save.musicVol}" aria-label="音樂音量"></div><div class="vrow"><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button><input type="range" id="vSfx" min="0" max="100" step="5" value="${save.sfxVol}" aria-label="音效音量"></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><div class="chips"><span class="lab">更新</span><button class="chip" data-act="upd-chk">檢查更新</button><button class="chip" data-act="upd-force">強制更新</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級、獎盃、金幣和萬用碎片。</p>`);
   $('#nameIn').value=save.name}
 $('#mbSet').addEventListener('click',setSheet);
 function helpSheet(){sheetKind='help';
@@ -2416,7 +2417,7 @@ function helpSheet(){sheetKind='help';
   let b='';
   if(helpTab==='how')b=`<ul class="hl">${li(['<b>移動</b>：手指按住畫面左邊拖一拖（電腦：W A S D）。','<b>攻擊</b>：右下角大紅鈕。點一下就會打；按住拖曳再放開，會朝你拖的方向打（電腦：滑鼠瞄準、左鍵）。','<b>彈藥</b>：角色頭上的格子，用完要等它慢慢補滿。','<b>大招</b>：打中人會充能，滿了按攻擊鈕旁邊的大招鈕（電腦：右鍵或 E）。每隻食物的大招都不一樣。','<b>草叢</b>：躲進草叢待 3 秒，別人就看不到你了。','<b>聊天</b>：比賽中按攻擊鈕上面的聊天鈕 💬，選表情跟隊友和對手打招呼。','比賽結束會得到獎盃和金幣，金幣可以升級、買新食物。'])}</ul>`;
   else if(helpTab==='mode')b=`<ul class="hl">${Object.entries(MODES).map(([k,v])=>`<li><b>${v.name}</b>：${v.desc}</li>`).join('')}<li>時間有 90 秒和 180 秒兩種（生存模式不限時間）。</li><li>電腦強度分簡單、普通、困難，電腦的等級會跟著你的等級走。</li><li>想跟朋友玩：一個人「開房間」，其他人「加入房間」輸入 4 位數代碼。房間裡空位會用電腦補滿。連同一個 WiFi 最穩；兩支手機都用 4G／5G 可能連不上，可以一支開熱點給另一支連。</li></ul>`;
-  else if(helpTab==='grow')b=`<ul class="hl">${li(['<b>等級</b>：每隻食物最高 '+MAX_LV+' 級，每升 1 級，血量和攻擊 +15%。','<b>彈藥</b>：Lv3、5、7、9 各多半格，最高 5 格。','<b>天賦</b>：Lv5 可以二選一，兩種玩法不一樣，隨時能換。','<b>異色造型</b>：Lv10 解鎖。','<b>怎麼升級</b>：要金幣；Lv3 以後還要「碎片」。開寶箱抽到重複的食物就會變成碎片。','<b>萬用碎片</b>：在選角色畫面按 🧩 用金幣買（每片 20），3 片低等級＝1 片高一級，可以換成任何已擁有角色的碎片：普通 1 片要 1 片、稀有 3 片、史詩 9 片、傳說 27 片、夢幻 81 片','<b>寶箱</b>：前 3 名、足球贏球、每打 5 場都會送，也可以用金幣買。','<b>稀有度</b>：普通、稀有、史詩、傳說，越高級的技能越神奇。獎盃夠了就能用金幣買，開寶箱也可能提前抽到。','<b>造型</b>：到「選角色」畫面點「造型」，只是好看，不影響能力。'])}</ul>`;
+  else if(helpTab==='grow')b=`<ul class="hl">${li(['<b>等級</b>：每隻食物最高 '+MAX_LV+' 級，每升 1 級，血量和攻擊 +15%。','<b>彈藥</b>：Lv3、5、7、9 各多半格，最高 5 格。','<b>天賦</b>：Lv5 可以二選一，兩種玩法不一樣，隨時能換。','<b>異色造型</b>：Lv10 解鎖。','<b>怎麼升級</b>：要金幣；Lv3 以後還要「萬用碎片」。開寶箱抽到重複的食物，會得到同稀有度的萬用碎片 5～10 片。','<b>萬用碎片</b>：有 5 個等級，3 片低等級＝1 片高一級。在選角色畫面按 🧩 也能用金幣買（每片普通 20 金幣）。升級高稀有度的食物要的片數一樣，但每片的價值比較高。','<b>寶箱</b>：前 3 名、足球贏球、每打 5 場都會送，也可以用金幣買。','<b>稀有度</b>：普通、稀有、史詩、傳說，越高級的技能越神奇。獎盃夠了就能用金幣買，開寶箱也可能提前抽到。','<b>造型</b>：到「選角色」畫面點「造型」，只是好看，不影響能力。'])}</ul>`;
   else{const dev=helpDev;
     const st={ios:['用 <b>Safari</b> 打開這個遊戲（LINE、Facebook 內建瀏覽器不行，要先點「在 Safari 開啟」）。','點畫面下方（iPad 在右上方）的<b>分享</b>按鈕，就是方框加向上箭頭。','往下滑，點<b>加入主畫面</b>。','右上角按<b>新增</b>，主畫面就會多一個起司珍奶圖示。'],
       android:['用 <b>Chrome</b> 打開這個遊戲（LINE、Facebook 內建瀏覽器不行，要先選「用 Chrome 開啟」）。','點右上角三個點 <b>⋮</b> 選單。','選<b>加到主畫面</b>或<b>安裝應用程式</b>。','按<b>安裝</b>（或新增），圖示就會出現在主畫面。'],
@@ -2442,7 +2443,7 @@ function rvOpen(){if(!rv||rv.phase!==0)return;rv.phase=1;rvClear();$('#rvHint').
 function rvShow(){if(!rv)return;rv.phase=2;rv.charT=performance.now();const C=CHARS[rv.id],T=TIERS[C.tier],fresh=rv.kind==='buy'||rv.isNew;
   $('#rvChest').hidden=true;$('#rvTag').textContent=fresh?'新角色！':'角色碎片';$('#rvTag').className='rvTag ot pop';
   $('#rvName').textContent=C.name;$('#rvTier').textContent=T.name;$('#rvTier').style.background=T.col;$('#rvRole').textContent=C.role;
-  $('#rvShard').textContent=fresh?'':'碎片 ×'+rv.shards+'（升級用）';$('#rvShard').hidden=fresh;
+  $('#rvShard').textContent=fresh?'':'萬用碎片 ×'+rv.wild+'（'+TIERS[CHARS[rv.id].tier].name+'，升級用）';$('#rvShard').hidden=fresh;
   $('#rvCoin').innerHTML=rv.coins?`${coinIc} +${rv.coins}`:'';$('#rvCoin').hidden=!rv.coins;
   rvTimers.push(setTimeout(()=>{if(!rv)return;const inf=$('#rvInfo');inf.style.visibility='visible';inf.classList.remove('pop');void inf.offsetWidth;inf.classList.add('pop')},450));
   rvTimers.push(setTimeout(()=>{if(!rv)return;$('#rvBtns').hidden=false;$('#rvMore').hidden=!(rv.kind==='chest'&&save.chests>0)},900));
@@ -2454,10 +2455,10 @@ $('#rvOk').addEventListener('click',rvDone);
 $('#rvMore').addEventListener('click',()=>{if(!rv||save.chests<=0)return;const r=openChest();startReveal(Object.assign({kind:'chest'},r))});
 function openChest(){let r=Math.random()*100,tier=0;for(let i=0;i<CHEST_W.length;i++){if(r<CHEST_W[i]){tier=i;break}r-=CHEST_W[i]}
   const pool=CH_IDS.filter(id=>CHARS[id].tier===tier);const id=pool[Math.floor(Math.random()*pool.length)];const coins=rndi(30,80);save.coins+=coins;
-  let res;if(!save.owned.includes(id)){save.owned.push(id);res={id,isNew:true,coins}}else{const n=SHARDS_PER[tier];save.shards[id]+=n;res={id,shards:n,coins}}
+  let res;if(!save.owned.includes(id)){save.owned.push(id);res={id,isNew:true,coins}}else{const n=5+Math.floor(Math.random()*6);save.wild+=n*WILD_V[tier];res={id,wild:n,coins}}
   save.chests--;persist();return res}
 function chestSheet(last){const C=last&&CHARS[last.id],T=C&&TIERS[C.tier];
-  const top=last?`<div class="chres" style="--tc:${T.col}"><div class="tier">${T.name}</div><div class="big">${last.isNew?'新角色！':'碎片'}</div><div class="nm">${C.name}${last.isNew?'':' 碎片 ×'+last.shards}</div><div class="cn">${coinIc} +${last.coins}</div></div>`
+  const top=last?`<div class="chres" style="--tc:${T.col}"><div class="tier">${T.name}</div><div class="big">${last.isNew?'新角色！':'碎片'}</div><div class="nm">${C.name}${last.isNew?'':' 萬用碎片 ×'+last.wild}</div><div class="cn">${coinIc} +${last.coins}</div></div>`
     :`<p class="sp">寶箱裡可能是新角色，已經有的角色會變成升級用的碎片。<br>機率：普通 ${CHEST_W[0]}%、稀有 ${CHEST_W[1]}%、史詩 ${CHEST_W[2]}%、傳說 ${CHEST_W[3]}%、夢幻 ${CHEST_W[4]}%</p>`;
   return top+`<p class="sp">有 <b>${save.chests}</b> 個寶箱。前 3 名、足球贏球、每打 5 場都會送寶箱。</p><div class="row2"><button class="btn main" data-act="open" ${save.chests>0?'':'disabled'}>打開寶箱</button><button class="btn blue" data-act="buyc" ${save.coins>=CHEST_PRICE?'':'disabled'}>買一個 ${coinIc} ${CHEST_PRICE}</button></div>`}
 $('#mbChest').addEventListener('click',()=>openSheet('寶箱',chestSheet(null)));
@@ -2483,7 +2484,6 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='tgm'){commitName();save.music=!save.music;persist();if(save.music){musicCur='';playMusic(mode==='game'?'battle':'lobby')}else stopMusic();setSheet();return}
   else if(act==='tgs'){commitName();save.sfx=!save.sfx;persist();setSheet();return}
   else if(act==='wbuy'){const n=+b.dataset.v;if(save.coins<n*WILD_PRICE)return;save.coins-=n*WILD_PRICE;save.wild+=n;persist();SFX.pick();wildSheet();return}
-  else if(act==='wex'){const n=+b.dataset.v,id=viewCh,c=shardWildCost(id)*n;if(!save.owned.includes(id)||save.wild<c)return;save.wild-=c;save.shards[id]+=n;persist();SFX.pick();wildSheet();return}
   else if(act==='wclose'){closeSheet();renderPickUI();return}
   else if(act==='upd-chk'){checkUpdate(true);return}
   else if(act==='upd-force'){forceUpdate();return}

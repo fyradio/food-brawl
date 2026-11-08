@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.19.0</span>
+<span class="ver">v0.20.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -912,9 +912,32 @@ const MAPS={
     solids:[...expand([{k:'cyl',t:'plates',x:6,z:10.5,r:1},{k:'cyl',t:'plates',x:15,z:15,r:1},{k:'cyl',t:'soy',x:8,z:2,r:.7},{k:'cyl',t:'wasabi',x:3.5,z:15.5,r:.9}]),...expand([{k:'box',t:'counter',x:0,z:12.5,w:6,d:1,m:2}])],
     belts:[{x:0,z:6,w:34,d:2.4,vx:3.5,vz:0},{x:0,z:-6,w:34,d:2.4,vx:-3.5,vz:0},{x:12,z:0,w:2.4,d:9.6,vx:0,vz:-3.5},{x:-12,z:0,w:2.4,d:9.6,vx:0,vz:3.5}],
     bushes:expand([{x:10,z:14,w:2.5,d:2},{x:18.5,z:9,w:2,d:3}]),
-    crates:expand([{x:4,z:2.5},{x:12.5,z:10},{x:16.5,z:3}]),decor:expand([{t:'petal',x:7,z:16}])}
+    crates:expand([{x:4,z:2.5},{x:12.5,z:10},{x:16.5,z:3}]),decor:expand([{t:'petal',x:7,z:16}])},
+  /* ---- v0.20 新地圖：每張一個機關，機關範圍不超過整張圖 1/4（整張 42×42） ---- */
+  teppan:{name:'鐵板燒',haz:'grill',th:{bg:0x2a2a30,hemi:0x6a6a78,edge:0x3a3a42,edge2:0x8a8a96,bush:[0x9be05a,0xd8f0a0,0x6fbf3a,0xf2f2c8],ground:'teppan'},
+    grills:expand([{x:7.5,z:7.5,w:6,d:6}]),/* 4 塊熱區 6×6，共 144（約 1/12） */
+    solids:[{k:'box',t:'steakblk',x:0,z:0,w:3.2,d:2.2},...expand([{k:'box',t:'spatula',x:13,z:2.5,w:.7,d:4},{k:'cyl',t:'pepper',x:3.5,z:13.5,r:.7},{k:'cyl',t:'shrimp',x:15.5,z:12.5,r:.85}])],
+    bushes:expand([{x:12.5,z:8,w:2.5,d:2.6},{x:2.5,z:16.5,w:3,d:2},{x:17.5,z:2.5,w:2,d:3}]),
+    crates:expand([{x:2.5,z:4.5},{x:9.5,z:15},{x:15.5,z:16.5}]),decor:[]},
+  train:{name:'蒸汽火車',haz:'train',track:{z:0,hw:1.4},/* 鐵軌 42×2.8＝118（約 1/15） */
+    spawns:[[18,18],[-18,-18],[-18,18],[18,-18],[0,18.5],[0,-18.5],[18.5,5],[-18.5,-5]],
+    th:{bg:0x4a7a3a,hemi:0x6a9a4a,edge:0x5a6a4a,edge2:0x8a9a6a,bush:[0x3f9e30,0x5fbf3a,0x2f7f28,0x7ad04a],ground:'rail'},
+    solids:expand([{k:'box',t:'platform',x:8,z:4.3,w:6,d:1.6},{k:'cyl',t:'signal',x:15,z:3.2,r:.4},{k:'box',t:'coal',x:4,z:12,w:2,d:2},{k:'cyl',t:'stone',x:13,z:13,r:1.3},{k:'cyl',t:'stone',x:6,z:17.5,r:1}]),
+    bushes:expand([{x:10.5,z:9,w:3,d:2.4},{x:2,z:7,w:2.4,d:2.4},{x:17.5,z:8.5,w:2,d:3}]),
+    crates:expand([{x:4.5,z:8.5},{x:12.5,z:16.5},{x:17.5,z:14.5}]),decor:[]},
+  balloon:{name:'熱氣球',haz:'balloon',/* 一顆熱氣球籃子 2.2×2.2，壓人範圍半徑 2.2 */
+    th:{bg:0x8fd0ff,hemi:0xbfe8ff,edge:0xf2f6ff,edge2:0xffffff,bush:[0xffffff,0xeaf4ff,0xd8ecff,0xf8fbff],ground:'sky'},
+    solids:[{k:'cyl',t:'skyrock',x:0,z:0,r:1.8},...expand([{k:'cyl',t:'cloudp',x:7,z:7,r:1.5},{k:'cyl',t:'cloudp',x:15,z:3,r:1.2},{k:'cyl',t:'cloudp',x:3,z:15,r:1.2},{k:'box',t:'flagpost',x:14,z:14,w:.5,d:.5}])],
+    bushes:expand([{x:11,z:10,w:3,d:2.4},{x:2,z:9,w:2.4,d:3},{x:17,z:17,w:2.6,d:2.4}]),
+    crates:expand([{x:5,z:3},{x:10,z:15.5},{x:16.5,z:9}]),decor:[]},
+  candy:{name:'彩虹棉花糖',haz:'pads',/* 4 個彈跳棉花糖，半徑 1.1 */
+    pads:[{x:9,z:-9,to:1},{x:-9,z:9,to:0},{x:-9,z:-9,to:3},{x:9,z:9,to:2}],
+    th:{bg:0xffc8e8,hemi:0xffe0f2,edge:0xff9ac8,edge2:0xfff0a0,bush:[0xffb0d8,0xb0d8ff,0xfff0a0,0xd8b0ff],ground:'candy'},
+    solids:[{k:'cyl',t:'candyball',x:0,z:0,r:1.8},...expand([{k:'cyl',t:'lolli',x:5,z:5,r:.6},{k:'cyl',t:'lolli',x:15,z:12,r:.6},{k:'box',t:'gummy',x:13.5,z:4,w:1.6,d:1.4},{k:'box',t:'gummy',x:4,z:14,w:1.4,d:1.6}])],
+    bushes:expand([{x:11,z:13,w:2.6,d:2.4},{x:2,z:10,w:2.4,d:3},{x:17.5,z:6.5,w:2,d:3}]),
+    crates:expand([{x:6,z:10.5},{x:11,z:4},{x:16,z:17}]),decor:[]}
 };
-const MAP_POOL=['desert','kitchen','ice','hotpot','night','sushibar'];
+const MAP_POOL=['desert','kitchen','ice','hotpot','night','sushibar','teppan','train','balloon','candy'];
 const onRects=(L,x,z)=>{if(L)for(const b of L)if(Math.abs(x-b.x)<b.w/2&&Math.abs(z-b.z)<b.d/2)return b;return null};
 const inLight=(M,x,z)=>{if(M.lights)for(const l of M.lights)if(Math.hypot(x-l.x,z-l.z)<l.r)return true;return false};
 function boundsFor(mode,n){if(mode==='soccer')return[11,16];return n<=2?[11,11]:n<=4?[15,15]:[H,H]}
@@ -937,10 +960,11 @@ class Game{
     this.crates=this.M.crates.map((c,i)=>{const off=Math.abs(c.x)>this.bx-1.2||Math.abs(c.z)>this.bz-1.2;return{i,x:c.x,z:c.z,hp:CRATE_HP,alive:!off,off,t:0}});
     this.night=this.mode==='royale'&&(o.night!==undefined?!!o.night:Math.random()<.5);this.dur=o.dur||180;this.time=this.mode==='royale'?0:this.dur;this.startT=3;this.over=false;this.goals=[0,0];this.goalPause=0;
     if(this.mode==='soccer')this.ball={x:0,z:0,vx:0,vz:0,last:-1};
+    const hk=this.M.haz;this.hz=hk==='grill'?{k:'g',i:-1,ph:0,t:5}:hk==='train'?{k:'t',ph:0,t:10,x:0,dir:1}:hk==='balloon'?{k:'b',ph:0,t:8,x:0,z:0}:null;
     if(this.mode==='royale'){const r0=Math.hypot(this.bx,this.bz)+1;this.zone={r0,r:r0,cx:0,cz:0,tx:rnd(-.3,.3)*this.bx,tz:rnd(-.3,.3)*this.bz,tick:0,stage:-1}}
     o.players.forEach((pp,i)=>this.addPlayer(pp,i))}
   spawnPoint(i,p){if(this.mode==='soccer'){const k=this.players.filter(q=>q.team===p.team).indexOf(p);const s=TEAM_SP[Math.max(0,k)%4];return[s[0],p.team===0?s[1]:-s[1]]}
-    const s=(this.bx-2.5)/18.5,sp=SPAWNS[i%8];return[sp[0]*s,sp[1]*s]}
+    const s=(this.bx-2.5)/18.5,sp=(this.M.spawns||SPAWNS)[i%8];return[sp[0]*s,sp[1]*s]}
   addPlayer(pp,i){const C=CHARS[pp.ch],lv=clamp(pp.lvl||1,1,MAX_LV);
     const p={id:i,name:pp.name,ch:pp.ch,lvl:lv,bot:!!pp.bot,netId:pp.netId||null,team:this.mode==='soccer'?(pp.team|0):null,tal:lv>=5&&(pp.tal==='a'||pp.tal==='b')?pp.tal:null,acc:pp.acc||'',
       x:0,z:0,vx:0,vz:0,ang:0,maxHp:Math.round(C.hp*lvMul(lv)),hp:0,alive:true,respawnT:0,invT:0,score:0,deaths:0,goalsMade:0,supers:0,crates:0,maxAmmo:lvAmmo(lv),ammo:0,sup:0,
@@ -967,7 +991,7 @@ class Game{
     if(this.mode==='royale')this.time+=dt;else{this.time-=dt;if(this.time<=0){this.time=0;this.endMatch();return}}
     for(const p of this.players)this.stepPlayer(p,dt);
     this.stepProj(dt);this.stepTraps(dt);this.stepPuddles(dt);this.stepItems();this.stepCrates(dt);this.stepDecoys(dt);this.stepTurrets(dt);
-    if(this.walls.length)this.walls=this.walls.filter(w=>(w.life-=dt)>0);if(this.M.erupt)this.stepHazard(dt);
+    if(this.walls.length)this.walls=this.walls.filter(w=>(w.life-=dt)>0);if(this.M.erupt)this.stepHazard(dt);if(this.hz)this.stepHz(dt);
     if(this.zone)this.stepZone(dt);if(this.ball)this.stepBall(dt);
     this.updFlags();
     if(this.mode==='royale'&&!this.over&&this.players.filter(p=>!p.out).length<=1)this.endMatch()}
@@ -1007,6 +1031,7 @@ class Game{
       if(this.M.ice&&onRects(this.M.ice,p.x,p.z)){const k=Math.min(1,dt*2.2);p.ivx+=(mx*sp-p.ivx)*k;p.ivz+=(mz*sp-p.ivz)*k}else{p.ivx=mx*sp;p.ivz=mz*sp}
       p.x+=p.ivx*dt;p.z+=p.ivz*dt;p.moving=L>.15||Math.hypot(p.ivx,p.ivz)>.6;if(L>.15&&p.faceT<=0)p.ang=Math.atan2(mx,mz)}
     if(this.M.belts&&p.rollT<=0){const bt=onRects(this.M.belts,p.x,p.z);if(bt){p.x+=bt.vx*dt;p.z+=bt.vz*dt}}
+    if(this.M.pads)this.stepPad(p,dt);
     if(p.leapT<=0)resolveOn(this.M,this.crates,p,PR,this.bx,this.bz,this.walls);
     p.vx=(p.x-ox)/dt;p.vz=(p.z-oz)/dt;
     if(p.rollT>0){p.rollT-=dt;
@@ -1099,6 +1124,33 @@ class Game{
     const n=own.tal==='a'?8:5,hs=new Set(b.hitQ!=null?[b.hitQ]:[]);for(let i=0;i<n;i++){const s=this.spawnAt(own,'nugget',b.x,b.z,a+(i-(n-1)/2)*.22+(Math.random()-.5)*.08,12,3.6,Math.round(b.dmg*.25),.28);s.hit=new Set(hs)}
     this.ev(['land','cutlet',r2(b.x),r2(b.z),.8])}
   curryBoom(b,own){this.splash(b.x,b.z,1.6,Math.round(b.dmg*.4),own,'curry');this.ev(['land','curry',r2(b.x),r2(b.z),1.6])}
+  /* 彈跳棉花糖：踩上去彈到配對的另一個；落地後要先離開那顆、而且 2 秒後才能再彈；落點在毒圈外就不彈 */
+  stepPad(p,dt){p.padCD=Math.max(0,(p.padCD||0)-dt);const P=this.M.pads;
+    if(p.padLock!=null&&p.leapT<=0){const L=P[p.padLock];if(!L||Math.hypot(p.x-L.x,p.z-L.z)>1.5)p.padLock=null}
+    if(p.leapT>0||p.padCD>0||p.rootT>0||p.stunT>0)return;
+    for(let i=0;i<P.length;i++){const a=P[i];if(i===p.padLock||Math.abs(a.x)>this.bx-1||Math.abs(a.z)>this.bz-1||Math.hypot(p.x-a.x,p.z-a.z)>.95)continue;const b=P[a.to];
+      if(this.zone&&Math.hypot(b.x-this.zone.cx,b.z-this.zone.cz)>this.zone.r-1.2)continue;
+      this.leapTo(p,b.x,b.z,.85,4.5,0,0,false);p.padCD=2.85;p.padLock=a.to;this.ev(['pad',i,a.to]);break}}
+  /* 地圖機關（房主算，畫面照 hz 畫）：鐵板熱區輪流變燙／火車定時開過／熱氣球降落 */
+  stepHz(dt){const h=this.hz;h.t-=dt;
+    if(h.k==='g'){if(h.t<=0){if(h.ph===0){let n;do{n=Math.floor(Math.random()*4)}while(n===h.i);h.i=n;h.ph=1;h.t=2}else if(h.ph===1){h.ph=2;h.t=3}else{h.ph=0;h.t=3}}
+      if(h.ph===2){const g=this.M.grills[h.i];for(const q of this.players){if(!q.alive||q.leapT>0)continue;if(Math.abs(q.x-g.x)<g.w/2+PR*.4&&Math.abs(q.z-g.z)<g.d/2+PR*.4){if(q.burnT<=0)q.burnTick=.3;q.burnT=Math.max(q.burnT,.6);q.burnSrc=-1;q.slowT=Math.max(q.slowT,.4)}}}}
+    else if(h.k==='t'){const E=H+9;
+      if(h.ph===0&&h.t<=0){h.ph=1;h.t=2;h.dir=Math.random()<.5?1:-1;h.x=-h.dir*E;this.ev(['hzwarn','t'])}
+      else if(h.ph===1&&h.t<=0){h.ph=2;h.hit=new Set()}
+      else if(h.ph===2){h.x+=h.dir*28*dt;const T=this.M.track;
+        for(const q of this.players){if(!q.alive||q.leapT>0||h.hit.has(q.id))continue;if(Math.abs(q.z-T.z)<T.hw+PR&&Math.abs(q.x-h.x)<3.6+PR){h.hit.add(q.id);
+          this.damage(q,Math.round(q.maxHp*.25),null);if(q.alive){const sd=q.z>=T.z?1:-1;q.pullT=.35;q.pullX=h.dir*6;q.pullZ=sd*(T.hw+2.2-Math.abs(q.z-T.z))/.35;q.dashT=0;q.dashQ=0;q.stunT=Math.max(q.stunT,.4)}this.ev(['hit',q.id])}}
+        if(h.dir*h.x>E){h.ph=0;h.t=13;delete h.hit}}}
+    else if(h.k==='b'){
+      if(h.ph===0&&h.t<=0){let ok=false;for(let k=0;k<14&&!ok;k++){let x,z;if(this.zone){const a=Math.random()*TAU,r=Math.random()*this.zone.r*.6;x=this.zone.cx+Math.cos(a)*r;z=this.zone.cz+Math.sin(a)*r}else{x=rnd(-this.bx+2.5,this.bx-2.5);z=rnd(-this.bz+2.5,this.bz-2.5)}
+          x=clamp(x,-this.bx+2,this.bx-2);z=clamp(z,-this.bz+2,this.bz-2);if(!this.blocked(x,z,1.6)){h.x=r2(x);h.z=r2(z);ok=true}}
+        if(ok){h.ph=1;h.t=2;this.ev(['hzwarn','b'])}else h.t=2}
+      else if(h.ph===1&&h.t<=0){h.ph=2;h.t=6;const R=2.2;
+        for(const q of this.players){if(!q.alive||q.leapT>0)continue;const dx=q.x-h.x,dz=q.z-h.z,d=Math.hypot(dx,dz);if(d<R+PR){this.damage(q,Math.round(q.maxHp*.18),null);if(q.alive){const ux=d>.05?dx/d:1,uz=d>.05?dz/d:0;q.pullT=.3;q.pullX=ux*(R+1.4-d)/.3;q.pullZ=uz*(R+1.4-d)/.3;q.dashT=0;q.dashQ=0}}}
+        this.walls.push({id:this.nid++,owner:-1,x:h.x,z:h.z,hw:1.1,hd:1.1,hp:1e9,max:1e9,life:6,bk:1});this.ev(['land','balloon',h.x,h.z,2.2])}
+      else if(h.ph===2&&h.t<=0){h.ph=3;h.t=1.5}
+      else if(h.ph===3&&h.t<=0){h.ph=0;h.t=4}}}
   stepHazard(dt){this.hazT-=dt;if(this.hazT>0)return;this.hazT=12;const E=this.M.erupt;
     for(let i=0;i<7;i++){const a=Math.random()*TAU,d=rnd(E.r+.8,E.reach);this.puddles.push({id:this.nid++,kind:4,owner:-1,x:clamp(E.x+Math.cos(a)*d,-this.bx+1,this.bx-1),z:clamp(E.z+Math.sin(a)*d,-this.bz+1,this.bz-1),r:1.7,life:1.6,max:1.6,tick:0,dmg:800})}
     this.ev(['warn'])}
@@ -1845,7 +1897,7 @@ function makeBall(){const g=new THREE.Group(),r=new THREE.Group();g.add(r);
   for(let i=0;i<6;i++){const s=new THREE.Mesh(GEO.sph,lam(0xff6a3a));s.scale.setScalar(.09);const a=i*1.1,b=i*.7;s.position.set(Math.cos(a)*Math.sin(b+1)*BALL_R,Math.cos(b+1)*BALL_R,Math.sin(a)*Math.sin(b+1)*BALL_R);r.add(s)}
   g.userData.roll=r;return g}
 const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff],[0x5a2a10,.7,0xa8642a],[0xffe07a,.62,0xfff3c0],[0x3a3438,.72,0xff6a2a],[0xd8f4ff,.6,0xffffff]];
-const LANDCOL={sugar:0xffe9a0,yam:0xffa040,steak:0xff6a2a,steakland:0xff6a2a,veggie:0x6fd34a,cream:0xffe07a,butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,steam:0xfff3d0,cutlet:0xf0b04a};
+const LANDCOL={balloon:0xd8b080,sugar:0xffe9a0,yam:0xffa040,steak:0xff6a2a,steakland:0xff6a2a,veggie:0x6fd34a,cream:0xffe07a,butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,steam:0xfff3d0,cutlet:0xf0b04a};
 function beltTex(alongX){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#2e2e36';x.fillRect(0,0,64,64);x.fillStyle='#4a4a58';
   for(let i=0;i<4;i++){if(alongX)x.fillRect(i*16,0,6,64);else x.fillRect(0,i*16,64,6)}x.fillStyle='#ffffff';x.globalAlpha=.25;if(alongX){x.fillRect(0,2,64,2);x.fillRect(0,60,64,2)}else{x.fillRect(2,0,2,64);x.fillRect(60,0,2,64)}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
@@ -1862,6 +1914,13 @@ function groundTex(kind,bx,bz){const S=kind==='stadium'?1024:512,c=document.crea
   else if(kind==='hotpot'){for(let i=0;i<8;i++)for(let j=0;j<8;j++){x.fillStyle=(i+j)%2?'#c8321f':'#e2553a';x.fillRect(i*64,j*64,64,64)}x.fillStyle='rgba(255,255,255,.25)';for(let i=0;i<8;i++){x.fillRect(i*64+30,0,4,S);x.fillRect(0,i*64+30,S,4)}}
   else if(kind==='night'){x.fillStyle='#1f2438';x.fillRect(0,0,S,S);x.strokeStyle='#2c334e';x.lineWidth=3;for(let i=0;i<=8;i++){x.beginPath();x.moveTo(i*64,0);x.lineTo(i*64,S);x.stroke();x.beginPath();x.moveTo(0,i*64);x.lineTo(S,i*64);x.stroke()}
     for(let i=0;i<30;i++){x.fillStyle='rgba(255,170,90,.06)';x.fillRect(rnd(0,S),rnd(0,S),rnd(20,60),rnd(4,10))}}
+  else if(kind==='teppan'){x.fillStyle='#5c5f66';x.fillRect(0,0,S,S);for(let i=0;i<120;i++){x.fillStyle=Math.random()<.5?'rgba(255,255,255,.05)':'rgba(0,0,0,.08)';x.fillRect(rnd(0,S),rnd(0,S),rnd(30,160),rnd(2,5))}
+    x.fillStyle='rgba(255,220,120,.08)';for(let i=0;i<14;i++){x.beginPath();x.arc(rnd(0,S),rnd(0,S),rnd(6,18),0,TAU);x.fill()}}
+  else if(kind==='rail'){x.fillStyle='#78b04a';x.fillRect(0,0,S,S);for(let i=0;i<260;i++){x.fillStyle=Math.random()<.5?'rgba(255,255,255,.08)':'rgba(30,80,20,.14)';x.fillRect(rnd(0,S),rnd(0,S),rnd(3,9),rnd(3,9))}}
+  else if(kind==='sky'){x.fillStyle='#9ad86a';x.fillRect(0,0,S,S);for(let i=0;i<90;i++){x.fillStyle=['#ffffff','#ffe066','#ff9ac8','#bfe0ff'][i%4];x.beginPath();x.arc(rnd(0,S),rnd(0,S),rnd(2,4),0,TAU);x.fill()}
+    for(let i=0;i<40;i++){x.fillStyle='rgba(60,140,40,.15)';x.fillRect(rnd(0,S),rnd(0,S),rnd(10,40),rnd(3,6))}}
+  else if(kind==='candy'){const C=['#ffb3c7','#ffd6a5','#fdffb6','#caffbf','#9bf6ff','#bdb2ff'];for(let i=0;i<8;i++){x.fillStyle=C[i%6];x.fillRect(0,i*64,S,64)}
+    x.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<70;i++){x.beginPath();x.arc(rnd(0,S),rnd(0,S),rnd(2,5),0,TAU);x.fill()}}
   else if(kind==='sushibar'){x.fillStyle='#e2b984';x.fillRect(0,0,S,S);for(let i=0;i<8;i++){x.fillStyle=i%2?'#dcb07a':'#e8c290';x.fillRect(0,i*64,S,62);x.fillStyle='#c09060';x.fillRect(0,i*64+62,S,2)}}
   else{const P=v=>(v+H)/(2*H)*S;x.fillStyle='#5fbf4a';x.fillRect(0,0,S,S);
     for(let i=0;i<14;i++){x.fillStyle=i%2?'#58b443':'#68c852';x.fillRect(0,P(-H+i*3),S,P(3)-P(0))}
@@ -1900,7 +1959,24 @@ class View{
     for(const d of M.decor){if(d.t==='skull'){B.add('box',0xfff4e2,d.x,.35,d.z,.75,.65,.7,.3);B.add('box',0xd88a5a,d.x-.15,.42,d.z+.33,.2,.18,.06,.3);B.add('box',0xd88a5a,d.x+.18,.42,d.z+.28,.2,.18,.06,.3)}
       else if(d.t==='bone'){B.add('cyl6',0xfff4e2,d.x,.12,d.z,.08,1,.08,.5,Math.PI/2);B.add('sph',0xfff4e2,d.x+.24,.12,d.z+.42,.13,.13,.13);B.add('sph',0xfff4e2,d.x-.24,.12,d.z-.42,.13,.13,.13)}
       else{const dc={snow:0xffffff,chili:0xd8321f,petal:0xffb0c0}[d.t]||0x62c93a;for(let i=0;i<5;i++)B.add('sph',dc,d.x+rnd(-.6,.6),.18,d.z+rnd(-.6,.6),.18,.18,.18)}}
+    if(M.track){const T=M.track;for(let xx=-H-2;xx<=H+2;xx+=1.2)B.add('box',0x6a4a2a,xx,.06,T.z,.35,.12,T.hw*2+.4);for(const k of[-1,1])B.add('box',0xb8bcc4,0,.16,T.z+k*.75,2*H+4,.12,.14);
+      for(const sd of[-1,1]){const tx=sd*(this.bx+2.6);B.add('sph',0x4a6a3a,tx,1.2,T.z,3.2,3.4,4.6);B.add('box',0x6a6a6a,sd*(this.bx+.9),1.6,T.z,.6,3.4,T.hw*2+1.4);B.add('box',0x111114,sd*(this.bx+.75),1.25,T.z,.35,2.5,T.hw*2+.2)}}
+    if(M.grills)for(const g of M.grills){B.add('box',0x44464c,g.x,.02,g.z,g.w,.04,g.d);for(const k of[-1,1]){B.add('box',0x2a2a2e,g.x+k*g.w/2,.05,g.z,.12,.06,g.d);B.add('box',0x2a2a2e,g.x,.05,g.z+k*g.d/2,g.w,.06,.12)}}
+    if(M.pads)M.pads.forEach((pd,i)=>{const c=i<2?0xff8ac8:0x8ad0ff;B.add('cyl16',0xffffff,pd.x,.18,pd.z,1.15,.36,1.15);B.add('cyl16',c,pd.x,.4,pd.z,1.0,.12,1.0);B.add('sph',0xffffff,pd.x,.48,pd.z,.7,.18,.7)});
     B.build(sc);
+    this.hzv=null;if(M.grills){this.hzv={k:'g',ov:M.grills.map(g=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(g.w,g.d),new THREE.MeshBasicMaterial({color:0xff6a1a,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(g.x,.08,g.z);sc.add(m);return m})}}
+    else if(M.track){const tr=new THREE.Group(),bl=mk3=>new THREE.Mesh(GEO[mk3[0]],lam(mk3[1])),add=(g,c,px,py,pz,sx,sy,sz,rx=0,rz=0)=>{const m=new THREE.Mesh(GEO[g],lam(c));m.position.set(px,py,pz);m.scale.set(sx,sy,sz);m.rotation.set(rx,0,rz);m.castShadow=true;tr.add(m);return m};
+      add('cyl16',0x2a2a30,0,1.3,0,.85,2.6,.85,0,Math.PI/2);add('box',0xd83a2a,-1.6,1.6,0,1.4,2.2,1.9);add('box',0x2a2a30,-1.6,2.8,0,1.7,.25,2.1);add('cyl8',0x2a2a30,.9,2.6,0,.28,1.0,.28);add('cyl8',0xffd23a,1.3,1.3,0,.3,.3,.3,0,Math.PI/2);
+      add('cone6',0xd83a2a,1.55,.5,0,.7,.6,1.4,0,-Math.PI/2);for(const wx of[-1.6,-.4,.8])for(const s2 of[-1,1])add('cyl16',0xc8321f,wx,.45,s2*.95,.45,.15,.45,Math.PI/2);
+      for(const cx of[-4.2,-6.9]){add('box',0x3a7ad8,cx,1.35,0,2.5,1.9,1.9);add('box',0xffffff,cx,1.5,0,2.52,.5,1.92);add('box',0x2a2a30,cx,2.35,0,2.7,.15,2.1);for(const wx of[-.8,.8])for(const s2 of[-1,1])add('cyl16',0x2a2a30,cx+wx,.4,s2*.95,.38,.12,.38,Math.PI/2)}
+      tr.visible=false;sc.add(tr);const glow=new THREE.Mesh(new THREE.PlaneGeometry(2*H+4,M.track.hw*2),new THREE.MeshBasicMaterial({color:0xffd23a,transparent:true,opacity:0,depthWrite:false}));glow.rotation.x=-Math.PI/2;glow.position.set(0,.2,M.track.z);sc.add(glow);
+      const sig=M.solids.filter(o=>o.t==='signal').map(o=>{const m=new THREE.Mesh(GEO.sph,new THREE.MeshBasicMaterial({color:0xff2a2a}));m.scale.set(.2,.2,.12);m.position.set(o.x,2.95,o.z+.24);m.visible=false;sc.add(m);return m});
+      this.hzv={k:'t',tr,glow,sig}}
+    else if(M.haz==='balloon'){const g=new THREE.Group(),add=(geo,c,px,py,pz,sx,sy,sz)=>{const m=new THREE.Mesh(GEO[geo],lam(c));m.position.set(px,py,pz);m.scale.set(sx,sy,sz);m.castShadow=true;g.add(m);return m};
+      add('sph',0xff4a5a,0,6.2,0,2.4,2.8,2.4);add('torus',0xffd23a,0,6.4,0,2.45,2.45,1.2).rotation.x=Math.PI/2;add('torus',0xffffff,0,7.4,0,2.0,2.0,1.0).rotation.x=Math.PI/2;add('cone6',0xff4a5a,0,3.6,0,1.2,1.4,1.2).rotation.x=Math.PI;
+      for(const[a,b]of[[-1,-1],[1,-1],[-1,1],[1,1]])add('cyl6',0x8a6a4a,a*.8,2.6,b*.8,.04,2.6,.04);add('box',0xb8864a,0,.9,0,2.3,1.8,2.3);add('box',0x8a5a2a,0,1.85,0,2.4,.15,2.4);
+      g.visible=false;sc.add(g);const sh=new THREE.Mesh(GEO.disc,new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=.07;sc.add(sh);
+      const rg=new THREE.Mesh(GEO.ring,new THREE.MeshBasicMaterial({color:0xff2a2a,transparent:true,opacity:0,depthWrite:false}));rg.rotation.x=-Math.PI/2;rg.position.y=.08;rg.scale.setScalar(2.2);sc.add(rg);this.hzv={k:'b',g,sh,rg}}
     if(M.ice)for(const r of M.ice){const e=new THREE.Mesh(new THREE.PlaneGeometry(r.w+.3,r.d+.3),basic(0x8fd0ee,.45));e.rotation.x=-Math.PI/2;e.position.set(r.x,.02,r.z);sc.add(e);
       const m=new THREE.Mesh(new THREE.PlaneGeometry(r.w,r.d),basic(0xf2fbff,.7));m.rotation.x=-Math.PI/2;m.position.set(r.x,.025,r.z);sc.add(m)}
     this.belts=[];if(M.belts)for(const bt of M.belts){const ax=bt.w>bt.d,t=beltTex(ax);t.repeat.set(ax?bt.w/2:1,ax?1:bt.d/2);
@@ -1968,6 +2044,20 @@ class View{
     else if(o.t==='wasabi'){B.add('cone6',0x7ad04a,x,.5,z,o.r,1,o.r);B.add('cyl16',0xffffff,x,.04,z,o.r*1.3,.08,o.r*1.3)}
     else if(o.t==='counter'){B.add('box',0x8a5a2a,x,.5,z,o.w,1,o.d);B.add('box',0xc8955a,x,1.04,z,o.w+.1,.08,o.d+.1)}
     else if(o.t==='post'){B.add('cyl8',0xffffff,x,1.1,z,o.r,2.2,o.r)}
+    else if(o.t==='steakblk'){B.add('box',0x7a3a1a,x,.55,z,o.w,1.1,o.d);B.add('box',0x5a2a10,x,1.12,z,o.w-.2,.06,o.d-.2);for(const k of[-1,0,1])B.add('box',0x2a1408,x+k*.8,1.16,z,.12,.04,o.d-.4,.6);B.add('box',0xfff0d8,x-o.w/2+.15,.6,z,.3,1.0,o.d-.2)}
+    else if(o.t==='spatula'){B.add('box',0xc8ccd4,x,.5,z+.6,o.w*1.6,.08,2.4);B.add('box',0x2a2a2a,x,.55,z-1.4,.25,.3,1.4);B.add('box',0x8a8e96,x,.25,z,o.w,.5,o.d)}
+    else if(o.t==='pepper'){B.add('cyl8',0x2a2a2a,x,.9,z,o.r,1.8,o.r);B.add('cyl8',0xd8d8d8,x,1.85,z,o.r*.8,.3,o.r*.8);B.add('sph',0xd8d8d8,x,2.05,z,o.r*.5,o.r*.4,o.r*.5)}
+    else if(o.t==='shrimp'){B.add('sph',0xff7a4a,x,.5,z,o.r,.5,o.r*1.3);B.add('sph',0xffb08a,x,.75,z-.3,o.r*.7,.35,o.r*.8);B.add('cone5',0xff5a2a,x,.4,z+o.r*1.2,.4,.5,.2,0,Math.PI/2)}
+    else if(o.t==='platform'){B.add('box',0xa8763a,x,.35,z,o.w,.7,o.d);for(let i=0;i<5;i++)B.add('box',0x8a5a2a,x-o.w/2+.6+i*(o.w-1.2)/4,.72,z,.08,.04,o.d);B.add('box',0xffd23a,x,.72,z-o.d/2+.12,o.w,.05,.15)}
+    else if(o.t==='signal'){B.add('cyl6',0x3a3a42,x,1.4,z,.12,2.8,.12);B.add('box',0x1a1a20,x,2.7,z,.5,.9,.4);B.add('sph',0x5a1a1a,x,2.95,z+.2,.14,.14,.08);B.add('sph',0x1a5a1a,x,2.5,z+.2,.14,.14,.08)}
+    else if(o.t==='coal'){B.add('box',0x6a4a2a,x,.35,z,o.w,.7,o.d);for(let i=0;i<7;i++)B.add('ico0',0x1a1a1e,x+rnd(-.6,.6),.8+rnd(0,.2),z+rnd(-.6,.6),.3,.25,.3,i)}
+    else if(o.t==='stone'){B.add('ico0',0x9a9aa2,x,.6,z,o.r,.8,o.r);B.add('ico0',0xb8b8c0,x+.3,.9,z-.2,o.r*.6,.6,o.r*.6,1)}
+    else if(o.t==='skyrock'){B.add('cyl8',0x8a7a6a,x,.4,z,o.r,.8,o.r);B.add('cyl8',0x6fbf3a,x,.85,z,o.r*.95,.12,o.r*.95);B.add('cone6',0xffd23a,x,1.6,z,.2,1.4,.2);B.add('box',0xff5a5a,x+.45,2.0,z,.8,.5,.05)}
+    else if(o.t==='cloudp'){for(let i=0;i<6;i++){const a=i*1.05;B.add('sph',0xffffff,x+Math.cos(a)*o.r*.55,.7+(i%2)*.4,z+Math.sin(a)*o.r*.55,o.r*.6,o.r*.5,o.r*.6)}B.add('sph',0xf2f8ff,x,1.3,z,o.r*.7,o.r*.55,o.r*.7)}
+    else if(o.t==='flagpost'){B.add('cyl6',0xffffff,x,1.5,z,.1,3,.1);B.add('box',0xff6a9a,x+.5,2.7,z,1,.6,.05)}
+    else if(o.t==='candyball'){B.add('sph',0xff7ab8,x,1.1,z,o.r,o.r*.9,o.r);for(let i=0;i<3;i++)B.add('torus',0xffffff,x,1.1,z,o.r*1.02,o.r*1.02,o.r*2,0,Math.PI/2,i*1.05)}
+    else if(o.t==='lolli'){B.add('cyl6',0xffffff,x,1,z,.1,2,.1);B.add('cyl16',0xff5aa8,x,2.3,z,.75,.18,.75,0,Math.PI/2);B.add('cyl16',0xfff0a0,x,2.3,z,.5,.2,.5,0,Math.PI/2);B.add('cyl16',0x7ad8ff,x,2.3,z,.25,.22,.25,0,Math.PI/2)}
+    else if(o.t==='gummy'){const c=x>0?0xff5a5a:0x5ad87a;B.add('sph',c,x,.6,z,o.w*.45,.6,o.d*.45);B.add('sph',c,x,1.35,z,o.w*.35,.4,o.d*.35);B.add('sph',c,x-.3,1.7,z,.15,.15,.15);B.add('sph',c,x+.3,1.7,z,.15,.15,.15)}
     else if(o.t==='cup'){B.add('cyl8',0xffffff,x,.8,z,o.r,1.6,o.r);B.add('cyl8',0xff4f38,x,.8,z,o.r*1.03,.5,o.r*1.03);B.add('cyl8',0xeeeeee,x,1.65,z,o.r*.9,.1,o.r*.9);B.add('cyl6',0x3fa9ff,x+.2,2.05,z,.07,.9,.07,0,0,.2)}}
   /* 烤魷魚大招：從魷魚伸出觸手抓住每個敵人（0.15 秒伸出、之後跟著被拉回來，0.6 秒消失） */
   grab(sid,ids,Rg){this.tents=this.tents||[];const a=this.pm.get(sid);if(!ids.length&&a){for(let k=0;k<8;k++){const an=k*TAU/8;this.tents.push(this.mkTent(sid,null,a.group.position.x+Math.sin(an)*Rg,a.group.position.z+Math.cos(an)*Rg))}return}
@@ -1998,7 +2088,15 @@ class View{
     p.vx=rnd(-1,1)*sp;p.vy=rnd(.4,1.2)*sp;p.vz=rnd(-1,1)*sp;p.life=rnd(.35,.7);p.m.scale.setScalar(size*rnd(.6,1.3))}}
   syncSet(map,list,make,upd){const seen=new Set();for(const o of list){seen.add(o.id);let m=map.get(o.id);if(!m){m=make(o);this.scene.add(m);map.set(o.id,m)}upd(m,o)}
     for(const[id,m]of map)if(!seen.has(id)){this.scene.remove(m);map.delete(id);freeObj(m)}}
-  sync(st,dt,meId,pred){this.stepTents(dt);this.stepSucks(dt);
+  stepHzView(h,dt){const V=this.hzv;if(!V)return;const t=this.t;
+    if(V.k==='g'){V.ov.forEach((m,i)=>{let o=0;if(h&&h.i===i){if(h.ph===1){o=.25+.2*Math.sin(t*14);m.material.color.setHex(0xffa020)}else if(h.ph===2){o=.6+.1*Math.sin(t*20);m.material.color.setHex(0xff2a10);if(Math.random()<.35){const g=this.M.grills[i];this.burst(g.x+rnd(-g.w/2,g.w/2),.4,g.z+rnd(-g.d/2,g.d/2),Math.random()<.5?0xffffff:0xff7a3a,1,1.4,.16)}}}m.material.opacity=o})}
+    else if(V.k==='t'){const ph=h?h.ph:0;V.glow.material.opacity=ph===1?.25+.25*Math.sin(t*16):0;V.sig.forEach(m=>m.visible=ph>=1&&Math.sin(t*12)>0);V.tr.visible=ph===2;
+      if(ph===2){V.tr.position.set(h.x,0,this.M.track.z);V.tr.rotation.y=h.dir>0?0:Math.PI;if(Math.random()<.5)this.burst(h.x+h.dir*.9,3.2,this.M.track.z,0xffffff,1,1.5,.25);if(Math.abs(h.x)<this.bx+2)this.shake=Math.max(this.shake,.05)}}
+    else if(V.k==='b'){const ph=h?h.ph:0;if(!h||ph===0){V.g.visible=false;V.sh.material.opacity=0;V.rg.material.opacity=0;return}
+      V.g.visible=true;let y=0;if(ph===1){const k=Math.max(0,h.t)/2;y=14*k*k;V.rg.material.opacity=.5+.3*Math.sin(t*14);V.sh.material.opacity=.15+.3*(1-k);V.sh.scale.setScalar(1.2+1.2*(1-k))}
+      else if(ph===2){y=0;V.rg.material.opacity=0;V.sh.material.opacity=.35;V.sh.scale.setScalar(2.4)}else{const k=1-Math.max(0,h.t)/1.5;y=16*k*k;V.rg.material.opacity=0;V.sh.material.opacity=.35*(1-k)}
+      V.g.position.set(h.x,y,h.z);V.sh.position.x=V.rg.position.x=h.x;V.sh.position.z=V.rg.position.z=h.z}}
+  sync(st,dt,meId,pred){this.stepTents(dt);this.stepSucks(dt);this.stepHzView(st.hz,dt);
     this.t+=dt;const t=this.t,me=st.players[meId],k=1-Math.exp(-dt*(st.local?40:14));
     for(const p of st.players){let o=this.pm.get(p.id);
       if(!o){o=makeChar(p.ch,p.lvl>=10,p.acc);o.dx=p.x;o.dz=p.z;o.da=p.ang;this.scene.add(o.group);this.pm.set(p.id,o);
@@ -2243,7 +2341,7 @@ function fillBots(humans,count,base,diff,fixed,soccer,pool){const used=new Set(h
   return list}
 function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=save.lvl[save.ch],soccer=save.mode==='soccer';
   const me={name:save.name,ch:save.ch,lvl:lv,tal:myTal(save.ch),acc:accStr(save.ch),team:soccer?0:undefined};
-  const map=soccer?'stadium':MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)];
+  const pick=MAP_POOL.includes(save.map)?save.map:'rand',map=soccer?'stadium':pick==='rand'?MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)]:pick;
   beginMatch({map,mode:save.mode,dur:save.dur,diff:save.diff,players:fillBots([me],7,lv,save.diff,false,soccer)},0,true)}
 function beginMatch(cfg,myId,local,info){resetTouch();$('#sheet').hidden=true;sheetKind='';clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
   IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;supWas=false;ffT=0;finalOn=false;
@@ -2334,6 +2432,8 @@ function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.
     else if(ty==='thit'){}
     else if(ty==='wbreak'){view.burst(e[2],1,e[3],0xc8823a,16,4,.18);SFX.crate()}
     else if(ty==='warn'){banner('火鍋要噴發了！');SFX.zone()}
+    else if(ty==='hzwarn'){banner(e[1]==='t'?'火車要來了！':'熱氣球要降落了！');SFX.zone()}
+    else if(ty==='pad'){const P=view.M.pads;if(P){const a=P[e[1]],b=P[e[2]];view.burst(a.x,.6,a.z,0xff8ad0,14,5,.16);view.burst(b.x,.6,b.z,0xffffff,8,3,.14)}}
     else if(ty==='zone'){banner(e[1]>=3?'最後一圈！':view&&view.night?'黑暗逼近！':'毒圈縮小中！');SFX.zone();if(e[1]>=2&&!finalOn){finalOn=true;playMusic('final')}}
     else if(ty==='goal'){const team=e[1],sc=st.players[e[2]];banner(team===0?'紅隊進球！':'藍隊進球！');SFX.goal();
       if(st.ball)view.burst(st.ball.x,1,st.ball.z,team===0?0xff4b4b:0x3a8bff,30,7,.2);feed(sc?`<em>${esc(sc.name)}</em> 踢進一球`:'進球了')}
@@ -2467,7 +2567,7 @@ function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT))
   if(g.turrets.length)m.TR=g.turrets.map(u=>[u.id,u.owner,r2(u.x),r2(u.z)]);
   if(g.decoys.length)m.DC=g.decoys.map(d=>[d.id,d.owner,r2(d.x),r2(d.z),r2(d.ang)]);
   if(g.ball){m.BL=[r2(g.ball.x),r2(g.ball.z),r2(g.ball.vx),r2(g.ball.vz)];m.G=g.goals}
-  if(g.zone)m.ZN=[r2(g.zone.cx),r2(g.zone.cz),r2(g.zone.r)];return m}
+  if(g.zone)m.ZN=[r2(g.zone.cx),r2(g.zone.cz),r2(g.zone.r)];if(g.hz){const h=g.hz;m.HZ=[h.k,h.ph,r2(h.t),h.k==='g'?h.i:r2(h.x),h.k==='t'?h.dir:r2(h.z||0)]}return m}
 async function joinRoom(code){if(typeof Peer==='undefined'){toast('連線元件載不進來，請確認手機有連上網路');return}
   netClose();NET.myCh=save.ch;online=true;NET.code=code;showScreen('room');$('#rCode').textContent=code;renderRoom();
   const ice=await loadIce();if(!online||NET.code!==code||NET.peer)return;
@@ -2502,6 +2602,7 @@ function applySnap(m){const st=netState;st.time=m.tm;st.startT=m.st;
   m.C.forEach((v,i)=>{if(st.crates[i]){st.crates[i].alive=v>0;st.crates[i].hp=v/10*CRATE_HP}});
   if(m.BL&&st.ball){st.ball.x=m.BL[0];st.ball.z=m.BL[1];st.ball.vx=m.BL[2];st.ball.vz=m.BL[3];st.goals=m.G}
   if(m.ZN)st.zone={cx:m.ZN[0],cz:m.ZN[1],r:m.ZN[2]};
+  if(m.HZ){const a=m.HZ;st.hz=a[0]==='g'?{k:'g',ph:a[1],t:a[2],i:a[3]}:a[0]==='t'?{k:'t',ph:a[1],t:a[2],x:a[3],dir:a[4]}:{k:'b',ph:a[1],t:a[2],x:a[3],z:a[4]}}else st.hz=null;
   const me=st.players[meId];if(me&&!pred)pred={x:me.x,z:me.z};
   handleEvents(m.E||[])}
 function clientTick(t,dt){const st=netState;
@@ -2590,7 +2691,7 @@ const MODE_SHORT={score:'限時搶分',royale:'縮圈求生',soccer:'4 對 4 踢
 function startSheet(){sheetKind='start';
   if(startStep===1){openSheet('開始遊戲',`<button class="opt main" data-act="s-solo"><b>對戰電腦</b><small>自己玩，跟電腦打</small></button><button class="opt blue" data-act="s-host"><b>開房間</b><small>跟朋友一起玩（同一個 WiFi 最穩）</small></button><button class="opt blue" data-act="s-join"><b>加入房間</b><small>輸入朋友畫面上的 4 位數代碼</small></button>`);return}
   openSheet('對戰電腦',`<div><button class="btn small blue" data-act="s-back">‹ 上一步</button></div><div class="mcards">${Object.entries(MODES).map(([k,v])=>`<button class="mc${save.mode===k?' on':''}" data-act="s-mode" data-v="${k}"><b>${v.name}</b><small>${MODE_SHORT[k]}</small></button>`).join('')}</div><p class="sp">${MODES[save.mode].desc}</p>`+
-    (save.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],save.dur)}</div>`:'')+`<div class="chips">${chipsHTML('電腦','diff',DIFF.map((d,i)=>[i,d.name]),save.diff)}</div><button class="btn big main" data-act="s-go">開打！</button>`,true)}
+    (save.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],save.dur)}</div>`:'')+`<div class="chips">${chipsHTML('電腦','diff',DIFF.map((d,i)=>[i,d.name]),save.diff)}</div>`+(save.mode!=='soccer'?`<div class="chips">${chipsHTML('地圖','map',[['rand','隨機'],...MAP_POOL.map(k=>[k,MAPS[k].name])],MAP_POOL.includes(save.map)?save.map:'rand')}</div>`:'')+`<button class="btn big main" data-act="s-go">開打！</button>`,true)}
 $('#btnStart').addEventListener('click',()=>{startStep=1;startSheet()});
 /* ---- 碎片畫面：5 格（片數／255），點一格選等級；可買 1／5 片、10 片換 1 片高一級 ---- */
 let fragSel=-1;
@@ -2697,7 +2798,7 @@ $('#sheetBody').addEventListener('input',e=>{const t=e.target;
   else if(t.id==='vSfx'){save.sfxVol=+t.value;persist()}});
 $('#sheetBody').addEventListener('change',e=>{if(e.target.id==='vSfx'){audioOn();SFX.pick()}});
 $('#sheetBody').addEventListener('click',e=>{
-  const kb=e.target.closest('[data-k]');if(kb&&sheetKind==='start'){const k=kb.dataset.k;save[k]=k==='mode'?kb.dataset.v:+kb.dataset.v;persist();startSheet();return}
+  const kb=e.target.closest('[data-k]');if(kb&&sheetKind==='start'){const k=kb.dataset.k;save[k]=k==='mode'||k==='map'?kb.dataset.v:+kb.dataset.v;persist();startSheet();return}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const act=b.dataset.act;
   if(act==='rset'){closeSheet();rSetCh(b.dataset.v);return}
   else if(act==='s-solo'){startStep=2;startSheet();return}

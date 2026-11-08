@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.14.3</span>
+<span class="ver">v0.14.4</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -755,7 +755,7 @@ const CHARS={
   noodle:{name:'泡麵',tier:4,role:'纏麵＋蒸氣',hp:4800,speed:5.4,reload:1.0,superCost:2600,range:8,col:'#f2c94a',want:5,psp:13,sr:4,unlock:1500,price:5000,
     desc:'捧著杯子的泡麵，叉子還插在麵上。普攻甩出 3 條彎彎的麵條，打到的人被麵纏住變慢。大招：沖熱水，身邊一大圈燙蒸氣把人燙傷推開，自己「泡開」5 秒：麵條會穿過第一個人、傷害多 20%。',stat:[4,4,4]},
   steak:{name:'牛排',tier:4,role:'鐵板＋飛撲',hp:5100,speed:5.2,reload:1.0,superCost:2700,range:7,col:'#8a3a1a',want:3.5,psp:14,sr:9,unlock:1600,price:5000,
-    desc:'剛煎好、還在冒煙的厚切牛排。普攻甩出一塊熱牛排，打到的人會燙傷。大招：整塊跳起來砸下去，落地變成一片滋滋響的熱鐵板，站在上面的敵人一直被燙。',stat:[5,3,3]},
+    desc:'剛煎好、還在冒煙的厚切牛排。普攻甩出一塊熱牛排，打到的人會燙傷。大招：整塊跳起來砸下去，落地變成一片滋滋響的熱鐵板，站在上面的敵人會一直被燙、走路變慢。',stat:[5,3,3]},
   croissant:{name:'牛角麵包',tier:4,role:'穿透彎月',hp:4300,speed:5.6,reload:.95,superCost:2500,range:9,col:'#e0a040',want:6.5,psp:15,sr:6,unlock:1700,price:5000,
     desc:'酥到掉屑的牛角麵包。普攻射出彎月形的麵包片，會穿過第一個人繼續飛。大招：奶油旋風，向四面八方射出一圈彎月麵包。',stat:[3,5,5]},
   bento:{name:'健康餐盒',tier:4,role:'補血支援',hp:4600,speed:5.2,reload:1.1,lobT:.6,superCost:2600,range:8,col:'#3f9a4a',want:6,psp:10,sr:8,unlock:1800,price:5000,
@@ -793,10 +793,10 @@ const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸
   cutlet:[['雞塊加量','裂成 8 塊雞塊'],['超大雞排','大招範圍更大、傷害 1950']],
   braisedrice:[['滷更久','普攻滷汁留 4.5 秒'],['大鍋滷','大招範圍大 25%、回血多 50%']],
   noodle:[['加麵','一次甩 5 條麵（每條傷害低一點）'],['大碗','大招範圍大 30%、泡開 7 秒']],
-  steak:[['厚切','牛排更大、傷害 +15%'],['大鐵板','鐵板範圍大 30%、留 5 秒']],
+  steak:[['厚切','牛排更大、傷害 +15%'],['大鐵板','鐵板（燙傷＋變慢）範圍大 30%、留 5 秒']],
   croissant:[['多層酥皮','麵包片穿過 2 個人'],['奶油旋風','大招射出 15 片']],
   bento:[['加蛋白質','打中敵人回更多血'],['豪華餐盒','大招回血圈回更多']],
-  cornsoup:[['更濃','濃湯地板留 4.5 秒、更慢'],['大碗','大浪更長更寬']],
+  cornsoup:[['更濃','濃湯地板留 4.5 秒，踩到的人變得更慢（速度剩 40%）'],['大碗','大浪更長更寬']],
   lobster:[['長鉗子','鉗子射程 +2'],['旋風更久','旋風 3.5 秒']],
   duck:[['遠撲','飛撲距離 6.5'],['大地震','大招落地範圍大 30%']],
   stinkytofu:[['臭更久','毒氣留 4 秒'],['超臭爆發','爆發範圍 6.5']],
@@ -827,6 +827,10 @@ const TEAM_SP=[[-6,9],[6,9],[-2.5,13],[2.5,13]];
 const PEER_PREFIX='foodbrawl-tw-';
 for(const k of CH_IDS){save.lvl[k]=clamp((save.lvl[k]|0)||1,1,MAX_LV);save.shards[k]=save.shards[k]|0}
 save.wild=Math.max(0,save.wild|0);
+/* 金幣、萬用碎片上限：滿了就拿不到更多（已經超過的不會被扣掉） */
+const COIN_CAP=10000,WILD_CAP=10000;
+function gainCoins(n){const b=save.coins;save.coins=Math.max(b,Math.min(COIN_CAP,b+n));return save.coins-b}
+function gainWild(n){const b=save.wild;save.wild=Math.max(b,Math.min(WILD_CAP,b+n));return save.wild-b}
 /* 舊版每隻角色自己的碎片 → 依價值換成萬用碎片（v0.13.0 起所有碎片都是萬用碎片） */
 for(const k of CH_IDS){const n=save.shards[k]|0;if(n>0)save.wild+=n*Math.pow(3,CHARS[k].tier);save.shards[k]=0}
 for(const k of['apple','sushi','eggplant'])if(!save.owned.includes(k))save.owned.push(k);
@@ -948,7 +952,7 @@ class Game{
         if(e.alive){p.pullT=.3;p.pullX=sx*14;p.pullZ=sz*14;this.damage(p,e.eatDmg||1500,e)}this.ev(['spit',p.id,r2(p.x),r2(p.z)])}if(!p.alive)return}
     if(p.bot)botThink(this,p,dt);
     const C=CHARS[p.ch],I=p.inp;
-    p.soakT=Math.max(0,(p.soakT||0)-dt);p.invT=Math.max(0,p.invT-dt);p.revealT=Math.max(0,p.revealT-dt);p.faceT-=dt;p.atkT-=dt;p.slowT-=dt;p.idleT+=dt;p.inkT-=dt;p.stunT-=dt;p.rootT-=dt;p.bigT-=dt;p.thornT-=dt;p.frozenT-=dt;p.shieldT-=dt;p.chillT-=dt;if(p.chillT<=0)p.chill=0;
+    p.soakT=Math.max(0,(p.soakT||0)-dt);p.invT=Math.max(0,p.invT-dt);p.revealT=Math.max(0,p.revealT-dt);p.faceT-=dt;p.atkT-=dt;p.slowT-=dt;p.heavyT=(p.heavyT||0)-dt;p.idleT+=dt;p.inkT-=dt;p.stunT-=dt;p.rootT-=dt;p.bigT-=dt;p.thornT-=dt;p.frozenT-=dt;p.shieldT-=dt;p.chillT-=dt;if(p.chillT<=0)p.chill=0;
     if(p.burnT>0){p.burnT-=dt;p.burnTick-=dt;if(p.burnTick<=0){p.burnTick=.5;const s=this.players[p.burnSrc];this.damage(p,Math.round(110*(s?this.mul(s):1)),s||null,false,!!(s&&s.ch==='steak'));if(!p.alive)return}}
     if(I.f!==p.lastF){p.lastF=I.f;if(p.stunT<=0)this.fire(p,+I.ax||0,+I.az||0,+I.ad||0)}
     if(I.s!==p.lastS){p.lastS=I.s;if(p.stunT<=0)this.superAtk(p,+I.ax||0,+I.az||0,+I.ad||0)}
@@ -967,7 +971,7 @@ class Game{
         p.dashX=Math.sin(da)*sp;p.dashZ=Math.cos(da)*sp;p.dashT=.3;p.dashHit=new Set();this.ev(['super',p.id])}}
     else if(p.slipT>0){p.slipT-=dt;p.x+=p.slipX*dt;p.z+=p.slipZ*dt;const k=Math.pow(.2,dt);p.slipX*=k;p.slipZ*=k;p.ang+=dt*14;p.moving=false}
     else{let mx=+I.mx||0,mz=+I.mz||0;const L=Math.hypot(mx,mz);if(L>1){mx/=L;mz/=L}if(p.rootT>0){mx=mz=0}
-      const sp=C.speed*(p.slowT>0?.55:1)*(p.rollT>0?1.6:1)*(p.ch==='eggplant'&&p.tal==='a'?1.15:1)*(p.bigT>0?.9:1)*(p.spinT>0?1.15:1)*(this.rainbowOn&&this.onRainbow(p)?1.4:1);
+      const sp=C.speed*(p.slowT>0?(p.heavyT>0?.4:.55):1)*(p.rollT>0?1.6:1)*(p.ch==='eggplant'&&p.tal==='a'?1.15:1)*(p.bigT>0?.9:1)*(p.spinT>0?1.15:1)*(this.rainbowOn&&this.onRainbow(p)?1.4:1);
       if(this.M.ice&&onRects(this.M.ice,p.x,p.z)){const k=Math.min(1,dt*2.2);p.ivx+=(mx*sp-p.ivx)*k;p.ivz+=(mz*sp-p.ivz)*k}else{p.ivx=mx*sp;p.ivz=mz*sp}
       p.x+=p.ivx*dt;p.z+=p.ivz*dt;p.moving=L>.15||Math.hypot(p.ivx,p.ivz)>.6;if(L>.15&&p.faceT<=0)p.ang=Math.atan2(mx,mz)}
     if(this.M.belts&&p.rollT<=0){const bt=onRects(this.M.belts,p.x,p.z);if(bt){p.x+=bt.vx*dt;p.z+=bt.vz*dt}}
@@ -1010,7 +1014,7 @@ class Game{
     if(own&&b.type==='lurou')this.puddles.push({id:this.nid++,kind:11,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.5,heal:.02});
     if(own&&b.type==='choco')this.puddles.push({id:this.nid++,kind:9,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.6});
     if(own&&b.type==='melon'){const n=own.tal==='a'?5:3;for(let i=0;i<n;i++)this.spawnAt(own,'mseed',b.x,b.z,Math.random()*TAU,10,3.2,Math.round(b.dmg*.3),.25)}
-    if(own&&b.type==='cream')this.puddles.push({id:this.nid++,kind:12,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:own.tal==='a'?.9:.7});
+    if(own&&b.type==='cream')this.puddles.push({id:this.nid++,kind:12,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:own.tal==='a'?.9:.7,heavy:own.tal==='a'});
     if(own&&b.type==='veggie'){for(const q of this.players){if(!q.alive||q.hp>=q.maxHp)continue;const ally=q===own||(q.team!=null&&q.team===own.team);let h=0;
         if(q===own&&vh)h+=q.maxHp*(own.tal==='a'?.07:.04)*vh;if(ally&&Math.hypot(q.x-b.x,q.z-b.z)<R+PR)h+=q.maxHp*.06;if(h>0){h=Math.round(h);q.hp=Math.min(q.maxHp,q.hp+h);this.ev(['heal',q.id,h])}}}
     this.ev(['land',b.type,r2(b.x),r2(b.z),R])}
@@ -1174,7 +1178,7 @@ class Game{
       case'cornsoup':{const L=p.tal==='b'?12:9,W=p.tal==='b'?2:1.6,inL=(x,z)=>{const dx=x-p.x,dz=z-p.z,al=dx*sx+dz*sz;return al>=0&&al<=L&&Math.abs(dx*sz-dz*sx)<=W};
         for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0||!inL(q.x,q.z))continue;this.damage(q,Math.round(900*m),p);if(q.alive){q.slowT=Math.max(q.slowT,2);q.pullT=.3;q.pullX=sx*10;q.pullZ=sz*10;q.dashT=0;q.dashQ=0}}
         for(const dc of this.decoys)if(dc.alive&&foe(p,dc)&&inL(dc.x,dc.z))this.popDecoy(dc);for(const c of this.crates)if(c.alive&&inL(c.x,c.z))this.hitCrate(c,Math.round(900*m),p);
-        for(let d=1.5;d<=L;d+=1.5){const x=p.x+sx*d,z=p.z+sz*d;if(Math.abs(x)>this.bx||Math.abs(z)>this.bz)break;this.puddles.push({id:this.nid++,kind:12,owner:p.id,x,z,r:1.4,life:4,max:4,tick:.5,dmg:Math.round(120*m),slow:.8});this.ev(['land','cream',r2(x),r2(z),1.2])}break}
+        for(let d=1.5;d<=L;d+=1.5){const x=p.x+sx*d,z=p.z+sz*d;if(Math.abs(x)>this.bx||Math.abs(z)>this.bz)break;this.puddles.push({id:this.nid++,kind:12,owner:p.id,x,z,r:1.4,life:4,max:4,tick:.5,dmg:Math.round(120*m),slow:.8,heavy:p.tal==='a'});this.ev(['land','cream',r2(x),r2(z),1.2])}break}
       case'noodle':{const big=p.tal==='b',R=4.2*(big?1.3:1);for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0)continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d>R)continue;this.damage(q,Math.round(1000*m),p);if(q.alive){this.burnOn(q,p);if(d>.01){const go=Math.max(1.5,R+1-d);q.pullT=.3;q.pullX=dx/d*go/.3;q.pullZ=dz/d*go/.3}}}
         this.hitDecoysNear(p,R);for(const c of this.crates)if(c.alive&&Math.hypot(c.x-p.x,c.z-p.z)<R+.6)this.hitCrate(c,Math.round(800*m),p);p.soakT=big?7:5;this.ev(['ring',p.id,R,0xfff3d0]);this.ev(['land','steam',r2(p.x),r2(p.z),R]);break}}
     this.ev(['super',p.id])}
@@ -1250,7 +1254,7 @@ class Game{
           if(Math.hypot(q.x-u.x,q.z-u.z)<u.r&&q.hp<q.maxHp){const h=Math.round(q.maxHp*u.heal);q.hp=Math.min(q.maxHp,q.hp+h);q.burnT=0;this.ev(['heal',q.id,h])}}out.push(u);continue}
       if(u.kind===11&&tick&&own)for(const q of this.players){if(!q.alive||(q!==own&&(q.team==null||q.team!==own.team)))continue;
           if(Math.hypot(q.x-u.x,q.z-u.z)<u.r&&q.hp<q.maxHp){const h=Math.round(q.maxHp*u.heal);q.hp=Math.min(q.maxHp,q.hp+h);this.ev(['heal',q.id,h])}}
-      for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0)continue;const ux=u.x-q.x,uz=u.z-q.z,ud=Math.hypot(ux,uz);if(ud<u.r){if(u.kind===1)q.inkT=.6;else if(u.kind===7||u.pull){if(q.rollT<=0&&q.dashT<=0&&q.leapT<=0&&ud>.4){const mvx=ux/ud*u.pull*dt,mvz=uz/ud*u.pull*dt;q.x+=mvx;q.z+=mvz;resolveOn(this.M,this.crates,q,PR,this.bx,this.bz,this.walls)}}else if(u.kind!==8&&u.kind!==10)q.slowT=Math.max(q.slowT,u.slow||.3);
+      for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0)continue;const ux=u.x-q.x,uz=u.z-q.z,ud=Math.hypot(ux,uz);if(ud<u.r){if(u.kind===1)q.inkT=.6;else if(u.kind===7||u.pull){if(q.rollT<=0&&q.dashT<=0&&q.leapT<=0&&ud>.4){const mvx=ux/ud*u.pull*dt,mvz=uz/ud*u.pull*dt;q.x+=mvx;q.z+=mvz;resolveOn(this.M,this.crates,q,PR,this.bx,this.bz,this.walls)}}else if(u.kind!==8&&u.kind!==10){q.slowT=Math.max(q.slowT,u.slow||.3);if(u.heavy)q.heavyT=Math.max(q.heavyT||0,u.slow||.3)}
         if(u.kind===11)q.slowT=Math.max(q.slowT,u.slow||.5);
         if(u.root&&q.leapT<=0&&!u.rooted.has(q.id)){u.rooted.add(q.id);q.rootT=Math.max(q.rootT,u.root)}
         if(tick){this.damage(q,u.dmg,own,false,u.kind===13);if((u.kind===6||u.kind===13)&&q.alive)this.burnOn(q,own)}}}
@@ -2142,12 +2146,12 @@ function finish(res){if(mode!=='game'||ended)return;ended=true;
     head=win?'你這隊贏了！':draw?'平手！':'差一點點！';sub=`紅 ${g[0]} : ${g[1]} 藍`;lastRank=win?0:1;rank=win?0:3}
   else{rank=res.mode==='royale'?Math.max(0,(me.place||1)-1):Math.max(0,myI);win=rank===0;td=TRO[rank]??-4;c1=COIN_RANK[rank]??5;c3=rank===0?20:0;
     head=rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.mode==='royale'?'生存結束':'比賽結束';lastRank=rank}
-  const cm=res.mode==='royale'?2:1;c1*=cm;c3*=cm;const c2=me.score*4*cm;save.trophies=Math.max(0,t0+td);save.coins+=c1+c2+c3;
+  const cm=res.mode==='royale'?2:1;c1*=cm;c3*=cm;const c2=me.score*4*cm;save.trophies=Math.max(0,t0+td);const cGot=gainCoins(c1+c2+c3);
   save.matches=(save.matches|0)+1;let chest=(res.mode==='soccer'?win:rank<=2)?1:0;if(save.matches%5===0)chest++;save.chests=(save.chests|0)+chest;
   const doneM=applyMissions(res,me,win,rank);persist();
   $('#resTD').textContent=(td>=0?'+':'')+td;$('#resTD').style.color=td>=0?'var(--grn)':'var(--red)';
   $('#resT0').textContent=t0;$('#resT1').textContent=save.trophies;$('#resRank').textContent=head;$('#resSub').textContent=sub;
-  $('#resL1').textContent=l1;$('#resL3').textContent=l3;$('#resC1').textContent=c1;$('#resC2').textContent=c2;$('#resC3').textContent=c3;$('#resC').textContent=c1+c2+c3;
+  $('#resL1').textContent=l1;$('#resL3').textContent=l3;$('#resC1').textContent=c1;$('#resC2').textContent=c2;$('#resC3').textContent=c3;$('#resC').textContent=(c1+c2+c3)+(cGot<c1+c2+c3?'（金幣已滿 '+COIN_CAP+'）':'');
   $('#resChest').hidden=!chest;$('#resChestN').textContent='+'+chest;
   $('#resList').innerHTML=list.map((r,i)=>{const n=res.mode==='royale'?(r.place||1):res.mode==='soccer'?'':i+1;
     const sc=res.mode==='soccer'?`${r.goals||0} 球・${r.score} 殺`:res.mode==='royale'?`${r.score} 殺`:r.score;
@@ -2466,10 +2470,10 @@ const wildGrades=v=>[v%3,Math.floor(v/3)%3,Math.floor(v/9)%3,Math.floor(v/27)%3,
 function wildTotalText(v){const g=wildGrades(v),o=[];for(let i=4;i>=0;i--)if(g[i])o.push(TIERS[i].name+' '+g[i]);return o.length?o.join('、'):'0'}
 function wildSheet(){sheetKind='wild';const id=viewCh,C=CHARS[id],T=TIERS[C.tier],own=save.owned.includes(id),lv=save.lvl[id],g=wildGrades(save.wild),unit=WILD_V[C.tier];
   const hold=TIERS.map((T,i)=>`<div class="wg" style="--tc:${T.col}"><b>${g[i]}</b><small>${T.name}</small></div>`).join('');
-  const buy=[1,5,25,100].map(n=>`<button class="btn small main" data-act="wbuy" data-v="${n}"${save.coins<n*WILD_PRICE?' disabled':''}>買 ${n} 片<br>${coinIc} ${n*WILD_PRICE}</button>`).join('');
+  const buy=[1,5,25,100].map(n=>`<button class="btn small main" data-act="wbuy" data-v="${n}"${save.coins<n*WILD_PRICE||save.wild+n>WILD_CAP?' disabled':''}>買 ${n} 片<br>${coinIc} ${n*WILD_PRICE}</button>`).join('');
   const need=own&&lv<MAX_LV?shardReq(lv):0;
   const info=own?`<p class="sp"><b>${C.name}</b>（${T.name}）升到 Lv${lv+1}${lv>=MAX_LV?'：已滿級':need?`要 ${T.name}萬用碎片 <b>${need}</b> 片（＝ ${need*unit} 片普通萬用碎片）`:'不需要碎片'}。</p>`:'';
-  openSheet('萬用碎片',`<p class="sp">升級用的碎片現在全部是萬用碎片。開寶箱抽到重複的食物，會得到<b>同稀有度</b>的萬用碎片 5～10 片。3 片低等級的萬用碎片＝1 片高一級的，用到時自動換算：升級${T.name}角色每片要 ${unit} 片普通萬用碎片。每片普通萬用碎片 ${coinIc} ${WILD_PRICE}。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${info}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
+  openSheet('萬用碎片',`<p class="sp">升級用的碎片現在全部是萬用碎片。開寶箱抽到重複的食物，會得到<b>同稀有度</b>的萬用碎片 5～10 片。3 片低等級的萬用碎片＝1 片高一級的，用到時自動換算：升級${T.name}角色每片要 ${unit} 片普通萬用碎片。每片普通萬用碎片 ${coinIc} ${WILD_PRICE}。萬用碎片最多存 ${WILD_CAP} 片（普通），金幣最多 ${COIN_CAP}，滿了就拿不到更多。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${info}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
 $('#btnWild').addEventListener('click',wildSheet);
 /* ---- 存檔碼：記「擁有哪些角色、每隻等級、獎盃、碎片（5 片為單位，最多 35）、金幣（100 為單位）、萬用碎片」。造型、寶箱、任務、天賦選擇匯入後歸零。新欄位接在最後面，舊存檔碼讀得回來（那些欄位視為 0） ---- */
 const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>id==='apple'||id==='sushi'||id==='eggplant';
@@ -2534,7 +2538,7 @@ function rvOpen(){if(!rv||rv.phase!==0)return;rv.phase=1;rvClear();$('#rvHint').
 function rvShow(){if(!rv)return;rv.phase=2;rv.charT=performance.now();const C=CHARS[rv.id],T=TIERS[C.tier],fresh=rv.kind==='buy'||rv.isNew;
   $('#rvChest').hidden=true;$('#rvTag').textContent=fresh?'新角色！':'萬用碎片';$('#rvTag').className='rvTag ot pop';
   $('#rvName').textContent=C.name;$('#rvTier').textContent=T.name;$('#rvTier').style.background=T.col;$('#rvRole').textContent=C.role;
-  $('#rvShard').textContent=fresh?'':'萬用碎片 ×'+rv.wild+'（'+TIERS[CHARS[rv.id].tier].name+'，升級用）';$('#rvShard').hidden=fresh;
+  $('#rvShard').textContent=fresh?'':'萬用碎片 ×'+rv.wild+'（'+TIERS[CHARS[rv.id].tier].name+(rv.full?'，萬用碎片已滿 '+WILD_CAP+'，多的拿不到':'，升級用')+'）';$('#rvShard').hidden=fresh;
   $('#rvCoin').innerHTML=rv.coins?`${coinIc} +${rv.coins}`:'';$('#rvCoin').hidden=!rv.coins;
   rvTimers.push(setTimeout(()=>{if(!rv)return;const inf=$('#rvInfo');inf.style.visibility='visible';inf.classList.remove('pop');void inf.offsetWidth;inf.classList.add('pop')},450));
   rvTimers.push(setTimeout(()=>{if(!rv)return;$('#rvBtns').hidden=false;$('#rvMore').hidden=!(rv.kind==='chest'&&save.chests>0)},900));
@@ -2545,8 +2549,8 @@ $('#reveal').addEventListener('click',e=>{if(rv&&rv.phase===0&&!e.target.closest
 $('#rvOk').addEventListener('click',rvDone);
 $('#rvMore').addEventListener('click',()=>{if(!rv||save.chests<=0)return;const r=openChest();startReveal(Object.assign({kind:'chest'},r))});
 function openChest(){let r=Math.random()*100,tier=0;for(let i=0;i<CHEST_W.length;i++){if(r<CHEST_W[i]){tier=i;break}r-=CHEST_W[i]}
-  const pool=CH_IDS.filter(id=>CHARS[id].tier===tier);const id=pool[Math.floor(Math.random()*pool.length)];const coins=rndi(30,80);save.coins+=coins;
-  let res;if(!save.owned.includes(id)){save.owned.push(id);res={id,isNew:true,coins}}else{const n=5+Math.floor(Math.random()*6);save.wild+=n*WILD_V[tier];res={id,wild:n,coins}}
+  const pool=CH_IDS.filter(id=>CHARS[id].tier===tier);const id=pool[Math.floor(Math.random()*pool.length)];const coins=gainCoins(rndi(30,80));
+  let res;if(!save.owned.includes(id)){save.owned.push(id);res={id,isNew:true,coins}}else{const n=5+Math.floor(Math.random()*6),got=gainWild(n*WILD_V[tier]);res={id,wild:n,full:got<n*WILD_V[tier],coins}}
   save.chests--;persist();return res}
 function chestSheet(last){const C=last&&CHARS[last.id],T=C&&TIERS[C.tier];
   const top=last?`<div class="chres" style="--tc:${T.col}"><div class="tier">${T.name}</div><div class="big">${last.isNew?'新角色！':'碎片'}</div><div class="nm">${C.name}${last.isNew?'':' 萬用碎片 ×'+last.wild}</div><div class="cn">${coinIc} +${last.coins}</div></div>`
@@ -2574,7 +2578,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='s-join'){$('#sheet').hidden=true;sheetKind='';$('#joinBox').hidden=false;$('#codeIn').value='';setTimeout(()=>$('#codeIn').focus(),50);return}
   else if(act==='tgm'){commitName();save.music=!save.music;persist();if(save.music){musicCur='';playMusic(mode==='game'?'battle':'lobby')}else stopMusic();setSheet();return}
   else if(act==='tgs'){commitName();save.sfx=!save.sfx;persist();setSheet();return}
-  else if(act==='wbuy'){const n=+b.dataset.v;if(save.coins<n*WILD_PRICE)return;save.coins-=n*WILD_PRICE;save.wild+=n;persist();SFX.pick();wildSheet();return}
+  else if(act==='wbuy'){const n=+b.dataset.v;if(save.coins<n*WILD_PRICE||save.wild+n>WILD_CAP)return;save.coins-=n*WILD_PRICE;save.wild+=n;persist();SFX.pick();wildSheet();return}
   else if(act==='wclose'){closeSheet();renderPickUI();return}
   else if(act==='upd-chk'){checkUpdate(true);return}
   else if(act==='upd-force'){forceUpdate();return}
@@ -2590,7 +2594,7 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='hdev'){helpDev=b.dataset.v;helpSheet();return}
   if(act==='open'){if(save.chests<=0)return;const r=openChest();$('#sheet').hidden=true;sheetKind='';startReveal(Object.assign({kind:'chest'},r));return}
   else if(act==='buyc'){if(save.coins<CHEST_PRICE)return;save.coins-=CHEST_PRICE;save.chests++;persist();openSheet('寶箱',chestSheet(null))}
-  else if(act==='claim'){const m=save.daily.list[+b.dataset.i];if(!m||m.claimed||m.p<m.t)return;m.claimed=true;if(m.rw==='chest')save.chests++;else save.coins+=m.rw;persist();SFX.pick();openSheet('每日任務',taskSheet())}
+  else if(act==='claim'){const m=save.daily.list[+b.dataset.i];if(!m||m.claimed||m.p<m.t)return;m.claimed=true;if(m.rw==='chest')save.chests++;else gainCoins(m.rw);persist();SFX.pick();openSheet('每日任務',taskSheet())}
   else if(act==='buya'){const k=b.dataset.k,a=ACCS[k];if(save.accOwned.includes(k)||save.coins<a.price)return;save.coins-=a.price;save.accOwned.push(k);const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=k;persist();SFX.pick();openSheet('造型',wardSheet())}
   else if(act==='wear'){const k=b.dataset.k,a=ACCS[k];const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=eq[a.slot]===k?'':k;persist();openSheet('造型',wardSheet())}
   refreshUI()});

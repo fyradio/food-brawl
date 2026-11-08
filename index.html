@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.13.2</span>
+<span class="ver">v0.13.3</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -800,7 +800,7 @@ const ACCS={straw:{name:'草帽',slot:'head',price:300},bow:{name:'蝴蝶結',sl
 const MISSIONS={play:{t:3,txt:n=>`完成 ${n} 場比賽`},kills:{t:12,txt:n=>`淘汰 ${n} 個對手`},top:{t:1,txt:()=>'拿 1 次第一名（足球算贏球）'},
   crates:{t:8,txt:n=>`打破 ${n} 個木箱`},supers:{t:6,txt:n=>`放 ${n} 次大招`},goals:{t:2,txt:n=>`足球模式踢進 ${n} 球`},
   royale3:{t:1,txt:()=>'生存模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
-const CHEST_PRICE=300,CHEST_W=[42,25,20,10,3];
+const CHEST_PRICE=300,CHEST_W=[40,25,20,10,5];
 const MODES={score:{name:'搶分',desc:'限時內淘汰最多人的贏，倒下 3 秒復活。'},royale:{name:'生存模式',desc:'毒圈越縮越小，每人可復活 1 次，活到最後的人贏。白天或黑夜隨機，黑夜時毒圈外會變成一片黑，待在亮的地方。'},soccer:{name:'足球',desc:'4 對 4，把大飯糰推進對方球門，先進 3 球的隊伍贏。'}};
 const DIFF=[
   {name:'簡單',aimErr:.55,react:1.1,dodge:0,fireRate:.4,lead:0,gap:1.4,sight:9,supWait:3},

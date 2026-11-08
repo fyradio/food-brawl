@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.14.4</span>
+<span class="ver">v0.15.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -762,6 +762,10 @@ const CHARS={
     desc:'飯、青菜、蛋、鮭魚一盒裝好的健康餐盒。普攻丟一口青菜（會飛過牆），每打中一個敵人自己就回一點血，隊友在落點旁邊也會回血。大招：營養滿分，腳下一圈回血區，再丟 4 口青菜砸過去。',stat:[4,3,4]},
   cornsoup:{name:'玉米濃湯',tier:4,role:'黏稠減速',hp:5000,speed:5.0,reload:1.1,lobT:.55,superCost:2600,range:8,col:'#ffd85a',want:6,psp:10,sr:8,unlock:1900,price:5000,
     desc:'熱呼呼、濃到可以立湯匙的玉米濃湯。普攻舀一匙濃湯丟出去（會飛過牆），落地變成黏黏的濃湯地板讓人變慢。大招：濃湯大浪，往前沖出一道浪，把敵人推開、變慢，還留下一路濃湯。',stat:[5,2,4]},
+  popsicle:{name:'冰棒',tier:3,role:'冰滑衝刺',hp:4000,speed:5.6,reload:.9,superCost:2400,range:8.5,col:'#ff7aa8',want:5,psp:17,sr:7,unlock:1150,price:2500,
+    desc:'草莓牛奶雙色冰棒，插在木棍上。普攻射出一支小冰棒，又快又遠。大招：冰滑衝刺，整支往前滑出去撞人，撞到的人變慢，經過的地方留下一條滑溜溜的冰道，敵人踩到會變慢。',stat:[3,5,4]},
+  tanghulu:{name:'糖葫蘆',tier:4,role:'串刺＋糖衣',hp:4400,speed:5.4,reload:1.05,superCost:2600,range:10,col:'#e8261b',want:7,psp:18,sr:8,unlock:2000,price:5000,
+    desc:'草莓、葡萄、西瓜片串在竹籤上，外面裹一層亮晶晶的糖衣。普攻射出一支水果串，會穿過 2 個人。大招：丟出一大坨熱糖漿，落地把附近的敵人黏住，動不了一下下。',stat:[4,4,5]},
 };
 const CH_IDS=Object.keys(CHARS);
 const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸血','打中人回復傷害 15% 的血']],
@@ -796,6 +800,8 @@ const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸
   steak:[['厚切','牛排更大、傷害 +15%'],['大鐵板','鐵板（燙傷＋變慢）範圍大 30%、留 5 秒']],
   croissant:[['多層酥皮','麵包片穿過 2 個人'],['奶油旋風','大招射出 15 片']],
   bento:[['加蛋白質','打中敵人回更多血'],['豪華餐盒','大招回血圈回更多']],
+  tanghulu:[['長竹籤','水果串穿過所有人'],['厚糖衣','大招黏更久（1.8 秒）、範圍更大']],
+  popsicle:[['雙色冰棒','一次射 2 支小冰棒'],['長長冰道','衝得更遠、冰道留 5 秒']],
   cornsoup:[['更濃','濃湯地板留 4.5 秒，踩到的人變得更慢（速度剩 40%）'],['大碗','大浪更長更寬']],
   lobster:[['長鉗子','鉗子射程 +2'],['旋風更久','旋風 3.5 秒']],
   duck:[['遠撲','飛撲距離 6.5'],['大地震','大招落地範圍大 30%']],
@@ -964,7 +970,8 @@ class Game{
     else if(p.stunT>0){p.moving=false;p.ivx=p.ivz=0}
     else if(p.pullT>0){p.pullT-=dt;p.x+=p.pullX*dt;p.z+=p.pullZ*dt;p.moving=false}
     else if(p.dashT>0){p.dashT-=dt;p.x+=p.dashX*dt;p.z+=p.dashZ*dt;p.ang=Math.atan2(p.dashX,p.dashZ);p.moving=true;const dR=p.dashR||1.4;
-      for(const q of this.players){if(!q.alive||!foe(p,q)||p.dashHit.has(q.id))continue;const ddx=q.x-p.x,ddz=q.z-p.z,dd=Math.hypot(ddx,ddz);if(dd<dR){p.dashHit.add(q.id);this.damage(q,p.dashDmg,p);if(p.ch==='chili')this.burnOn(q,p);
+      if(p.ch==='popsicle'&&p.popTrail){p.popAcc=(p.popAcc||0)+dt;if(p.popAcc>=.07){p.popAcc=0;this.puddles.push({id:this.nid++,kind:14,owner:p.id,x:p.x,z:p.z,r:1.1,life:p.popTrail,max:p.popTrail,tick:.5,dmg:Math.round(80*this.mul(p)),slow:.8})}}
+      for(const q of this.players){if(!q.alive||!foe(p,q)||p.dashHit.has(q.id))continue;const ddx=q.x-p.x,ddz=q.z-p.z,dd=Math.hypot(ddx,ddz);if(dd<dR){p.dashHit.add(q.id);this.damage(q,p.dashDmg,p);if(p.ch==='chili')this.burnOn(q,p);if(p.ch==='popsicle'&&q.alive)q.slowT=Math.max(q.slowT,2);
           if(p.ch==='riceball'&&q.alive&&q.rollT<=0&&dd>.01){const sd=(ddx*p.dashZ-ddz*p.dashX)>=0?1:-1,L=Math.hypot(p.dashX,p.dashZ)||1;q.pullT=.25;q.pullX=(p.dashZ/L*sd+p.dashX/L*.5)*11;q.pullZ=(-p.dashX/L*sd+p.dashZ/L*.5)*11}}}
       this.hitDecoysNear(p,dR);
       if(p.dashT<=0&&p.dashQ>0){p.dashQ--;const tg=this.nearestEnemy(p,7.5),sp=Math.hypot(p.dashX,p.dashZ);let da=Math.atan2(p.dashX,p.dashZ);if(tg)da=Math.atan2(tg.x-p.x,tg.z-p.z);
@@ -1014,6 +1021,7 @@ class Game{
     if(own&&b.type==='lurou')this.puddles.push({id:this.nid++,kind:11,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.5,heal:.02});
     if(own&&b.type==='choco')this.puddles.push({id:this.nid++,kind:9,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.6});
     if(own&&b.type==='melon'){const n=own.tal==='a'?5:3;for(let i=0;i<n;i++)this.spawnAt(own,'mseed',b.x,b.z,Math.random()*TAU,10,3.2,Math.round(b.dmg*.3),.25)}
+    if(own&&b.type==='sugar')for(const q of this.players)if(q.alive&&foe(own,q)&&q.rollT<=0&&q.leapT<=0&&Math.hypot(q.x-b.x,q.z-b.z)<R+PR){q.stunT=Math.max(q.stunT,b.stun||1.2);q.dashT=0;q.dashQ=0}
     if(own&&b.type==='cream')this.puddles.push({id:this.nid++,kind:12,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:own.tal==='a'?.9:.7,heavy:own.tal==='a'});
     if(own&&b.type==='veggie'){for(const q of this.players){if(!q.alive||q.hp>=q.maxHp)continue;const ally=q===own||(q.team!=null&&q.team===own.team);let h=0;
         if(q===own&&vh)h+=q.maxHp*(own.tal==='a'?.07:.04)*vh;if(ally&&Math.hypot(q.x-b.x,q.z-b.z)<R+PR)h+=q.maxHp*.06;if(h>0){h=Math.round(h);q.hp=Math.min(q.maxHp,q.hp+h);this.ev(['heal',q.id,h])}}}
@@ -1109,6 +1117,8 @@ class Game{
       case'fries':{const big=p.tal==='a';this.spawn(p,'glove',a,16,6.5,Math.round(650*m*(big?1.15:1)),big?.56:.45);break}
       case'cutlet':this.spawn(p,'cutlet',a,14,8.5,Math.round(740*m),.5);break;
       case'braisedrice':{const b=this.spawnLob(p,'lurou',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(620*m),1.5);b.pdmg=Math.round(110*m);b.plife=p.tal==='a'?4.5:3;break}
+      case'tanghulu':{const b=this.spawn(p,'skewer',a,18,10,Math.round(700*m),.36);b.pierceN=p.tal==='a'?9:2;break}
+      case'popsicle':{const two=p.tal==='a';for(const o of two?[-.09,.09]:[0])this.spawn(p,'popsk',a+o,17,8.5,Math.round((two?560:720)*m),.35);break}
       case'steak':{const big=p.tal==='a';this.spawn(p,'steak',a,14,7,Math.round(840*m*(big?1.15:1)),big?.56:.45);break}
       case'croissant':{const b=this.spawn(p,'crois',a,15,9,Math.round(800*m),.42);b.pierceN=p.tal==='a'?2:1;break}
       case'bento':this.spawnLob(p,'veggie',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(760*m),1.6);break;
@@ -1171,6 +1181,8 @@ class Game{
       case'fries':p.flurT=p.tal==='b'?2.4:1.6;p.flurCd=0;p.flurDmg=Math.round(150*m);break;
       case'cutlet':{const big=p.tal==='b',d=this.superDist(p,ad,10,7);this.spawnLob(p,'bigcut',a,d,.85,6,Math.round((big?1950:1600)*m),big?4.2:3.2);break}
       case'braisedrice':{const big=p.tal==='b',R=4.5*(big?1.25:1);this.splash(p.x,p.z,R*.7,Math.round(400*m),p,'lurou');this.puddles.push({id:this.nid++,kind:11,owner:p.id,x:p.x,z:p.z,r:R,life:4,max:4,tick:.5,dmg:Math.round(200*m),slow:.5,pull:2.6,heal:big?.045:.03});this.ev(['ring',p.id,R,0x8a4a1a]);break}
+      case'tanghulu':{const big=p.tal==='b',d=this.superDist(p,ad,8,6);const b=this.spawnLobTo(p,'sugar',p.x+sx*d,p.z+sz*d,.7,3,Math.round(1100*m),big?3.2:2.6);if(b)b.stun=big?1.8:1.2;break}
+      case'popsicle':{const lg=p.tal==='b';p.dashT=lg?.55:.4;p.dashX=sx*17;p.dashZ=sz*17;p.dashHit=new Set();p.dashDmg=Math.round(1200*m);p.dashR=1.4;p.dashQ=0;p.popTrail=lg?5:3.5;p.popAcc=1;break}
       case'steak':{const d=ad>.3?Math.min(ad,9):Math.min(9,this.superDist(p,0,9,6));p.plateBig=p.tal==='b';this.leapTo(p,p.x+sx*d,p.z+sz*d,.75,3.5,3,Math.round(1500*m),true);break}
       case'croissant':{const n=p.tal==='b'?15:10;for(let i=0;i<n;i++){const b=this.spawn(p,'crois',a+i*TAU/n,13,6.5,Math.round(700*m),.42);b.pierceN=2}break}
       case'bento':{const big=p.tal==='b';this.puddles.push({id:this.nid++,kind:2,owner:p.id,x:p.x,z:p.z,r:3.4,life:5,max:5,tick:0,dmg:0,heal:big?.12:.08});
@@ -1476,7 +1488,7 @@ const ALT={apple:{body:0x86d93a,hi:0xb8f06a,leaf:0xffc21f},sushi:{fish:0xd8263a,
   chocofountain:{choc:0xfff4e0,drip:0xff9fcf},eggtart:{shell:0x5a3a1a,custard:0xffc21f},rainbowcake:{frost:0x2a2a3a,top:0xffc21f},hotpotking:{pot:0xffc21f,crown:0xff4f38},
   burger:{bun:0x5a3a1a,band:0xffc21f},fries:{box:0xffc21f,fry:0xffe680,glove:0x2a5ad8},
   cutlet:{crust:0x8a3a1a,hi:0xffc21f,bag:0xff2d7a},braisedrice:{bowl:0xffc21f,rim:0xff2d7a,meat:0x3a1a0a},noodle:{cup:0xffc21f,band:0xff2d7a,mian:0xfff3c0},
-  steak:{meat:0x3a3a48,fat:0xffc21f},croissant:{dough:0x8a5ae8,hi:0xd8c0ff},bento:{box:0xff2d7a,lid:0xffc21f},cornsoup:{bowl:0x2a2a3a,rim:0xffc21f,soup:0xbfe8ff}};
+  steak:{meat:0x3a3a48,fat:0xffc21f},croissant:{dough:0x8a5ae8,hi:0xd8c0ff},bento:{box:0xff2d7a,lid:0xffc21f},cornsoup:{bowl:0x2a2a3a,rim:0xffc21f,soup:0xbfe8ff},popsicle:{pop:0x7a5ae8,cream:0xffc21f},tanghulu:{berry:0x58c8ff,grape:0xffc21f,melon:0x8a5ae8}};
 function makeChar(ch,alt,acc){
   const group=new THREE.Group(),body=new THREE.Group();group.add(body);
   const mats=[],out=OUT();mats.push(out);const A=alt?ALT[ch]:null;
@@ -1572,9 +1584,16 @@ function makeChar(ch,alt,acc){
     case'stinkytofu':{part(GEO.box,mk(A?A.tofu:0xc8902a),0,1.05,0,.95,.95,.9,1.06);const hl=mk(0x6a4a1a);for(const[x,y]of[[-.3,1.38],[.32,.75],[-.25,.72],[.3,1.42],[0,.68]])part(GEO.box,hl,x,y,.46,.1,.08,.02);
       const cb=mk(A?A.cab:0xd8f0a0);for(let i=0;i<5;i++)part(GEO.box,cb,-.3+i*.15,1.58,(i%2)*.15-.08,.16,.08,.3).rotation.y=i;part(GEO.cyl6,mk(0xf0d8a0),.25,1.8,0,.03,.5,.03).rotation.z=-.3;
       ey=1.1;ez=.47;ex=.2;armX=.56;top=1.7;break}
-    case'shaveice':{part(GEO.dome,mk(0xbfe0ff),0,.82,0,.62,.4,.62,1.05).rotation.x=Math.PI;part(GEO.cone6,mk(A?A.ice:0xffffff),0,1.32,0,.62,1.0,.62,1.06);
-      part(GEO.cone6,mk(A?A.syrup:0xff3a5a),0,1.66,0,.36,.34,.36);part(GEO.torus,mk(0xfff6d8),0,1.38,0,.5,.5,.5).rotation.x=Math.PI/2;
-      ey=1.15;ez=.4;ex=.18;armY=.9;armX=.62;top=1.88;break}
+    case'shaveice':{/* 雪花冰：一層一層綿密的冰片緞帶堆成小山，上面淋煉乳和草莓醬 */
+      const bw=mk(0xbfe0ff);bw.transparent=true;bw.opacity=.85;part(GEO.dome,bw,0,.82,0,.62,.4,.62,1.05).rotation.x=Math.PI;part(GEO.cyl16,mk(0x9fd0ff),0,.82,0,.63,.03,.63);
+      const ic=[mk(A?A.ice:0xffffff),mk(A?0xffeaf6:0xfff6ea)],LY=[[.4,.92],[.37,1.06],[.33,1.19],[.28,1.31],[.22,1.42],[.15,1.52],[.08,1.6]];
+      LY.forEach(([r,y],i)=>{const t=part(GEO.torusD,ic[i%2],0,y,0,r*2,r*2,.55,1.04);t.rotation.set(Math.PI/2+Math.sin(i*1.7)*.08,Math.cos(i*1.3)*.08,i*.7);
+        const n=Math.max(4,Math.round(r*22));for(let k=0;k<n;k++){const a=k*TAU/n+i*.4,rr=r*1.42;const f=part(GEO.ico0,ic[(i+k)%2],Math.sin(a)*rr,y+(k%2?.03:-.02),Math.cos(a)*rr,.1,.035,.07);f.rotation.set(.3*Math.sin(k*2.1),-a,.4*Math.cos(k*1.3))}});
+      part(GEO.sph,ic[0],0,1.62,0,.12,.1,.12);
+      const mi=mk(0xfff0c8);for(const[y,r,t]of[[1.2,.48,.25],[1.42,.33,-.3]]){const d=part(GEO.torus,mi,0,y,0,r,r,r);d.rotation.set(Math.PI/2+t,0,0)}
+      const sy=mk(A?A.syrup:0xff3a5a);part(GEO.sph,sy,0,1.66,0,.17,.06,.17);for(const[x,y,z]of[[.18,1.5,.12],[-.2,1.38,.18],[.08,1.3,.3]])part(GEO.sph,sy,x,y,z,.05,.1,.05);
+      part(GEO.cone6,mk(0xe8261b),0,1.8,0,.1,.16,.1).rotation.x=Math.PI;part(GEO.cone5,mk(0x3f9a2a),0,1.89,0,.09,.05,.09);
+      ey=1.12;ez=.6;ex=.18;armY=.9;armX=.62;top=2.0;break}
     case'chocofountain':{const ch=mk(A?A.choc:0x6a3a1a);part(GEO.cyl16,ch,0,.75,0,.66,.34,.66,1.06);part(GEO.cyl16,ch,0,1.15,0,.48,.32,.48,1.06);part(GEO.cyl16,ch,0,1.5,0,.3,.3,.3,1.06);
       part(GEO.sph,mk(A?A.drip:0x8a4a1a),0,1.75,0,.22,.2,.22,1.08);const dr=mk(A?A.drip:0x4a2410);for(let i=0;i<8;i++){const a=i*TAU/8;part(GEO.box,dr,Math.sin(a)*.62,.78,Math.cos(a)*.62,.07,.3,.07)}
       ey=1.15;ez=.49;ex=.16;armY=.95;armX=.66;top=1.95;break}
@@ -1602,6 +1621,25 @@ function makeChar(ch,alt,acc){
       for(let i=0;i<18;i++){const a=i*2.4,r=.18+(i%5)*.11,x=Math.sin(a)*r*.95,y=1.45+Math.cos(a)*r*1.05;if(Math.abs(x)<.4&&y>1.32&&y<1.62)continue;part(GEO.ico0,hi,x,y,.16,.09,.08,.07)}
       for(let i=0;i<10;i++){const a=i*1.9+.5,r=.15+(i%4)*.13;part(GEO.sph,pp,Math.sin(a)*r,1.45+Math.cos(a)*r*1.1,.2,.025,.025,.02)}
       ey=1.47;ez=.22;ex=.2;armX=.78;top=2.3;break}
+    case'tanghulu':{const wd=mk(0xd8b070),sg=mk(0xfff2b8);sg.transparent=true;sg.opacity=.38;const hi=mk(0xffffff);
+      part(GEO.cyl6,wd,0,1.4,0,.04,2.2,.04);
+      const ml=part(GEO.tri,mk(A?A.melon:0xff4a5a),0,.72,0,.5,.16,.5);ml.rotation.x=-Math.PI/2;part(GEO.box,mk(0x2f8a3a),0,.42,0,.9,.08,.17);
+      part(GEO.box,mk(0xfff6d8),0,.48,0,.86,.05,.165);for(const x of[-.16,0,.16])part(GEO.sph,blk,x,.6+(x?0:.12),.09,.03,.045,.02);
+      const sm=part(GEO.tri,sg,0,.72,0,.56,.22,.56);sm.rotation.x=-Math.PI/2;
+      const be=part(GEO.ico,mk(A?A.berry:0xe8261b),0,1.42,0,.42,.46,.4,1.06);for(let i=0;i<10;i++){const a=i*2.4,y=1.3+(i%4)*.1;part(GEO.sph,mk(0xffd84a),Math.sin(a)*.38,y,Math.cos(a)*.36,.025,.035,.025)}
+      for(let i=0;i<5;i++){const lf=part(GEO.cone5,mk(0x3f9a2a),Math.sin(i*1.26)*.16,1.86,Math.cos(i*1.26)*.16,.08,.16,.05);lf.rotation.set(Math.cos(i*1.26)*1.3,0,-Math.sin(i*1.26)*1.3)}
+      part(GEO.ico,sg,0,1.43,0,.48,.52,.46);
+      part(GEO.sph,mk(A?A.grape:0x7a3ab8),0,2.12,0,.27,.27,.27,1.06);part(GEO.sph,sg,0,2.12,0,.32,.32,.32);
+      part(GEO.box,hi,-.2,1.62,.36,.05,.18,.01).rotation.z=.4;part(GEO.box,hi,-.09,2.22,.26,.04,.09,.01).rotation.z=.4;
+      for(const[x,y]of[[.3,1.03],[-.12,.98],[.1,1.82]])part(GEO.sph,sg,x,y,.18,.05,.09,.05);
+      ey=1.48;ez=.4;ex=.16;armX=.5;armY=1.3;top=2.6;break}
+    case'popsicle':{const pk=mk(A?A.pop:0xff7aa8),cr=mk(A?A.cream:0xfff0f5),wd=mk(0xe0b878);
+      part(GEO.box,wd,0,.62,0,.16,.7,.07);part(GEO.box,cr,0,1.12,0,.64,.55,.3,1.06);part(GEO.box,pk,0,1.62,0,.64,.5,.3,1.06);
+      const tp=part(GEO.cyl16,pk,0,1.87,0,.32,.3,.32,1.06);tp.rotation.x=Math.PI/2;
+      for(const[x,y,sz]of[[-.2,.83,.07],[.05,.8,.09],[.24,.86,.06]])part(GEO.sph,cr,x,y,.05,sz,sz*1.4,sz);
+      for(const[x,y,sz]of[[-.25,1.37,.06],[.12,1.35,.08]])part(GEO.sph,pk,x,y,.13,sz,sz*1.3,sz*.8);
+      part(GEO.box,mk(0xffffff),-.2,1.8,.155,.06,.28,.01);
+      ey=1.5;ez=.16;ex=.15;armX=.36;armY=1.15;top=2.35;break}
     case'steak':{const mt=mk(A?A.meat:0x8a3a1a),fat=mk(A?A.fat:0xfff0d8),gr=mk(0x2a1408);
       part(GEO.ico,mt,0,1.3,0,.95,.72,.24,1.06);part(GEO.ico,mt,.55,1.0,0,.45,.4,.23,1.06);part(GEO.ico,fat,-.82,1.4,0,.2,.5,.22,1.08);const bn=mk(0xfff6e0);part(GEO.cyl8,bn,1.12,.82,0,.07,.42,.07,1.15).rotation.z=-1.0;part(GEO.sph,bn,1.3,.7,.05,.1,.09,.09,1.12);part(GEO.sph,bn,1.3,.7,-.07,.1,.09,.09,1.12);part(GEO.ico,mk(A?0xffd86a:0xb8582a),.2,1.7,.18,.18,.1,.06);
       for(const k of[-1,0,1]){const g2=part(GEO.box,gr,-.35+k*.22,.95,.23,.06,.42,.04);g2.rotation.z=.7}
@@ -1717,6 +1755,9 @@ function makeProj(type,o){const g=new THREE.Group();
     case'broth':{ball(0xff6a2a,.22,true);ball(0xffd84a,.1,true).position.y=.05;break}
     case'cutlet':case'bigcut':{const k=type==='bigcut'?6:1;const c1=new THREE.Mesh(GEO.ico,lam(0xd98a2a));c1.scale.set(.5*k,.1*k,.42*k);g.add(c1);
       for(let i=0;i<6;i++){const bp=new THREE.Mesh(GEO.ico0,lam(0xf0b04a));bp.scale.setScalar(.09*k);bp.position.set(Math.sin(i*2.4)*.3*k,.07*k,Math.cos(i*2.4)*.25*k);g.add(bp)}break}
+    case'skewer':{const st=new THREE.Mesh(GEO.box,lam(0xd8b070));st.scale.set(.04,.04,.7);g.add(st);for(const[z,c,r]of[[.22,0xe8261b,.13],[0,0x7a3ab8,.11],[-.2,0xff4a5a,.12]]){const f=new THREE.Mesh(GEO.sph,lam(c));f.scale.setScalar(r);f.position.z=z;g.add(f)}break}
+    case'sugar':{ball(0xffe9a0,.34);ball(0xe8261b,.12).position.set(.12,.15,.1);ball(0x7a3ab8,.1).position.set(-.14,.12,-.05);break}
+    case'popsk':{const a1=new THREE.Mesh(GEO.box,lam(0xff7aa8));a1.scale.set(.18,.07,.2);a1.position.z=.06;g.add(a1);const a2=new THREE.Mesh(GEO.box,lam(0xfff0f5));a2.scale.set(.18,.07,.12);a2.position.z=-.1;g.add(a2);const a3=new THREE.Mesh(GEO.box,lam(0xe0b878));a3.scale.set(.05,.04,.16);a3.position.z=-.22;g.add(a3);break}
     case'steak':{const s2=new THREE.Mesh(GEO.ico,lam(0x8a3a1a));s2.scale.set(.42,.12,.34);g.add(s2);for(const k of[-1,1]){const mk2=new THREE.Mesh(GEO.box,lam(0x2a1408));mk2.scale.set(.05,.14,.3);mk2.rotation.y=.6;mk2.position.x=k*.12;g.add(mk2)}break}
     case'crois':{for(const k of[-1,0,1]){const c2=new THREE.Mesh(GEO.ico,lam(k?0xe0a040:0xf6c876));const sc=k?.13:.2;c2.scale.set(sc,sc*.85,sc);c2.position.set(k*.22,0,-Math.abs(k)*.14);g.add(c2)}break}
     case'veggie':{const v1=new THREE.Mesh(GEO.ico,lam(0x3f9a2a));v1.scale.setScalar(.2);g.add(v1);ball(0xfff6e0,.12).position.set(.15,.02,.05);ball(0xffc21f,.06).position.set(.16,.08,.06);break}
@@ -1744,8 +1785,8 @@ function makeBall(){const g=new THREE.Group(),r=new THREE.Group();g.add(r);
   const nori=new THREE.Mesh(GEO.cyl16,lam(0x1f2b1e));nori.scale.set(BALL_R*1.02,.5,BALL_R*1.02);nori.rotation.z=Math.PI/2;r.add(nori);
   for(let i=0;i<6;i++){const s=new THREE.Mesh(GEO.sph,lam(0xff6a3a));s.scale.setScalar(.09);const a=i*1.1,b=i*.7;s.position.set(Math.cos(a)*Math.sin(b+1)*BALL_R,Math.cos(b+1)*BALL_R,Math.sin(a)*Math.sin(b+1)*BALL_R);r.add(s)}
   g.userData.roll=r;return g}
-const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff],[0x5a2a10,.7,0xa8642a],[0xffe07a,.62,0xfff3c0],[0x3a3438,.72,0xff6a2a]];
-const LANDCOL={steak:0xff6a2a,steakland:0xff6a2a,veggie:0x6fd34a,cream:0xffe07a,butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,steam:0xfff3d0,cutlet:0xf0b04a};
+const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff],[0x5a2a10,.7,0xa8642a],[0xffe07a,.62,0xfff3c0],[0x3a3438,.72,0xff6a2a],[0xd8f4ff,.6,0xffffff]];
+const LANDCOL={sugar:0xffe9a0,steak:0xff6a2a,steakland:0xff6a2a,veggie:0x6fd34a,cream:0xffe07a,butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,steam:0xfff3d0,cutlet:0xf0b04a};
 function beltTex(alongX){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#2e2e36';x.fillRect(0,0,64,64);x.fillStyle='#4a4a58';
   for(let i=0;i<4;i++){if(alongX)x.fillRect(i*16,0,6,64);else x.fillRect(0,i*16,64,6)}x.fillStyle='#ffffff';x.globalAlpha=.25;if(alongX){x.fillRect(0,2,64,2);x.fillRect(0,60,64,2)}else{x.fillRect(2,0,2,64);x.fillRect(60,0,2,64)}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
@@ -1918,7 +1959,7 @@ class View{
     this.syncSet(this.bm,st.proj,b=>makeProj(b.type,b),(m,b)=>{const y=b.h>0?.7+b.h:b.type==='big'?1:b.type==='juice'?.8:.9;m.position.set(b.x,y,b.z);
       if(b.type==='slice'||b.type==='shuri')m.rotation.y+=dt*(b.type==='shuri'?18:10);if(b.type==='boom')m.rotation.y+=dt*16;if(b.type==='tako')m.rotation.y+=dt*4;if(b.type==='sausage'||b.type==='sprinkle')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.h>0)m.rotation.x+=dt*6;
       if(b.type==='big'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*9}
-      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart'||b.type==='cutlet'||b.type==='nugget'||b.type==='steak')m.rotation.y+=dt*15;if(b.type==='crois')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='bigcut')m.rotation.y+=dt*4;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='mian')m.rotation.y=Math.atan2(b.vx,b.vz)+Math.sin(t*22+b.id)*.35;if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
+      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart'||b.type==='cutlet'||b.type==='nugget'||b.type==='steak')m.rotation.y+=dt*15;if(b.type==='crois'||b.type==='popsk'||b.type==='skewer')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='bigcut')m.rotation.y+=dt*4;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='mian')m.rotation.y=Math.atan2(b.vx,b.vz)+Math.sin(t*22+b.id)*.35;if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
       if(b.type==='cake'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*7;const s=(b.r||.35)/.35;m.scale.setScalar(s);m.position.y=.35*s}});
     this.syncSet(this.tm,st.traps,o=>{if(o.kind===1)return makePeel();if(o.kind===2)return makeMine();const g=makeProj('shuri');g.scale.setScalar(.85);return g},(m,o)=>{m.position.set(o.x,o.kind===2?.02:.08,o.z);if(o.kind!==2)m.rotation.y+=dt*1.5;m.visible=o.life>.8||Math.floor(t*8)%2===0});
     this.syncSet(this.um,st.puddles,o=>{const pc=PCOL[o.kind|0]||PCOL[0],g=new THREE.Group();const d=new THREE.Mesh(GEO.disc,basic(pc[0],pc[1]));d.rotation.x=-Math.PI/2;g.add(d);
@@ -2166,7 +2207,7 @@ function leaveMatch(){clearTimeout(resTimer);resTimer=0;if(online)netClose();if(
 /* 橫幅一定要自己消失：開了「減少動態效果」的手機會關掉動畫，所以另外用計時器移除 */
 function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.remove('show');void b.offsetWidth;b.classList.add('show');clearTimeout(banner.h);banner.h=setTimeout(()=>b.classList.remove('show'),1300)}
 function feed(html){const d=document.createElement('div');d.innerHTML=html;const f=$('#feed');f.prepend(d);while(f.children.length>4)f.lastChild.remove();setTimeout(()=>d.remove(),4500)}
-const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e,cutlet:0xf0b04a,nugget:0xf0b04a,mian:0xf2c94a,steak:0x8a3a1a,crois:0xe0a040,veggie:0x6fd34a,cream:0xffe07a};
+const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e,cutlet:0xf0b04a,nugget:0xf0b04a,mian:0xf2c94a,steak:0x8a3a1a,crois:0xe0a040,veggie:0x6fd34a,cream:0xffe07a,popsk:0xff7aa8,skewer:0xe8261b,sugar:0xffe9a0};
 function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.players[meId];
   for(const e of evs){const ty=e[0];
     if(ty==='hit'){const q=st.players[e[1]];if(!q)continue;const o=view.pm.get(q.id);if(o)o.flash=.08;
@@ -2327,7 +2368,7 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'']);
   players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz,night:night?1:0})}});
   pendingEv=[];beginMatch(cfg,0,true)}
-const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou','mian','steak','crois','veggie','cream'];
+const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou','mian','steak','crois','veggie','cream','popsk','skewer','sugar'];
 function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT)),
   P:g.players.map(p=>[p.id,r2(p.x),r2(p.z),r2(p.ang),Math.round(p.hp),p.maxHp,p.alive?1:0,p.score,p.deaths,r2(p.ammo),r2(p.sup),
     (p.hidden?1:0)|(p.inv?2:0)|(p.slip?4:0)|(p.moving?8:0)|(p.slow?16:0)|(p.atk?32:0)|(p.out?64:0)|(p.burn?128:0)|(p.ink?256:0)|(p.roll?512:0)|(p.dash?1024:0)|(p.stun?2048:0)|(p.orbit?4096:0)|(p.giant?8192:0)|(p.thorn?16384:0)|(p.root?32768:0)|(p.spin?65536:0)|(p.leap?131072:0)|(p.frozen?262144:0)|(p.bliz?524288:0)|(p.shield?1048576:0)|(p.flur?2097152:0)|(p.pull?4194304:0),p.power,r2(Math.max(0,p.respawnT)),p.lives,p.place,r2(p.h||0)]),

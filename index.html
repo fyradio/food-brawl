@@ -600,7 +600,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.12.1</span>
+<span class="ver">v0.12.2</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2049,7 +2049,7 @@ function finish(res){if(mode!=='game')return;ended=true;
     head=win?'你這隊贏了！':draw?'平手！':'差一點點！';sub=`紅 ${g[0]} : ${g[1]} 藍`;lastRank=win?0:1;rank=win?0:3}
   else{rank=res.mode==='royale'?Math.max(0,(me.place||1)-1):Math.max(0,myI);win=rank===0;td=TRO[rank]??-4;c1=COIN_RANK[rank]??5;c3=rank===0?20:0;
     head=rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.mode==='royale'?'生存結束':'比賽結束';lastRank=rank}
-  const c2=me.score*4;save.trophies=Math.max(0,t0+td);save.coins+=c1+c2+c3;
+  const cm=res.mode==='royale'?2:1;c1*=cm;c3*=cm;const c2=me.score*4*cm;save.trophies=Math.max(0,t0+td);save.coins+=c1+c2+c3;
   save.matches=(save.matches|0)+1;let chest=(res.mode==='soccer'?win:rank<=2)?1:0;if(save.matches%5===0)chest++;save.chests=(save.chests|0)+chest;
   const doneM=applyMissions(res,me,win,rank);persist();
   $('#resTD').textContent=(td>=0?'+':'')+td;$('#resTD').style.color=td>=0?'var(--grn)':'var(--red)';

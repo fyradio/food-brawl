@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.15.1</span>
+<span class="ver">v0.15.2</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2450,7 +2450,7 @@ function renderMenuUI(){ensureDaily();topUI();
 function renderPickUI(){topUI();
   const cnt=t=>CH_IDS.filter(id=>t==='all'||CHARS[id].tier===t).length;
   $('#pkTabs').innerHTML=[['all','全部'],...TIERS.map((T,i)=>[i,T.name])].map(([k,n])=>`<button class="chip${pickTier===k?' on':''}" data-pt="${k}">${n} ${cnt(k)}</button>`).join('');
-  const ids=CH_IDS.filter(id=>pickTier==='all'||CHARS[id].tier===pickTier).sort((a,b)=>(save.owned.includes(b)?1:0)-(save.owned.includes(a)?1:0));
+  const ids=CH_IDS.filter(id=>pickTier==='all'||CHARS[id].tier===pickTier).sort((a,b)=>(save.owned.includes(b)?1:0)-(save.owned.includes(a)?1:0)||CHARS[a].tier-CHARS[b].tier||CH_IDS.indexOf(a)-CH_IDS.indexOf(b));
   $('#pkGrid').innerHTML=ids.length?ids.map(id=>{const C=CHARS[id],own=save.owned.includes(id);
     return`<button class="pc${id===viewCh?' on':''}${own?'':' locked'}" data-ch="${id}" aria-label="${C.name}" title="${C.name}" style="--tc:${TIERS[C.tier].col}">${id===save.ch?'<em class="use">使用中</em>':''}<i class="dot" style="${avStyle(id)}"></i>${own?`<small class="lvs" aria-label="等級 ${save.lvl[id]}">${save.lvl[id]}</small>`:''}</button>`}).join(''):'<p class="sp">這個稀有度還沒有食物，之後會加。</p>';
   const id=viewCh,C=CHARS[id],own=save.owned.includes(id),lv=save.lvl[id],T=TIERS[C.tier];

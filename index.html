@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.17.2</span>
+<span class="ver">v0.17.3</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2238,14 +2238,17 @@ function applyMissions(res,me,win,rank){ensureDaily();const done=[];
       case'goals':add=res.mode==='soccer'?(me.goals||0):0;break;case'royale3':add=res.mode==='royale'&&rank<=2?1:0;break;case'charkills':add=me.ch===m.ch?me.score:0;break}
     if(add>0){m.p=Math.min(m.t,m.p+add);if(m.p>=m.t)done.push(missionText(m))}}
   return done}
+const jit=v=>Math.round(v*(.9+Math.random()*.2));
 function finish(res){if(mode!=='game'||ended)return;ended=true;
   const list=res.list,myI=list.findIndex(r=>r.id===meId),me=list[myI]||{score:0,team:0};
   const t0=save.trophies;let td,c1,c3,head,l1='名次',l3='獎勵',sub='比賽結束',win=false,rank=0;
-  if(res.mode==='soccer'){const g=res.goals,mt=me.team|0;win=g[mt]>g[1-mt];const draw=g[0]===g[1];td=win?8:draw?2:-3;c1=win?40:draw?25:15;c3=(me.goals||0)*10;l1='勝負';l3='進球';
+  if(res.mode==='soccer'){const g=res.goals,mt=me.team|0;win=g[mt]>g[1-mt];const draw=g[0]===g[1];td=win?8:draw?2:-3;c1=jit(win?200:draw?60:20);c3=0;for(let i=0;i<(me.goals||0);i++)c3+=jit(300);l1='勝負';l3='進球';
     head=win?'你這隊贏了！':draw?'平手！':'差一點點！';sub=`紅 ${g[0]} : ${g[1]} 藍`;lastRank=win?0:1;rank=win?0:3}
   else{rank=res.mode==='royale'?Math.max(0,(me.place||1)-1):Math.max(0,myI);win=rank===0;td=TRO[rank]??-4;c1=COIN_RANK[rank]??5;c3=rank===0?20:0;
     head=rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.mode==='royale'?'生存結束':'比賽結束';lastRank=rank}
-  const cm=res.mode==='royale'?2:1;c1*=cm;c3*=cm;const c2=me.score*4*cm;save.trophies=Math.max(0,t0+td);const cGot=gainCoins(c1+c2+c3);
+  /* 金幣：足球＝每進 1 球約 300＋贏球約 200；搶分＝每淘汰 1 人 10＋前三名加成（150／110／70）；生存＝名次×2＋淘汰×8 */
+  if(res.mode==='score'){c1=[150,110,70,20,10,5,5,5][rank]??5;c3=0}
+  const cm=res.mode==='royale'?2:1;c1*=cm;c3*=cm;const c2=me.score*(res.mode==='royale'?8:10);save.trophies=Math.max(0,t0+td);const cGot=gainCoins(c1+c2+c3);
   save.matches=(save.matches|0)+1;let chest=(res.mode==='soccer'?win:rank<=2)?1:0;if(save.matches%5===0)chest++;save.chests=(save.chests|0)+chest;
   const doneM=applyMissions(res,me,win,rank);persist();
   $('#resTD').textContent=(td>=0?'+':'')+td;$('#resTD').style.color=td>=0?'var(--grn)':'var(--red)';

@@ -623,7 +623,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.13.3</span>
+<span class="ver">v0.14.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -728,7 +728,7 @@ const CHARS={
     desc:'一次連射 4 顆珍珠，打到牆會反彈。大招：用吸管把附近的敵人全部吸到身邊。',stat:[3,3,4]},
   marshmallow:{name:'棉花糖',tier:3,role:'瞬移分身',hp:3700,speed:5.4,reload:.9,superCost:2400,range:7.5,col:'#ffd6e4',want:5.5,psp:12,sr:7,unlock:400,price:2500,
     desc:'黏黏棉花糖，打中會變慢。大招：瞬間移動到指定地點，原地留下一個會騙人的假分身。',stat:[3,4,3]},
-  lobster:{name:'龍蝦',tier:3,role:'夾人＋旋風',hp:4600,speed:5.2,reload:1.3,superCost:2700,range:7,col:'#e8402a',want:4.5,psp:16,sr:3,unlock:450,price:2500,
+  lobster:{name:'龍蝦',tier:4,role:'夾人＋旋風',hp:4600,speed:5.2,reload:1.3,superCost:2700,range:7,col:'#e8402a',want:4.5,psp:16,sr:3,unlock:1250,price:5000,
     desc:'伸出大鉗子，夾到的人會被拖到你面前。大招：龍蝦旋風，原地轉圈，靠近的人一直被打飛。',stat:[5,3,3]},
   duck:{name:'北京烤鴨',tier:3,role:'飛撲',hp:4200,speed:5.3,reload:1.1,lobT:.45,superCost:2600,range:5.5,col:'#b84a1a',want:4,psp:99,sr:12,unlock:500,price:2500,
     desc:'普攻是飛撲：飛過牆壁砸到落點，在空中不會被打到。大招：展翅高飛，可以飛到很遠的地方重重砸下來，把人震開。',stat:[4,3,2]},
@@ -754,6 +754,14 @@ const CHARS={
     desc:'舀一勺滷肉丟出去（會飛過牆），落地變成一灘滷汁：敵人踩到變慢扣血，自己和隊友站在上面會回血。大招：大鍋滷，身邊一大圈滷汁把敵人慢慢吸進來。',stat:[5,2,4]},
   noodle:{name:'泡麵',tier:4,role:'纏麵＋蒸氣',hp:4800,speed:5.4,reload:1.0,superCost:2600,range:8,col:'#f2c94a',want:5,psp:13,sr:4,unlock:1500,price:5000,
     desc:'捧著杯子的泡麵，叉子還插在麵上。普攻甩出 3 條彎彎的麵條，打到的人被麵纏住變慢。大招：沖熱水，身邊一大圈燙蒸氣把人燙傷推開，自己「泡開」5 秒：麵條會穿過第一個人、傷害多 20%。',stat:[4,4,4]},
+  steak:{name:'牛排',tier:4,role:'鐵板＋飛撲',hp:5100,speed:5.2,reload:1.0,superCost:2700,range:7,col:'#8a3a1a',want:3.5,psp:14,sr:9,unlock:1600,price:5000,
+    desc:'剛煎好、還在冒煙的厚切牛排。普攻甩出一塊熱牛排，打到的人會燙傷。大招：整塊跳起來砸下去，落地變成一片滋滋響的熱鐵板，站在上面的敵人一直被燙。',stat:[5,3,3]},
+  croissant:{name:'牛角麵包',tier:4,role:'穿透彎月',hp:4300,speed:5.6,reload:.95,superCost:2500,range:9,col:'#e0a040',want:6.5,psp:15,sr:6,unlock:1700,price:5000,
+    desc:'酥到掉屑的牛角麵包。普攻射出彎月形的麵包片，會穿過第一個人繼續飛。大招：奶油旋風，向四面八方射出一圈彎月麵包。',stat:[3,5,5]},
+  bento:{name:'健康餐盒',tier:4,role:'補血支援',hp:4600,speed:5.2,reload:1.1,lobT:.6,superCost:2600,range:8,col:'#3f9a4a',want:6,psp:10,sr:8,unlock:1800,price:5000,
+    desc:'飯、青菜、蛋、鮭魚一盒裝好的健康餐盒。普攻丟一口青菜（會飛過牆），每打中一個敵人自己就回一點血，隊友在落點旁邊也會回血。大招：營養滿分，腳下一圈回血區，再丟 4 口青菜砸過去。',stat:[4,3,4]},
+  cornsoup:{name:'玉米濃湯',tier:4,role:'黏稠減速',hp:5000,speed:5.0,reload:1.1,lobT:.55,superCost:2600,range:8,col:'#ffd85a',want:6,psp:10,sr:8,unlock:1900,price:5000,
+    desc:'熱呼呼、濃到可以立湯匙的玉米濃湯。普攻舀一匙濃湯丟出去（會飛過牆），落地變成黏黏的濃湯地板讓人變慢。大招：濃湯大浪，往前沖出一道浪，把敵人推開、變慢，還留下一路濃湯。',stat:[5,2,4]},
 };
 const CH_IDS=Object.keys(CHARS);
 const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸血','打中人回復傷害 15% 的血']],
@@ -785,6 +793,10 @@ const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸
   cutlet:[['雞塊加量','裂成 8 塊雞塊'],['超大雞排','大招範圍更大、傷害 1950']],
   braisedrice:[['滷更久','普攻滷汁留 4.5 秒'],['大鍋滷','大招範圍大 25%、回血多 50%']],
   noodle:[['加麵','一次甩 5 條麵（每條傷害低一點）'],['大碗','大招範圍大 30%、泡開 7 秒']],
+  steak:[['厚切','牛排更大、傷害 +15%'],['大鐵板','鐵板範圍大 30%、留 5 秒']],
+  croissant:[['多層酥皮','麵包片穿過 2 個人'],['奶油旋風','大招射出 15 片']],
+  bento:[['加蛋白質','打中敵人回更多血'],['豪華餐盒','大招回血圈回更多']],
+  cornsoup:[['更濃','濃湯地板留 4.5 秒、更慢'],['大碗','大浪更長更寬']],
   lobster:[['長鉗子','鉗子射程 +2'],['旋風更久','旋風 3.5 秒']],
   duck:[['遠撲','飛撲距離 6.5'],['大地震','大招落地範圍大 30%']],
   stinkytofu:[['臭更久','毒氣留 4 秒'],['超臭爆發','爆發範圍 6.5']],
@@ -991,13 +1003,16 @@ class Game{
     for(const w of this.walls)if(w.life>0&&Math.abs(w.x-x)<w.hw+R&&Math.abs(w.z-z)<w.hd+R)this.hitWall(w,dmg);
     for(const tr of this.turrets)if(tr.hp>0&&(!own||foe(own,this.players[tr.owner]))&&Math.hypot(tr.x-x,tr.z-z)<R+.6)this.hitTurret(tr,dmg);
     if(this.ball){const b=this.ball,dx=b.x-x,dz=b.z-z,d=Math.hypot(dx,dz);if(d<R+BALL_R&&d>.01){b.vx+=dx/d*9;b.vz+=dz/d*9;if(own)b.last=own.id}}}
-  landLob(b,own){const R=b.r*(b.type==='cornbomb'&&own&&own.tal==='b'?1.3:1);this.splash(b.x,b.z,R,b.dmg,own,b.type);
+  landLob(b,own){const R=b.r*(b.type==='cornbomb'&&own&&own.tal==='b'?1.3:1),vh=own&&b.type==='veggie'?this.players.filter(q=>q.alive&&foe(own,q)&&Math.hypot(q.x-b.x,q.z-b.z)<R+PR*.5).length:0;this.splash(b.x,b.z,R,b.dmg,own,b.type);
     if(own&&b.type==='cornbomb')for(let i=0;i<8;i++)this.spawnAt(own,'kernel',b.x,b.z,i*TAU/8,12,4.5,Math.round(b.dmg*.3),.3);
     if(own&&b.type==='jelly'&&(b.bn||0)<(own.tal==='a'?2:1)){const dx=b.tx-b.sx,dz=b.tz-b.sz,L=Math.hypot(dx,dz)||1,nb=this.spawnLobTo(own,'jelly',b.x+dx/L*3,b.z+dz/L*3,.42,1.3,Math.round(b.dmg*.8),b.r,b.x,b.z);nb.bn=(b.bn||0)+1}
     if(own&&b.type==='pine'){const n=own.tal==='a'?9:6,hs=new Set(this.players.filter(q=>Math.hypot(q.x-b.x,q.z-b.z)<R+PR*.5).map(q=>q.id));for(let i=0;i<n;i++){const s=this.spawnAt(own,'spike',b.x,b.z,i*TAU/n+Math.random()*.3,11,3.6,Math.round(b.dmg*.35),.28);s.hit=new Set(hs)}}
     if(own&&b.type==='lurou')this.puddles.push({id:this.nid++,kind:11,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.5,heal:.02});
     if(own&&b.type==='choco')this.puddles.push({id:this.nid++,kind:9,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:.6});
     if(own&&b.type==='melon'){const n=own.tal==='a'?5:3;for(let i=0;i<n;i++)this.spawnAt(own,'mseed',b.x,b.z,Math.random()*TAU,10,3.2,Math.round(b.dmg*.3),.25)}
+    if(own&&b.type==='cream')this.puddles.push({id:this.nid++,kind:12,owner:own.id,x:b.x,z:b.z,r:1.8,life:b.plife,max:b.plife,tick:0,dmg:b.pdmg,slow:own.tal==='a'?.9:.7});
+    if(own&&b.type==='veggie'){for(const q of this.players){if(!q.alive||q.hp>=q.maxHp)continue;const ally=q===own||(q.team!=null&&q.team===own.team);let h=0;
+        if(q===own&&vh)h+=q.maxHp*(own.tal==='a'?.07:.04)*vh;if(ally&&Math.hypot(q.x-b.x,q.z-b.z)<R+PR)h+=q.maxHp*.06;if(h>0){h=Math.round(h);q.hp=Math.min(q.maxHp,q.hp+h);this.ev(['heal',q.id,h])}}}
     this.ev(['land',b.type,r2(b.x),r2(b.z),R])}
   swing(p,a,R,dmg){for(const q of this.targets()){if(!q.alive||!foe(p,q))continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d>R+PR)continue;
       let da=Math.atan2(dx,dz)-a;da=Math.atan2(Math.sin(da),Math.cos(da));if(Math.abs(da)>1.05&&d>.9)continue;
@@ -1025,7 +1040,10 @@ class Game{
   leapTo(p,tx,tz,T,pk,R,dmg,knock){const L=Math.hypot(tx-p.x,tz-p.z)||.01;let fx=p.x,fz=p.z;
     for(let k=L;k>=0;k-=.4){const x=clamp(p.x+(tx-p.x)/L*k,-this.bx+PR,this.bx-PR),z=clamp(p.z+(tz-p.z)/L*k,-this.bz+PR,this.bz-PR);if(!this.blocked(x,z,PR)){fx=x;fz=z;break}}
     p.leapT=T;p.leapD=T;p.lsx=p.x;p.lsz=p.z;p.ltx=fx;p.ltz=fz;p.leapPk=pk;p.leapR=R;p.leapDmg=dmg;p.leapKn=knock;p.slipT=0;p.pullT=0;p.ang=Math.atan2(tx-p.x,tz-p.z);p.faceT=T}
-  leapLand(p){const R=p.leapR;this.splash(p.x,p.z,R,p.leapDmg,p,'duck');
+  leapLand(p){const R=p.leapR,stk=p.ch==='steak'&&p.leapKn;this.splash(p.x,p.z,R,p.leapDmg,p,stk?'steakland':'duck');
+    if(stk){const m=this.mul(p),big=p.plateBig,L=big?5:4;for(const q of this.players)if(q.alive&&foe(p,q)&&Math.hypot(q.x-p.x,q.z-p.z)<R+PR)this.burnOn(q,p);
+      for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0)continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d<R+PR&&d>.01){q.pullT=.25;q.pullX=dx/d*12;q.pullZ=dz/d*12}}
+      this.puddles.push({id:this.nid++,kind:13,owner:p.id,x:p.x,z:p.z,r:2.8*(big?1.3:1),life:L,max:L,tick:.5,dmg:Math.round(170*m),slow:.2});this.ev(['land','steak',r2(p.x),r2(p.z),R]);return}
     if(p.leapKn)for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0)continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d<R+PR&&d>.01){q.pullT=.25;q.pullX=dx/d*12;q.pullZ=dz/d*12}}
     this.ev(['land','duck',r2(p.x),r2(p.z),R])}
   onRainbow(p){for(const u of this.puddles){if(u.kind!==10)continue;const o=this.players[u.owner];if((u.owner===p.id||(p.team!=null&&o&&o.team===p.team))&&Math.hypot(p.x-u.x,p.z-u.z)<u.r)return true}return false}
@@ -1087,6 +1105,10 @@ class Game{
       case'fries':{const big=p.tal==='a';this.spawn(p,'glove',a,16,6.5,Math.round(650*m*(big?1.15:1)),big?.56:.45);break}
       case'cutlet':this.spawn(p,'cutlet',a,14,8.5,Math.round(740*m),.5);break;
       case'braisedrice':{const b=this.spawnLob(p,'lurou',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(620*m),1.5);b.pdmg=Math.round(110*m);b.plife=p.tal==='a'?4.5:3;break}
+      case'steak':{const big=p.tal==='a';this.spawn(p,'steak',a,14,7,Math.round(840*m*(big?1.15:1)),big?.56:.45);break}
+      case'croissant':{const b=this.spawn(p,'crois',a,15,9,Math.round(620*m),.42);b.pierceN=p.tal==='a'?2:1;break}
+      case'bento':this.spawnLob(p,'veggie',a,this.superDist(p,ad,8,6),.6,2.2,Math.round(760*m),1.6);break;
+      case'cornsoup':{const b=this.spawnLob(p,'cream',a,this.superDist(p,ad,8,6),.55,2,Math.round(650*m),1.5);b.pdmg=Math.round(90*m);b.plife=p.tal==='a'?4.5:3;break}
       case'noodle':{const soak=p.soakT>0,n=p.tal==='a'?5:3,dm=Math.round((p.tal==='a'?290:350)*m*(soak?1.2:1));for(let i=0;i<n;i++){const b=this.spawn(p,'mian',a+(i-(n-1)/2)*.13,13,8,dm,.32);if(soak)b.pierceN=1}break}}
     this.ev(['fire',p.id])}
   superDist(p,ad,max,def){let d=ad;if(!(d>.3)){const t=this.nearestEnemy(p,max+.5);d=t?Math.hypot(t.x-p.x,t.z-p.z):def}return Math.min(d,max)}
@@ -1145,6 +1167,14 @@ class Game{
       case'fries':p.flurT=p.tal==='b'?2.4:1.6;p.flurCd=0;p.flurDmg=Math.round(150*m);break;
       case'cutlet':{const big=p.tal==='b',d=this.superDist(p,ad,10,7);this.spawnLob(p,'bigcut',a,d,.85,6,Math.round((big?1950:1600)*m),big?4.2:3.2);break}
       case'braisedrice':{const big=p.tal==='b',R=4.5*(big?1.25:1);this.splash(p.x,p.z,R*.7,Math.round(400*m),p,'lurou');this.puddles.push({id:this.nid++,kind:11,owner:p.id,x:p.x,z:p.z,r:R,life:4,max:4,tick:.5,dmg:Math.round(200*m),slow:.5,pull:2.6,heal:big?.045:.03});this.ev(['ring',p.id,R,0x8a4a1a]);break}
+      case'steak':{const d=ad>.3?Math.min(ad,9):Math.min(9,this.superDist(p,0,9,6));p.plateBig=p.tal==='b';this.leapTo(p,p.x+sx*d,p.z+sz*d,.75,3.5,3,Math.round(1500*m),true);break}
+      case'croissant':{const n=p.tal==='b'?15:10;for(let i=0;i<n;i++){const b=this.spawn(p,'crois',a+i*TAU/n,13,6.5,Math.round(560*m),.42);b.pierceN=2}break}
+      case'bento':{const big=p.tal==='b';this.puddles.push({id:this.nid++,kind:2,owner:p.id,x:p.x,z:p.z,r:3.4,life:5,max:5,tick:0,dmg:0,heal:big?.12:.08});
+        const d=this.superDist(p,ad,8,6),cx=p.x+sx*d,cz=p.z+sz*d;for(let i=0;i<4;i++){const aa=i*TAU/3+.4,rr=i?1.7:0;this.spawnLobTo(p,'veggie',cx+Math.cos(aa)*rr,cz+Math.sin(aa)*rr,.6+i*.1,2.6,Math.round(600*m),1.5)}this.ev(['ring',p.id,3.4,0x6fd34a]);break}
+      case'cornsoup':{const L=p.tal==='b'?12:9,W=p.tal==='b'?2:1.6,inL=(x,z)=>{const dx=x-p.x,dz=z-p.z,al=dx*sx+dz*sz;return al>=0&&al<=L&&Math.abs(dx*sz-dz*sx)<=W};
+        for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0||!inL(q.x,q.z))continue;this.damage(q,Math.round(900*m),p);if(q.alive){q.slowT=Math.max(q.slowT,2);q.pullT=.3;q.pullX=sx*10;q.pullZ=sz*10;q.dashT=0;q.dashQ=0}}
+        for(const dc of this.decoys)if(dc.alive&&foe(p,dc)&&inL(dc.x,dc.z))this.popDecoy(dc);for(const c of this.crates)if(c.alive&&inL(c.x,c.z))this.hitCrate(c,Math.round(900*m),p);
+        for(let d=1.5;d<=L;d+=1.5){const x=p.x+sx*d,z=p.z+sz*d;if(Math.abs(x)>this.bx||Math.abs(z)>this.bz)break;this.puddles.push({id:this.nid++,kind:12,owner:p.id,x,z,r:1.4,life:4,max:4,tick:.5,dmg:Math.round(120*m),slow:.8});this.ev(['land','cream',r2(x),r2(z),1.2])}break}
       case'noodle':{const big=p.tal==='b',R=4.2*(big?1.3:1);for(const q of this.players){if(!q.alive||!foe(p,q)||q.rollT>0||q.leapT>0)continue;const dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);if(d>R)continue;this.damage(q,Math.round(1000*m),p);if(q.alive){this.burnOn(q,p);if(d>.01){const go=Math.max(1.5,R+1-d);q.pullT=.3;q.pullX=dx/d*go/.3;q.pullZ=dz/d*go/.3}}}
         this.hitDecoysNear(p,R);for(const c of this.crates)if(c.alive&&Math.hypot(c.x-p.x,c.z-p.z)<R+.6)this.hitCrate(c,Math.round(800*m),p);p.soakT=big?7:5;this.ev(['ring',p.id,R,0xfff3d0]);this.ev(['land','steam',r2(p.x),r2(p.z),R]);break}}
     this.ev(['super',p.id])}
@@ -1190,6 +1220,7 @@ class Game{
             else if(b.type==='nori'&&q.alive)q.rootT=Math.max(q.rootT,own&&own.tal==='a'?2:1.2);
             else if(b.type==='ice'&&q.alive)this.chillOn(q,own,1);
             else if(b.type==='mian'&&q.alive)q.slowT=Math.max(q.slowT,.8);
+            else if(b.type==='steak'&&q.alive)this.burnOn(q,own);
             else if(b.type==='broth'&&q.alive)this.burnOn(q,own);
             else if(b.type==='tart'&&own){const tb=this.spawnAt(own,'tartback',q.x,q.z,0,10,99,0,.3);tb.heal=Math.round((own.tal==='a'?400:250)*this.mul(own))}
             else if(b.type==='glove'&&q.alive&&q.rollT<=0){const L=b.speed||1,nx=b.vx/L,nz=b.vz/L;let wl=false;for(let k=.6;k<=2.6;k+=.5)if(this.blocked(q.x+nx*k,q.z+nz*k,PR*.8)){wl=true;break}
@@ -1222,7 +1253,7 @@ class Game{
       for(const q of this.players){if(!q.alive||!foe(own,q)||q.leapT>0)continue;const ux=u.x-q.x,uz=u.z-q.z,ud=Math.hypot(ux,uz);if(ud<u.r){if(u.kind===1)q.inkT=.6;else if(u.kind===7||u.pull){if(q.rollT<=0&&q.dashT<=0&&q.leapT<=0&&ud>.4){const mvx=ux/ud*u.pull*dt,mvz=uz/ud*u.pull*dt;q.x+=mvx;q.z+=mvz;resolveOn(this.M,this.crates,q,PR,this.bx,this.bz,this.walls)}}else if(u.kind!==8&&u.kind!==10)q.slowT=Math.max(q.slowT,u.slow||.3);
         if(u.kind===11)q.slowT=Math.max(q.slowT,u.slow||.5);
         if(u.root&&q.leapT<=0&&!u.rooted.has(q.id)){u.rooted.add(q.id);q.rootT=Math.max(q.rootT,u.root)}
-        if(tick){this.damage(q,u.dmg,own);if(u.kind===6&&q.alive)this.burnOn(q,own)}}}
+        if(tick){this.damage(q,u.dmg,own);if((u.kind===6||u.kind===13)&&q.alive)this.burnOn(q,own)}}}
       out.push(u)}
     this.puddles=out}
   stepItems(){const out=[];
@@ -1436,7 +1467,8 @@ const ALT={apple:{body:0x86d93a,hi:0xb8f06a,leaf:0xffc21f},sushi:{fish:0xd8263a,
   lobster:{shell:0x2a5ad8,claw:0xffc21f},duck:{skin:0xffc21f,beak:0xff4f38},stinkytofu:{tofu:0x3a3a3a,cab:0xffc21f},shaveice:{ice:0xffd6f0,syrup:0x3fae4a},
   chocofountain:{choc:0xfff4e0,drip:0xff9fcf},eggtart:{shell:0x5a3a1a,custard:0xffc21f},rainbowcake:{frost:0x2a2a3a,top:0xffc21f},hotpotking:{pot:0xffc21f,crown:0xff4f38},
   burger:{bun:0x5a3a1a,band:0xffc21f},fries:{box:0xffc21f,fry:0xffe680,glove:0x2a5ad8},
-  cutlet:{crust:0x8a3a1a,hi:0xffc21f,bag:0xff2d7a},braisedrice:{bowl:0xffc21f,rim:0xff2d7a,meat:0x3a1a0a},noodle:{cup:0xffc21f,band:0xff2d7a,mian:0xfff3c0}};
+  cutlet:{crust:0x8a3a1a,hi:0xffc21f,bag:0xff2d7a},braisedrice:{bowl:0xffc21f,rim:0xff2d7a,meat:0x3a1a0a},noodle:{cup:0xffc21f,band:0xff2d7a,mian:0xfff3c0},
+  steak:{meat:0x3a3a48,fat:0xffc21f},croissant:{dough:0x8a5ae8,hi:0xd8c0ff},bento:{box:0xff2d7a,lid:0xffc21f},cornsoup:{bowl:0x2a2a3a,rim:0xffc21f,soup:0xbfe8ff}};
 function makeChar(ch,alt,acc){
   const group=new THREE.Group(),body=new THREE.Group();group.add(body);
   const mats=[],out=OUT();mats.push(out);const A=alt?ALT[ch]:null;
@@ -1562,6 +1594,33 @@ function makeChar(ch,alt,acc){
       for(let i=0;i<18;i++){const a=i*2.4,r=.18+(i%5)*.11,x=Math.sin(a)*r*.95,y=1.45+Math.cos(a)*r*1.05;if(Math.abs(x)<.4&&y>1.32&&y<1.62)continue;part(GEO.ico0,hi,x,y,.16,.09,.08,.07)}
       for(let i=0;i<10;i++){const a=i*1.9+.5,r=.15+(i%4)*.13;part(GEO.sph,pp,Math.sin(a)*r,1.45+Math.cos(a)*r*1.1,.2,.025,.025,.02)}
       ey=1.47;ez=.22;ex=.2;armX=.78;top=2.3;break}
+    case'steak':{const mt=mk(A?A.meat:0x8a3a1a),fat=mk(A?A.fat:0xfff0d8),gr=mk(0x2a1408);
+      part(GEO.ico,mt,0,1.3,0,.95,.72,.24,1.06);part(GEO.ico,mt,.55,1.0,0,.45,.4,.23,1.06);part(GEO.ico,fat,-.82,1.4,0,.2,.5,.22,1.08);const bn=mk(0xfff6e0);part(GEO.cyl8,bn,1.12,.82,0,.07,.42,.07,1.15).rotation.z=-1.0;part(GEO.sph,bn,1.3,.7,.05,.1,.09,.09,1.12);part(GEO.sph,bn,1.3,.7,-.07,.1,.09,.09,1.12);part(GEO.ico,mk(A?0xffd86a:0xb8582a),.2,1.7,.18,.18,.1,.06);
+      for(const k of[-1,0,1]){const g2=part(GEO.box,gr,-.35+k*.22,.95,.23,.06,.42,.04);g2.rotation.z=.7}
+      for(let i=0;i<6;i++)part(GEO.sph,blk,Math.sin(i*2.3)*.45,1.35+Math.cos(i*2.3)*.45,.25,.025,.025,.02);
+      part(GEO.cyl6,mk(0x3f7f20),.18,2.18,0,.025,.32,.025).rotation.z=-.3;for(let i=0;i<5;i++){const l=part(GEO.sph,mk(0x4f9a2a),.14+i*.03,2.05+i*.07,0,.09,.025,.03);l.rotation.z=i%2?.8:-.8}
+      ey=1.42;ez=.23;ex=.2;armX=.95;top=2.3;break}
+    case'croissant':{const dg=mk(A?A.dough:0xe0a040),hi=mk(A?A.hi:0xf6c876);
+      for(const[t,sz]of[[-1.9,.13],[-1.25,.22],[-.62,.32],[0,.42],[.62,.32],[1.25,.22],[1.9,.13]]){const x=Math.sin(t)*.58,y=.78+Math.cos(t)*.56;const sg=part(GEO.ico,dg,x,y,0,sz*1.05,sz*.95,sz*.95,1.08);sg.rotation.z=-t;
+        if(sz>.2){const st=part(GEO.box,hi,x,y,0,.04,sz*1.75,sz*1.75);st.rotation.z=-t}}
+      part(GEO.ico,mk(0xfff4d8),-.15,1.55,.3,.1,.05,.04);ey=1.3;ez=.4;ex=.17;armX=.55;armY=1.0;top=1.85;break}
+    case'bento':{const bx=mk(A?A.box:0x2f6f3a),wh=mk(0xfbf6ea);
+      part(GEO.box,bx,0,.72,0,1.3,.66,.92,1.04);part(GEO.box,mk(0xd8c8a0),0,1.06,0,1.2,.04,.82);part(GEO.box,bx,.05,1.1,0,.04,.12,.82);
+      part(GEO.ico,wh,-.32,1.12,0,.28,.16,.36);part(GEO.sph,mk(0xff5a5a),-.32,1.24,0,.07,.07,.07);
+      part(GEO.ico,mk(0x3f9a2a),.32,1.22,-.2,.17,.15,.15);part(GEO.ico,mk(0x58ab2f),.46,1.2,-.12,.12,.11,.11);
+      part(GEO.cyl16,wh,.3,1.12,.2,.16,.05,.16);part(GEO.cyl16,mk(0xffc21f),.3,1.15,.2,.08,.03,.08);
+      part(GEO.box,mk(0xff8a5a),.5,1.13,.25,.14,.07,.2);part(GEO.sph,mk(0xe8261b),.18,1.18,-.32,.08,.08,.08);
+      const ld=part(GEO.box,mk(A?A.lid:0x9fd8a0),0,1.42,-.6,1.32,.06,.94,1.06);ld.rotation.x=-1.25;
+      for(const k of[-1,1])part(GEO.cyl6,mk(0xc8915a),.78+k*.04,1.05,.1,.025,.75,.025).rotation.x=.25;
+      ey=.78;ez=.47;ex=.26;armY=.8;armX=.72;top=1.75;break}
+    case'cornsoup':{const bw=mk(A?A.bowl:0xffffff);
+      part(GEO.cyl16,bw,0,.47,0,.3,.08,.3);const d2=part(GEO.dome,bw,0,1.05,0,.72,.62,.72,1.06);d2.rotation.x=Math.PI;
+      part(GEO.cyl16,mk(A?A.rim:0x3a7ad8),0,1.03,0,.73,.05,.73);part(GEO.cyl16,mk(A?A.soup:0xffe07a),0,1.04,0,.67,.04,.67);
+      for(let i=0;i<9;i++)part(GEO.ico0,mk(0xffc21f),Math.sin(i*2.4)*(.15+(i%3)*.15),1.08,Math.cos(i*2.4)*(.12+(i%3)*.14),.06,.05,.06);
+      for(let i=0;i<4;i++)part(GEO.box,mk(0x3f9a2a),Math.sin(i*1.7+1)*.35,1.08,Math.cos(i*1.7+1)*.3,.06,.015,.04).rotation.y=i;
+      const sp=new THREE.Group();sp.position.set(.3,1.2,-.15);sp.rotation.set(.3,0,-.5);body.add(sp);const spm=mk(0xd8dde4);
+      const sh=new THREE.Mesh(GEO.box,spm);sh.scale.set(.06,.6,.03);sh.position.y=.3;sp.add(sh);const sb=new THREE.Mesh(GEO.sph,spm);sb.scale.set(.1,.04,.13);sp.add(sb);
+      ey=.74;ez=.6;ex=.2;armY=.82;armX=.74;top=1.6;break}
     case'noodle':{const cup=mk(A?A.cup:0xfffaf0),band=mk(A?A.band:0xe8261b),mn=mk(A?A.mian:0xf2c94a);
       part(GEO.cup,cup,0,.95,0,.62,1.1,.62,1.06);part(GEO.cup,band,0,1.18,0,.665,.28,.665);part(GEO.cyl16,band,0,1.5,0,.64,.04,.64);
       const lid=part(GEO.cyl16,mk(0xd8dde4),0,1.5,-.62,.34,.025,.34,1.08);lid.rotation.x=-1.25;
@@ -1649,6 +1708,10 @@ function makeProj(type,o){const g=new THREE.Group();
     case'broth':{ball(0xff6a2a,.22,true);ball(0xffd84a,.1,true).position.y=.05;break}
     case'cutlet':case'bigcut':{const k=type==='bigcut'?6:1;const c1=new THREE.Mesh(GEO.ico,lam(0xd98a2a));c1.scale.set(.5*k,.1*k,.42*k);g.add(c1);
       for(let i=0;i<6;i++){const bp=new THREE.Mesh(GEO.ico0,lam(0xf0b04a));bp.scale.setScalar(.09*k);bp.position.set(Math.sin(i*2.4)*.3*k,.07*k,Math.cos(i*2.4)*.25*k);g.add(bp)}break}
+    case'steak':{const s2=new THREE.Mesh(GEO.ico,lam(0x8a3a1a));s2.scale.set(.42,.12,.34);g.add(s2);for(const k of[-1,1]){const mk2=new THREE.Mesh(GEO.box,lam(0x2a1408));mk2.scale.set(.05,.14,.3);mk2.rotation.y=.6;mk2.position.x=k*.12;g.add(mk2)}break}
+    case'crois':{for(const k of[-1,0,1]){const c2=new THREE.Mesh(GEO.ico,lam(k?0xe0a040:0xf6c876));const sc=k?.13:.2;c2.scale.set(sc,sc*.85,sc);c2.position.set(k*.22,0,-Math.abs(k)*.14);g.add(c2)}break}
+    case'veggie':{const v1=new THREE.Mesh(GEO.ico,lam(0x3f9a2a));v1.scale.setScalar(.2);g.add(v1);ball(0xfff6e0,.12).position.set(.15,.02,.05);ball(0xffc21f,.06).position.set(.16,.08,.06);break}
+    case'cream':{ball(0xffe07a,.27);for(let i=0;i<4;i++){const k2=new THREE.Mesh(GEO.ico0,lam(0xffc21f));k2.scale.setScalar(.06);k2.position.set(Math.sin(i*1.6)*.2,.12,Math.cos(i*1.6)*.2);g.add(k2)}break}
     case'mian':{const n=new THREE.Mesh(GEO.mianP,lam(0xf2c94a));g.add(n);break}
     case'nugget':{const n1=new THREE.Mesh(GEO.ico0,lam(0xe8a040));n1.scale.set(.2,.15,.18);g.add(n1);break}
     case'lurou':{const bw=new THREE.Mesh(GEO.dome,lam(0xffffff));bw.scale.set(.32,.24,.32);bw.rotation.x=Math.PI;g.add(bw);const mt=new THREE.Mesh(GEO.dome,lam(0x6a2e10));mt.scale.set(.28,.14,.28);g.add(mt);break}
@@ -1672,8 +1735,8 @@ function makeBall(){const g=new THREE.Group(),r=new THREE.Group();g.add(r);
   const nori=new THREE.Mesh(GEO.cyl16,lam(0x1f2b1e));nori.scale.set(BALL_R*1.02,.5,BALL_R*1.02);nori.rotation.z=Math.PI/2;r.add(nori);
   for(let i=0;i<6;i++){const s=new THREE.Mesh(GEO.sph,lam(0xff6a3a));s.scale.setScalar(.09);const a=i*1.1,b=i*.7;s.position.set(Math.cos(a)*Math.sin(b+1)*BALL_R,Math.cos(b+1)*BALL_R,Math.sin(a)*Math.sin(b+1)*BALL_R);r.add(s)}
   g.userData.roll=r;return g}
-const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff],[0x5a2a10,.7,0xa8642a]];
-const LANDCOL={butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,steam:0xfff3d0,cutlet:0xf0b04a};
+const PCOL=[[0x7a2fb0,.6,0xb469e6],[0x15121e,.82,0x2a2440],[0x41c84a,.45,0x9bf07a],[0xf0c020,.6,0xffe060],[0xff2a1a,.35,0xff8a5a],[0xff9a3a,.5,0xffd28a],[0xa8641a,.65,0xff8a2a],[0xfff8ea,.55,0xe8a85a],[0x7aa02a,.42,0xb8e05a],[0x4a2410,.75,0x8a4a1a],[0xff7ad0,.45,0x7ad0ff],[0x5a2a10,.7,0xa8642a],[0xffe07a,.62,0xfff3c0],[0x3a3438,.72,0xff6a2a]];
+const LANDCOL={steak:0xff6a2a,steakland:0xff6a2a,veggie:0x6fd34a,cream:0xffe07a,butter:0xffe36a,cornbomb:0xffd23a,melon:0x3fae4a,melonrain:0xff5a5a,erupt:0xff4a2a,jelly:0xffd66a,pine:0xffc21f,mine:0xff3a4a,curry:0xa8641a,duck:0xb84a1a,choco:0x6a3a1a,stink:0x9ab83a,boil:0xff5a2a,bigcut:0xffb43c,lurou:0x8a4a1a,steam:0xfff3d0,cutlet:0xf0b04a};
 function beltTex(alongX){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#2e2e36';x.fillRect(0,0,64,64);x.fillStyle='#4a4a58';
   for(let i=0;i<4;i++){if(alongX)x.fillRect(i*16,0,6,64);else x.fillRect(0,i*16,64,6)}x.fillStyle='#ffffff';x.globalAlpha=.25;if(alongX){x.fillRect(0,2,64,2);x.fillRect(0,60,64,2)}else{x.fillRect(2,0,2,64);x.fillRect(60,0,2,64)}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
@@ -1846,7 +1909,7 @@ class View{
     this.syncSet(this.bm,st.proj,b=>makeProj(b.type,b),(m,b)=>{const y=b.h>0?.7+b.h:b.type==='big'?1:b.type==='juice'?.8:.9;m.position.set(b.x,y,b.z);
       if(b.type==='slice'||b.type==='shuri')m.rotation.y+=dt*(b.type==='shuri'?18:10);if(b.type==='boom')m.rotation.y+=dt*16;if(b.type==='tako')m.rotation.y+=dt*4;if(b.type==='sausage'||b.type==='sprinkle')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.h>0)m.rotation.x+=dt*6;
       if(b.type==='big'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*9}
-      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart'||b.type==='cutlet'||b.type==='nugget')m.rotation.y+=dt*15;if(b.type==='bigcut')m.rotation.y+=dt*4;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='mian')m.rotation.y=Math.atan2(b.vx,b.vz)+Math.sin(t*22+b.id)*.35;if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
+      if(b.type==='pslice'||b.type==='bone'||b.type==='patty'||b.type==='tart'||b.type==='cutlet'||b.type==='nugget'||b.type==='steak')m.rotation.y+=dt*15;if(b.type==='crois')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='bigcut')m.rotation.y+=dt*4;if(b.type==='claw'||b.type==='ice'||b.type==='glove'||b.type==='gulp')m.rotation.y=Math.atan2(b.vx,b.vz);if(b.type==='mian')m.rotation.y=Math.atan2(b.vx,b.vz)+Math.sin(t*22+b.id)*.35;if(b.type==='nori')m.rotation.y+=dt*6;if(b.type==='string'||b.type==='spike'||b.type==='sseed')m.rotation.y=Math.atan2(b.vx,b.vz);
       if(b.type==='cake'){m.rotation.y=Math.atan2(b.vx,b.vz);m.userData.roll.rotation.x+=dt*7;const s=(b.r||.35)/.35;m.scale.setScalar(s);m.position.y=.35*s}});
     this.syncSet(this.tm,st.traps,o=>{if(o.kind===1)return makePeel();if(o.kind===2)return makeMine();const g=makeProj('shuri');g.scale.setScalar(.85);return g},(m,o)=>{m.position.set(o.x,o.kind===2?.02:.08,o.z);if(o.kind!==2)m.rotation.y+=dt*1.5;m.visible=o.life>.8||Math.floor(t*8)%2===0});
     this.syncSet(this.um,st.puddles,o=>{const pc=PCOL[o.kind|0]||PCOL[0],g=new THREE.Group();const d=new THREE.Mesh(GEO.disc,basic(pc[0],pc[1]));d.rotation.x=-Math.PI/2;g.add(d);
@@ -2094,7 +2157,7 @@ function leaveMatch(){clearTimeout(resTimer);resTimer=0;if(online)netClose();if(
 /* 橫幅一定要自己消失：開了「減少動態效果」的手機會關掉動畫，所以另外用計時器移除 */
 function banner(txt){const b=$('#banner');b.textContent=txt;b.classList.remove('show');void b.offsetWidth;b.classList.add('show');clearTimeout(banner.h);banner.h=setTimeout(()=>b.classList.remove('show'),1300)}
 function feed(html){const d=document.createElement('div');d.innerHTML=html;const f=$('#feed');f.prepend(d);while(f.children.length>4)f.lastChild.remove();setTimeout(()=>d.remove(),4500)}
-const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e,cutlet:0xf0b04a,nugget:0xf0b04a,mian:0xf2c94a};
+const POPCOL={juice:0xa046dc,big:0xff3d1a,slice:0xfff1d2,shuri:0xff7a1a,fire:0xff7a1a,boom:0xffd83a,seed:0x7a4a22,tako:0xc0702a,pearl:0x3a2a1a,mallow:0xffffff,pslice:0xffc93c,string:0xffe36a,bone:0xfff6e0,spike:0x9be05a,sseed:0xff3a4a,cake:0xf2c47a,nori:0x1f2b1e,cutlet:0xf0b04a,nugget:0xf0b04a,mian:0xf2c94a,steak:0x8a3a1a,crois:0xe0a040,veggie:0x6fd34a,cream:0xffe07a};
 function handleEvents(evs){const st=curState();if(!st||!view)return;const me=st.players[meId];
   for(const e of evs){const ty=e[0];
     if(ty==='hit'){const q=st.players[e[1]];if(!q)continue;const o=view.pm.get(q.id);if(o)o.flash=.08;
@@ -2255,7 +2318,7 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'']);
   players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz,night:night?1:0})}});
   pendingEv=[];beginMatch(cfg,0,true)}
-const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou','mian'];
+const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou','mian','steak','crois','veggie','cream'];
 function snapshot(g,ev){const m={t:'s',tm:r2(g.time),st:r2(Math.max(0,g.startT)),
   P:g.players.map(p=>[p.id,r2(p.x),r2(p.z),r2(p.ang),Math.round(p.hp),p.maxHp,p.alive?1:0,p.score,p.deaths,r2(p.ammo),r2(p.sup),
     (p.hidden?1:0)|(p.inv?2:0)|(p.slip?4:0)|(p.moving?8:0)|(p.slow?16:0)|(p.atk?32:0)|(p.out?64:0)|(p.burn?128:0)|(p.ink?256:0)|(p.roll?512:0)|(p.dash?1024:0)|(p.stun?2048:0)|(p.orbit?4096:0)|(p.giant?8192:0)|(p.thorn?16384:0)|(p.root?32768:0)|(p.spin?65536:0)|(p.leap?131072:0)|(p.frozen?262144:0)|(p.bliz?524288:0)|(p.shield?1048576:0)|(p.flur?2097152:0),p.power,r2(Math.max(0,p.respawnT)),p.lives,p.place,r2(p.h||0)]),

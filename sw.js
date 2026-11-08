@@ -1,4 +1,4 @@
-const V='food-brawl-v49';
+const V='food-brawl-v50';
     const EXT=["https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"];
     self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(["./", "./index.html"]).then(()=>Promise.all([...["music/battle-1.mp3", "music/battle-2.mp3", "music/lobby-1.mp3", "music/lobby-2.mp3"].map(u=>c.add(u).catch(()=>{})),...EXT.map(u=>c.add(new Request(u,{mode:'cors'})).catch(()=>{}))])))).then(()=>self.skipWaiting()));});
     self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.20.0</span>
+<span class="ver">v0.20.1</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -1011,8 +1011,8 @@ class Game{
     if(I.s!==p.lastS){p.lastS=I.s;if(p.stunT<=0)this.superAtk(p,+I.ax||0,+I.az||0,+I.ad||0)}
     if(p.burstQ.length){for(const q of p.burstQ)q.t-=dt;while(p.burstQ.length&&p.burstQ[0].t<=0){const s=p.burstQ.shift();const b=this.spawn(p,s.type||'pearl',s.a,s.sp||14,s.rg||8,s.dmg,s.r||.26);b.bounce=s.bounce??1}}
     if(p.ammo<p.maxAmmo)p.ammo=Math.min(p.maxAmmo,p.ammo+dt/C.reload);
-    /* 大招自己慢慢集氣：Lv1 約 15 秒、Lv10 約 10 秒集滿（打到人另外加） */
-    if(p.sup<1)p.sup=Math.min(1,p.sup+dt/(15-((p.lvl||1)-1)*5/9));
+    /* 大招自己慢慢集氣：Lv1 約 30 秒、Lv10 約 20 秒集滿（打到人另外加；v0.20.1 兩者都減半） */
+    if(p.sup<1)p.sup=Math.min(1,p.sup+dt/(30-((p.lvl||1)-1)*10/9));
     if(p.idleT>3&&p.hp<p.maxHp&&p.burnT<=0)p.hp=Math.min(p.maxHp,p.hp+p.maxHp*.13*dt);
     const ox=p.x,oz=p.z;
     if(p.leapT>0){p.leapT-=dt;const f=clamp(1-p.leapT/p.leapD,0,1);p.x=p.lsx+(p.ltx-p.lsx)*f;p.z=p.lsz+(p.ltz-p.lsz)*f;p.h=4*p.leapPk*f*(1-f);p.moving=true;if(p.leapT<=0){p.h=0;p.x=p.ltx;p.z=p.ltz;this.leapLand(p)}}
@@ -1372,7 +1372,7 @@ class Game{
   damage(q,amt,src,nr,ns){if(!q.alive||q.invT>0||q.rollT>0||q.leapT>0||q.eatT>0)return;if(src&&!foe(src,q))return;
     if(q.ch==='chili'&&q.tal==='b')amt=Math.round(amt*.85);if(q.bigT>0)amt=Math.round(amt*.6);
     if(q.thornT>0){amt=Math.round(amt*.7);if(src&&!nr&&src.alive&&src!==q&&src.inBush!==undefined)this.damage(src,Math.round(amt*(q.tal==='b'?.8:.5)),q,true)}q.hp-=amt;q.idleT=0;
-    if(src&&!ns){src.sup=Math.min(1,src.sup+amt/CHARS[src.ch].superCost);}if(src){if(src.ch==='apple'&&src.tal==='b'&&src.alive)src.hp=Math.min(src.maxHp,src.hp+amt*.15)}
+    if(src&&!ns){src.sup=Math.min(1,src.sup+amt*.5/CHARS[src.ch].superCost);}if(src){if(src.ch==='apple'&&src.tal==='b'&&src.alive)src.hp=Math.min(src.maxHp,src.hp+amt*.15)}
     this.ev(['hit',q.id,amt,src?src.id:-1]);
     if(q.hp<=0){q.hp=0;q.alive=false;q.deaths++;q.slipT=0;q.burnT=0;q.dashT=0;q.dashQ=0;q.pullT=0;q.burstQ=[];q.stunT=0;q.orbitT=0;q.bigT=0;q.thornT=0;q.rootT=0;q.spinT=0;q.blizT=0;q.shieldT=0;q.flurT=0;q.chill=0;q.frozenT=0;q.inBush=false;if(src)src.score++;
       if(this.mode==='royale'){q.lives--;if(q.lives<=0){q.out=true;q.place=this.players.filter(x=>!x.out).length+1;q.respawnT=0}else q.respawnT=RESPAWN_T}else q.respawnT=RESPAWN_T;

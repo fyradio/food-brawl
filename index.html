@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.21.0</span>
+<span class="ver">v0.21.1</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -966,7 +966,7 @@ class Game{
   spawnPoint(i,p){if(this.mode==='soccer'){const k=this.players.filter(q=>q.team===p.team).indexOf(p);const s=TEAM_SP[Math.max(0,k)%4];return[s[0],p.team===0?s[1]:-s[1]]}
     const s=(this.bx-2.5)/18.5,sp=(this.M.spawns||SPAWNS)[i%8];return[sp[0]*s,sp[1]*s]}
   addPlayer(pp,i){const C=CHARS[pp.ch],lv=clamp(pp.lvl||1,1,MAX_LV);
-    const p={id:i,name:pp.name,ch:pp.ch,lvl:lv,bot:!!pp.bot,netId:pp.netId||null,team:this.mode==='soccer'?(pp.team|0):null,tal:lv>=5&&(pp.tal==='a'||pp.tal==='b')?pp.tal:null,acc:pp.acc||'',
+    const p={id:i,name:pp.name,ch:pp.ch,lvl:lv,alt:!pp.bot&&!!pp.alt,bot:!!pp.bot,netId:pp.netId||null,team:this.mode==='soccer'?(pp.team|0):null,tal:lv>=5&&(pp.tal==='a'||pp.tal==='b')?pp.tal:null,acc:pp.acc||'',
       x:0,z:0,vx:0,vz:0,ang:0,maxHp:Math.round(C.hp*lvMul(lv)),hp:0,alive:true,respawnT:0,invT:0,score:0,deaths:0,goalsMade:0,supers:0,crates:0,maxAmmo:lvAmmo(lv),ammo:0,sup:0,
       slipT:0,slipX:0,slipZ:0,slowT:0,power:0,idleT:0,burnT:0,burnSrc:-1,burnTick:0,inkT:0,rollT:0,rollHit:{},rollDmg:0,dashT:0,dashX:0,dashZ:0,dashHit:null,dashDmg:0,pullT:0,pullX:0,pullZ:0,burstQ:[],ivx:0,ivz:0,stunT:0,orbitT:0,orbitHit:{},orbitDmg:0,bigT:0,thornT:0,rootT:0,dashQ:0,dashR:1.4,bumpHit:{},spinT:0,spinHit:{},leapT:0,h:0,blizT:0,blizTick:0,shieldT:0,flurT:0,flurCd:0,eatT:0,chill:0,chillT:0,frozenT:0,rbi:0,
       lives:this.mode==='royale'?2:99,out:false,place:0,emoT:-9,
@@ -2104,7 +2104,7 @@ class View{
   sync(st,dt,meId,pred){this.stepTents(dt);this.stepSucks(dt);this.stepHzView(st.hz,dt);
     this.t+=dt;const t=this.t,me=st.players[meId],k=1-Math.exp(-dt*(st.local?40:14));
     for(const p of st.players){let o=this.pm.get(p.id);
-      if(!o){o=makeChar(p.ch,p.lvl>=10,p.acc);o.dx=p.x;o.dz=p.z;o.da=p.ang;this.scene.add(o.group);this.pm.set(p.id,o);
+      if(!o){o=makeChar(p.ch,!!p.alt,p.acc);o.dx=p.x;o.dz=p.z;o.da=p.ang;this.scene.add(o.group);this.pm.set(p.id,o);
         if(p.team!=null){const ring=new THREE.Mesh(GEO.ring,basic(p.team===0?0xff4b4b:0x3a8bff,.9));ring.rotation.x=-Math.PI/2;ring.position.y=.04;ring.scale.setScalar(.85);o.group.add(ring)}
         o.lbl=makeLabel(p,p.id===meId,me)}
       const tx=(p.id===meId&&pred)?pred.x:p.x,tz=(p.id===meId&&pred)?pred.z:p.z;
@@ -2164,7 +2164,7 @@ class View{
     if(this.belts.length)for(const b of this.belts){if(b.ax)b.t.offset.x-=b.bt.vx*dt/2;else b.t.offset.y+=b.bt.vz*dt/2}
     if(this.M.erupt&&Math.random()<.25)this.burst(this.M.erupt.x+rnd(-2,2),1.5,this.M.erupt.z+rnd(-2,2),Math.random()<.5?0xff7a3a:0xffffff,1,1.2,.15);
     if(st.decoys){const seen=new Set();for(const d of st.decoys){seen.add(d.id);let o=this.dm.get(d.id);const ow=st.players[d.owner]||{};
-        if(!o){o=makeChar(d.ch||ow.ch||'marshmallow',(d.lvl||ow.lvl)>=10,d.acc||ow.acc);o.dx=d.x;o.dz=d.z;this.scene.add(o.group);o.lbl=makeLabel({name:d.name||ow.name,maxAmmo:3,team:ow.team},false,me);this.dm.set(d.id,o)}
+        if(!o){o=makeChar(d.ch||ow.ch||'marshmallow',!!ow.alt,d.acc||ow.acc);o.dx=d.x;o.dz=d.z;this.scene.add(o.group);o.lbl=makeLabel({name:d.name||ow.name,maxAmmo:3,team:ow.team},false,me);this.dm.set(d.id,o)}
         o.group.position.set(d.x,0,d.z);o.group.rotation.y=d.ang;o.dx=d.x;o.dz=d.z;animChar(o,dt,false,false,false,t);
         updLabel(o.lbl,{score:ow.score||0,hp:ow.hp||1,maxHp:ow.maxHp||1,power:ow.power||0,sup:0,ammo:0},true,o,this.cam)}
       for(const[id,o]of this.dm)if(!seen.has(id)){this.scene.remove(o.group);o.lbl.el.remove();this.dm.delete(id)}}
@@ -2349,13 +2349,13 @@ function fillBots(humans,count,base,diff,fixed,soccer,pool){const used=new Set(h
     if(soccer){const n0=list.filter(x=>x.team===0).length,n1=list.filter(x=>x.team===1).length;b.team=n0<=n1?0:1}list.push(b)}
   return list}
 function startSolo(){if(!save.owned.includes(save.ch))save.ch='apple';const lv=save.lvl[save.ch],soccer=save.mode==='soccer';
-  const me={name:save.name,ch:save.ch,lvl:lv,tal:myTal(save.ch),acc:accStr(save.ch),team:soccer?0:undefined};
+  const me={name:save.name,ch:save.ch,lvl:lv,alt:save.lvl[save.ch]>=MAX_LV,tal:myTal(save.ch),acc:accStr(save.ch),team:soccer?0:undefined};
   const pick=MAP_POOL.includes(save.map)?save.map:'rand',map=soccer?'stadium':pick==='rand'?MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)]:pick;
   beginMatch({map,mode:save.mode,dur:save.dur,diff:save.diff,players:fillBots([me],7,lv,save.diff,false,soccer)},0,true)}
 function beginMatch(cfg,myId,local,info){resetTouch();$('#sheet').hidden=true;sheetKind='';clearTimeout(resTimer);resTimer=0;matchCfg=cfg;meId=myId;if(view){view.dispose();view=null}
   IN.f=IN.s=0;IN.ax=IN.az=IN.ad=0;IN.aimKind=null;pred=null;acc=0;ended=false;supWas=false;ffT=0;finalOn=false;
   let vinfo;if(local){game=new Game(cfg);netState=null;vinfo={mode:game.mode,bx:game.bx,bz:game.bz,night:game.night}}else{game=null;vinfo=info}
-  setMood(cfg.mode==='soccer'?'goal':vinfo.night?'moon':'luck');view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
+  setMood(cfg.mode==='soccer'?'goal':(vinfo.night||(MAPS[cfg.map]&&MAPS[cfg.map].dark))?'moon':'luck');view=new View(cfg.map,vinfo);showScreen('game');$('#feed').innerHTML='';$('#deadmsg').hidden=true;lastBanner=-1;R.setClearColor(0x000000,1);
   $('#goalbar').hidden=vinfo.mode!=='soccer';$('#sub').hidden=vinfo.mode!=='royale';$('#board').hidden=vinfo.mode==='soccer';$('#board').dataset.k='';
   playMusic('battle')}
 let ended=false,lastBanner=-1,supWas=false,finalOn=false,resTimer=0;
@@ -2393,7 +2393,7 @@ function finish(res){if(mode!=='game'||ended)return;ended=true;
     return`<li class="${r.id===meId?'me':''}"><span class="n">${n}</span><i class="${r.team!=null?'t'+r.team:''}" style="${avStyle(r.ch)}"></i><span class="nm"></span><span class="sc">${sc}</span></li>`}).join('');
   [...$('#resList').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=list[i].name+(list[i].bot?'（電腦）':''));
   $('#resAgain').textContent=online?'回房間':'再玩一次';$('#resAgain').classList.remove('nudge');
-  const mine=curState().players[meId];setMenuChar(mine.ch,mine.lvl>=10,mine.acc);
+  const mine=curState().players[meId];setMenuChar(mine.ch,!!mine.alt,mine.acc);
   clearTimeout(resTimer);resTimer=setTimeout(()=>{resTimer=0;if(mode!=='game')return;if(view){view.dispose();view=null}game=null;netState=null;showScreen('result');R.setClearColor(0x000000,0);
     if(doneM.length)toast('任務完成：'+doneM.join('、')+'，到「任務」領獎勵',4000)},1600);
   banner(res.mode==='soccer'?head:res.mode==='royale'?(lastRank===0?'大吉大利！':'生存結束'):'時間到！')}
@@ -2538,7 +2538,7 @@ function hostData(c,d){if(!d||!NET.host)return;
   if(d.t==='ping'){try{c.send({t:'pong',c:d.c})}catch(e){}return}if(d.t==='pong'){onPong(c.peer,d.c);return}
   if(d.t==='hello'){if(!NET.conns.has(c.peer))return;const ch=CHARS[d.ch]?d.ch:'apple';const i=NET.lobby.findIndex(l=>l.id===c.peer);
     const n0=(NET.hostTeam===0?1:0)+NET.lobby.filter(l=>l.team===0).length,n1=humanCount()-n0,lv=clamp(d.lvl|0,1,MAX_LV);
-    const e={id:c.peer,name:String(d.name||'玩家').slice(0,8),ch,lvl:lv,tal:lv>=5&&(d.tal==='a'||d.tal==='b')?d.tal:null,acc:typeof d.acc==='string'?d.acc.slice(0,40):'',team:i>=0?NET.lobby[i].team:(n0<=n1?0:1)};
+    const e={id:c.peer,name:String(d.name||'玩家').slice(0,8),ch,lvl:lv,alt:lv>=MAX_LV,tal:lv>=5&&(d.tal==='a'||d.tal==='b')?d.tal:null,acc:typeof d.acc==='string'?d.acc.slice(0,40):'',team:i>=0?NET.lobby[i].team:(n0<=n1?0:1)};
     if(i>=0)NET.lobby[i]=e;else{NET.lobby.push(e);toast(e.name+' 加入了')}
     if(humanCount()+NET.opts.bots>8)NET.opts.bots=8-humanCount();broadcastLobby()}
   else if(d.t==='in'&&game){const p=game.players.find(p=>p.netId===c.peer);if(p&&!p.bot){const I=p.inp;I.mx=clamp(+d.mx||0,-1,1);I.mz=clamp(+d.mz||0,-1,1);I.ax=+d.ax||0;I.az=+d.az||0;I.ad=+d.ad||0;I.f=d.f|0;I.s=d.s|0}}
@@ -2550,12 +2550,12 @@ function hostBroadcast(m){for(const[,c]of NET.conns)if(c.open)try{c.send(m)}catc
 function lobbyMsg(){return{t:'lobby',code:NET.code,host:{name:save.name,ch:roomCh(),lvl:save.lvl[roomCh()],team:NET.hostTeam},list:NET.lobby.map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,team:l.team})),opts:NET.opts}}
 function broadcastLobby(){hostBroadcast(lobbyMsg());if(mode==='room')renderRoom()}
 function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o.lv==='own'?0:o.lv==='fair'?1:clamp(+o.lv||1,1,MAX_LV),soccer=o.mode==='soccer';
-  const humans=[{name:save.name,ch:roomCh(),lvl:save.lvl[roomCh()],tal:myTal(roomCh()),acc:accStr(roomCh()),netId:null,team:NET.hostTeam},
-    ...NET.lobby.filter(l=>NET.conns.has(l.id)).map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,tal:l.tal,acc:l.acc,netId:l.id,team:l.team}))].slice(0,8);
+  const humans=[{name:save.name,ch:roomCh(),lvl:save.lvl[roomCh()],alt:save.lvl[roomCh()]>=MAX_LV,tal:myTal(roomCh()),acc:accStr(roomCh()),netId:null,team:NET.hostTeam},
+    ...NET.lobby.filter(l=>NET.conns.has(l.id)).map(l=>({name:l.name,ch:l.ch,lvl:l.lvl,alt:!!l.alt,tal:l.tal,acc:l.acc,netId:l.id,team:l.team}))].slice(0,8);
   if(humans.length+o.bots<2){toast('至少要 2 個角色才能開始：等朋友加入，或加幾隻電腦');return}
   /* 隨機角色：範圍可以是全部或某個稀有度，每個人（含電腦）都從裡面抽 */
   const pool=o.rc==='rand'?CH_IDS.filter(id=>o.rt==='all'||o.rt==null||CHARS[id].tier===+o.rt):null;
-  if(pool)humans.forEach(h=>{h.ch=pool[Math.floor(Math.random()*pool.length)];h.tal=null});
+  if(pool)humans.forEach(h=>{h.ch=pool[Math.floor(Math.random()*pool.length)];h.tal=null;h.alt=false});
   if(fixL)humans.forEach(h=>{h.lvl=fixL;h.tal=fixL>=5?(h.tal||(Math.random()<.5?'a':'b')):null});
   const avg=fixL||Math.round(humans.reduce((s,h)=>s+h.lvl,0)/humans.length);
   if(!soccer)humans.forEach(h=>delete h.team);
@@ -2563,7 +2563,7 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   const map=soccer?'stadium':o.map==='rand'?MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)]:o.map;
   const night=o.mode==='royale'&&Math.random()<.5;const cfg={map,mode:o.mode,dur:o.dur,diff:o.diff,players,night};NET.inGame=true;
   const[bx,bz]=boundsFor(o.mode,players.length);
-  const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'']);
+  const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'',!p.bot&&p.alt?1:0]);
   players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz,night:night?1:0})}});
   pendingEv=[];beginMatch(cfg,0,true)}
 const PT=['slice','shuri','juice','big','fire','boom','seed','tako','pearl','mallow','kernel','butter','cornbomb','melon','melonrain','mseed','sausage','sprinkle','jelly','pslice','string','curry','bone','pine','spike','sseed','cake','nori','claw','stink','ice','choco','tart','tartback','rbw','broth','patty','glove','gulp','cutlet','nugget','bigcut','lurou','mian','steak','crois','veggie','cream','popsk','skewer','sugar','xcp','tent','yam','kimchi'];
@@ -2597,7 +2597,7 @@ function clientData(d){if(!d)return;
   else if(d.t==='end'&&netState){finish(d.res)}}
 function clientStart(d){const M=MAPS[d.map];const mode2=d.mode||'score';
   netState={mode:mode2,bx:d.bx||H,bz:d.bz||H,time:mode2==='royale'?0:(d.dur||180),startT:3,goals:[0,0],ball:mode2==='soccer'?{x:0,z:0,vx:0,vz:0}:null,zone:null,decoys:[],walls:[],turrets:[],
-    players:d.P.map((a,i)=>({id:i,name:a[0],ch:CHARS[a[1]]?a[1]:'apple',lvl:a[2],bot:!!a[3],team:a[4]>=0?a[4]:null,tal:a[5]||null,acc:a[6]||'',maxAmmo:lvAmmo(a[2]),x:0,z:0,ang:0,hp:1,maxHp:1,alive:true,score:0,deaths:0,ammo:3,sup:0,
+    players:d.P.map((a,i)=>({id:i,name:a[0],ch:CHARS[a[1]]?a[1]:'apple',lvl:a[2],alt:!!a[7],bot:!!a[3],team:a[4]>=0?a[4]:null,tal:a[5]||null,acc:a[6]||'',maxAmmo:lvAmmo(a[2]),x:0,z:0,ang:0,hp:1,maxHp:1,alive:true,score:0,deaths:0,ammo:3,sup:0,
       hidden:false,inv:false,slip:false,moving:false,slow:false,atk:false,burn:false,ink:false,roll:false,dash:false,power:0,respawnT:0,lives:2,out:false,place:0})),proj:[],traps:[],puddles:[],items:[],
     crates:M.crates.map(c=>({x:c.x,z:c.z,alive:!(Math.abs(c.x)>(d.bx||H)-1.2||Math.abs(c.z)>(d.bz||H)-1.2),hp:CRATE_HP}))};
   beginMatch({map:d.map,players:d.P.map(a=>({name:a[0],ch:a[1]}))},d.you,false,{mode:mode2,bx:netState.bx,bz:netState.bz,night:!!d.night});netState.local=false;pred=null}
@@ -2800,7 +2800,7 @@ $('#mbChest').addEventListener('click',()=>openSheet('寶箱',chestSheet(null)))
 function taskSheet(){ensureDaily();return'<ul class="tasks">'+save.daily.list.map((m,i)=>{const done=m.p>=m.t;const rw=m.rw==='chest'?'寶箱 ×'+(m.n||1):`${coinIc} ${m.rw}`;
   return`<li class="${done?'done':''}"><div class="tt">${missionText(m)}</div><div class="bar"><i style="width:${m.p/m.t*100}%"></i></div><div class="tr2"><span>${m.p}/${m.t}</span><span>${rw}</span>${m.claimed?'<span class="ok">已領取</span>':done?`<button class="btn small main" data-act="claim" data-i="${i}">領取</button>`:''}</div></li>`}).join('')+'</ul><p class="sp">每天換 3 個新任務。</p>'}
 $('#mbTask').addEventListener('click',()=>openSheet('每日任務',taskSheet()));
-function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">替 <b>${CHARS[id].name}</b> 換造型（只是好看，不影響能力）。每隻角色可以分開穿。</p><ul class="wards">`+Object.entries(ACCS).map(([k,a])=>{const own=save.accOwned.includes(k),on=eq[a.slot]===k;
+function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">替 <b>${CHARS[id].name}</b> 換造型（全部免費，只是好看，不影響能力）。每隻角色可以分開穿。</p><ul class="wards">`+Object.entries(ACCS).map(([k,a])=>{const own=true,on=eq[a.slot]===k;/* v0.21.1 起造型全部免費 */
   return`<li><span class="an">${a.name}</span><span class="as">${{head:'頭上',face:'臉上',back:'背後'}[a.slot]}</span>${own?`<button class="btn small ${on?'blue':'main'}" data-act="wear" data-k="${k}">${on?'脫下':'穿上'}</button>`:`<button class="btn small main" data-act="buya" data-k="${k}" ${save.coins>=a.price?'':'disabled'}>${coinIc} ${a.price}</button>`}</li>`}).join('')+'</ul>'}
 $('#sheetBody').addEventListener('input',e=>{const t=e.target;
   if(t.id==='vMus'){save.musicVol=+t.value;persist();setMusicVol()}

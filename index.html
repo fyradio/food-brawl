@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.21.1</span>
+<span class="ver">v0.22.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -834,7 +834,10 @@ const TALENTS={apple:[['反彈蘋果片','蘋果片撞牆會反彈一次'],['吸
   burger:[['雙層肉排','一次丟 2 塊肉排'],['大胃王','吞久一點、吐出更痛']],
   fries:[['大拳套','火箭拳更大更痛'],['百裂更久','百裂拳 2.4 秒']]};
 const ACCS={straw:{name:'草帽',slot:'head',price:300},bow:{name:'蝴蝶結',slot:'head',price:400},chef:{name:'廚師帽',slot:'head',price:500},crown:{name:'皇冠',slot:'head',price:1500},band:{name:'頭帶',slot:'head',price:400},
-  shades:{name:'墨鏡',slot:'face',price:400},cape:{name:'披風',slot:'back',price:800}};
+  party:{name:'派對帽',slot:'head'},bunny:{name:'兔耳朵',slot:'head'},halo:{name:'光環',slot:'head'},prop:{name:'螺旋槳帽',slot:'head'},
+  shades:{name:'墨鏡',slot:'face',price:400},hearts:{name:'愛心眼鏡',slot:'face'},stache:{name:'小鬍子',slot:'face'},blush:{name:'腮紅',slot:'face'},
+  cape:{name:'披風',slot:'back',price:800},wings:{name:'天使翅膀',slot:'back'},bag:{name:'小背包',slot:'back'},rocket:{name:'火箭背包',slot:'back'},
+  fork:{name:'叉子',slot:'hand'},balloon:{name:'氣球',slot:'hand'},wand:{name:'仙女棒',slot:'hand'},flag:{name:'小旗子',slot:'hand'}};
 const MISSIONS={play:{t:3,txt:n=>`完成 ${n} 場比賽`},kills:{t:12,txt:n=>`淘汰 ${n} 個對手`},top:{t:1,txt:()=>'拿 1 次第一名（足球算贏球）'},
   crates:{t:8,txt:n=>`打破 ${n} 個木箱`},supers:{t:6,txt:n=>`放 ${n} 次大招`},goals:{t:2,txt:n=>`足球模式踢進 ${n} 球`},
   royale3:{t:1,txt:()=>'生存模式進前 3 名'},charkills:{t:5,txt:(n,ch)=>`用${CHARS[ch].name}淘汰 ${n} 個對手`}};
@@ -864,8 +867,8 @@ if(!Array.isArray(save.frag)||save.frag.length!==5){const r=fragSplit(save.wild)
 save.frag=save.frag.map(n=>clamp(n|0,0,FRAG_CAP));
 for(const k of['apple','sushi','eggplant'])if(!save.owned.includes(k))save.owned.push(k);
 if(!save.owned.includes(save.ch))save.ch='apple';
-const accStr=ch=>{const e=save.accEq[ch]||{};return[e.head||'',e.face||'',e.back||''].join(',')};
-const accParse=s=>{const a=String(s||'').split(',');return{head:ACCS[a[0]]?a[0]:'',face:ACCS[a[1]]?a[1]:'',back:ACCS[a[2]]?a[2]:''}};
+const accStr=ch=>{const e=save.accEq[ch]||{};return[e.head||'',e.face||'',e.back||'',e.hand||''].join(',')};
+const accParse=s=>{const a=String(s||'').split(',');return{head:ACCS[a[0]]?a[0]:'',face:ACCS[a[1]]?a[1]:'',back:ACCS[a[2]]?a[2]:'',hand:ACCS[a[3]]?a[3]:''}};
 const myTal=ch=>save.lvl[ch]>=5?(save.tal[ch]||'a'):null;
 
 /* ================= 地圖 ================= */
@@ -1801,27 +1804,55 @@ function makeChar(ch,alt,acc){
     [-1,1].forEach((s,i)=>{rc.set(new THREE.Vector3(s*ex,ey,5),dir);const h=rc.intersectObjects(solid,false)[0];const z=h&&h.point?+h.point.z:NaN;if(z>ez-.3&&z<ez+.4)eyeZ[i]=z-.015})}catch(e){}
   const fz=Math.max(eyeZ[0],eyeZ[1]);eyeZ[0]=eyeZ[1]=fz;ez=fz;
   [-1,1].forEach((s,i)=>{const e=part(GEO.sph,blk,s*ex,ey,eyeZ[i],.13,.15,.08);const hl=new THREE.Mesh(GEO.sph,wht);hl.position.set(.35,.4,.7);hl.scale.setScalar(.32);e.add(hl)});
-  if(alt){const halo=new THREE.Mesh(new THREE.TorusGeometry(.32,.05,6,18),basic(0xffd84a));halo.rotation.x=Math.PI/2;halo.position.y=top+.38;body.add(halo)}
-  const ac=typeof acc==='string'?accParse(acc):(acc||{});
-  if(ac.head==='straw'){part(GEO.cyl16,mk(0xf2d07a),0,top+.03,0,.62,.05,.62,1.06);part(GEO.cyl16,mk(0xf2d07a),0,top+.17,0,.32,.26,.32,1.06);part(GEO.cyl16,mk(0xe23a2a),0,top+.1,0,.33,.08,.33)}
-  else if(ac.head==='chef'){part(GEO.cyl16,mk(0xffffff),0,top+.2,0,.27,.4,.27,1.06);part(GEO.sph,mk(0xffffff),0,top+.48,0,.38,.26,.38,1.06)}
-  else if(ac.head==='crown'){const gd=mk(0xffc21f);part(GEO.cyl8,gd,0,top+.1,0,.3,.2,.3,1.08);for(let i=0;i<5;i++)part(GEO.cone5,gd,Math.cos(i*TAU/5)*.27,top+.27,Math.sin(i*TAU/5)*.27,.08,.18,.08);part(GEO.sph,mk(0xe0244a),0,top+.12,.3,.07,.07,.04)}
-  else if(ac.head==='band'){const bd=mk(0xe8261b);part(GEO.cyl16,bd,0,top-.22,0,.5,.12,.5,1.04);for(const s of[-1,1]){const tl=part(GEO.box,bd,s*.12,top-.3,-.5,.08,.32,.05,1.08);tl.rotation.z=s*.5}}
-  else if(ac.head==='bow'){const pk=mk(0xff5fa8);for(const s of[-1,1]){const c=part(GEO.cone6,pk,s*.18,top+.06,.05,.14,.24,.1,1.1);c.rotation.z=s*Math.PI/2}part(GEO.sph,pk,0,top+.06,.06,.09,.09,.09)}
-  if(ac.face==='shades'){const k=mk(0x111111);for(const s of[-1,1])part(GEO.box,k,s*ex,ey+.02,ez+.06,.22,.13,.04);part(GEO.box,k,0,ey+.05,ez+.06,ex*2,.03,.03)}
-  if(ac.back==='cape'){const cp=part(GEO.box,mk(0xd8261b),0,1.05,-.5,.75,.95,.04,1.05);cp.rotation.x=.18}
-  const legs=[],arms=[];
+  /* 造型的位置（v0.21.2）：從上往下打 4 條線找頭頂（跳過吸管、竹籤、蒸氣這類細的或透明的東西），從背後打一條線找背；大小跟著身體寬度 */
+  let ht=top,bz=-.5,fit=Math.min(1.15,Math.max(.75,armX/.68));try{const rc=new THREE.Raycaster(),sol=body.children.filter(m=>m.isMesh&&m.material!==out&&!m.material.transparent),hs=[];
+    for(const[x,z]of[[.18,0],[-.18,0],[0,.15],[0,-.15]]){rc.set(new THREE.Vector3(x,top+3,z),new THREE.Vector3(0,-1,0));const h=rc.intersectObjects(sol,false)[0];if(h)hs.push(h.point.y)}
+    if(hs.length>=2)ht=Math.min(top,Math.min(...hs)+.02);if(ch==='ramen')ht=Math.max(ht,top-.25);rc.set(new THREE.Vector3(0,armY-.1,-6),new THREE.Vector3(0,0,1));const hb=rc.intersectObjects(sol,false)[0];if(hb&&hb.point.z<0)bz=hb.point.z-.02}catch(e){}
+  if(alt){const halo=new THREE.Mesh(new THREE.TorusGeometry(.32,.05,6,18),basic(0xffd84a));halo.rotation.x=Math.PI/2;halo.position.y=ht+.42;body.add(halo)}
+  const ac=typeof acc==='string'?accParse(acc):(acc||{}),spin=[];
+  /* 把一組造型零件包成小群組，放到指定位置、照身體大小縮放 */
+  const grp=(x,y,z,sc,fn)=>{const n0=body.children.length;fn();const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(sc);for(const m of body.children.slice(n0))g.add(m);body.add(g);return g};
+  if(ac.head)grp(0,ht,0,fit,()=>{const k=ac.head;
+    if(k==='straw'){part(GEO.cyl16,mk(0xf2d07a),0,.03,0,.62,.05,.62,1.06);part(GEO.cyl16,mk(0xf2d07a),0,.17,0,.32,.26,.32,1.06);part(GEO.cyl16,mk(0xe23a2a),0,.1,0,.33,.08,.33)}
+    else if(k==='chef'){part(GEO.cyl16,mk(0xffffff),0,.2,0,.27,.4,.27,1.06);part(GEO.sph,mk(0xffffff),0,.48,0,.38,.26,.38,1.06)}
+    else if(k==='crown'){const gd=mk(0xffc21f);part(GEO.cyl8,gd,0,.1,0,.3,.2,.3,1.08);for(let i=0;i<5;i++)part(GEO.cone5,gd,Math.cos(i*TAU/5)*.27,.27,Math.sin(i*TAU/5)*.27,.08,.18,.08);part(GEO.sph,mk(0xe0244a),0,.12,.3,.07,.07,.04)}
+    else if(k==='band'){const bd=mk(0xe8261b);part(GEO.cyl16,bd,0,-.2,0,.5,.12,.5,1.04);for(const sd of[-1,1]){const tl=part(GEO.box,bd,sd*.12,-.28,-.5,.08,.32,.05,1.08);tl.rotation.z=sd*.5}}
+    else if(k==='bow'){const pk=mk(0xff5fa8);for(const sd of[-1,1]){const c=part(GEO.cone6,pk,sd*.18,.06,.05,.14,.24,.1,1.1);c.rotation.z=sd*Math.PI/2}part(GEO.sph,pk,0,.06,.06,.09,.09,.09)}
+    else if(k==='party'){const c=part(GEO.cone6,mk(0xff5aa8),0,.27,0,.22,.5,.22,1.08);c.rotation.z=-.15;for(const[y,r]of[[.1,.2],[.28,.13]])part(GEO.cyl16,mk(0xffe066),-.02-y*.15,y,0,r,.04,r);part(GEO.sph,mk(0xffffff),-.08,.53,0,.08,.08,.08)}
+    else if(k==='bunny'){for(const sd of[-1,1]){const e=part(GEO.ico,mk(0xffffff),sd*.16,.3,0,.1,.36,.07,1.08);e.rotation.z=-sd*.18;const n=part(GEO.ico,mk(0xffa8c8),sd*.16,.3,.05,.05,.25,.02);n.rotation.z=-sd*.18}}
+    else if(k==='halo'){const h=new THREE.Mesh(new THREE.TorusGeometry(.3,.05,6,18),basic(0xffe066));h.rotation.x=Math.PI/2;h.position.y=.42;body.add(h)}
+    else if(k==='prop'){part(GEO.dome,mk(0x3a7ad8),0,0,0,.33,.22,.33,1.06);part(GEO.cyl16,mk(0xffd23a),0,.02,.22,.2,.03,.14);part(GEO.cyl6,mk(0x2a2a2a),0,.28,0,.03,.14,.03);
+      const pr=new THREE.Group();pr.position.y=.36;for(const r of[0,Math.PI/2]){const b2=new THREE.Mesh(GEO.box,mk(0xe8261b));b2.scale.set(.52,.025,.08);b2.rotation.y=r;pr.add(b2)}body.add(pr);spin.push(pr)}});
+  if(ac.face){const k=ac.face;
+    if(k==='shades'){const kk=mk(0x111111);for(const sd of[-1,1])part(GEO.box,kk,sd*ex,ey+.02,ez+.06,.22,.13,.04);part(GEO.box,kk,0,ey+.05,ez+.06,ex*2,.03,.03)}
+    else if(k==='hearts'){const hc=mk(0xff3a7a);for(const sd of[-1,1]){for(const d of[-.045,.045])part(GEO.sph,hc,sd*ex+d,ey+.04,ez+.07,.07,.07,.03);const c=part(GEO.cone5,hc,sd*ex,ey-.05,ez+.07,.1,.1,.03);c.rotation.z=Math.PI}part(GEO.box,hc,0,ey+.06,ez+.07,ex*2-.1,.025,.02)}
+    else if(k==='stache'){const st=mk(0x3a2414);for(const sd of[-1,1]){const m=part(GEO.ico,st,sd*.1,ey-.25,ez+.03,.11,.045,.04);m.rotation.z=sd*.35;part(GEO.sph,st,sd*.2,ey-.2,ez+.02,.035,.035,.03)}}
+    else if(k==='blush'){const bl=mk(0xff8ab0);for(const sd of[-1,1])part(GEO.sph,bl,sd*(ex+.13),ey-.17,ez-.03,.09,.05,.03)}}
+  if(ac.back)grp(0,armY-.12,bz,fit,()=>{const k=ac.back;
+    if(k==='cape'){const cp=part(GEO.box,mk(0xd8261b),0,-.2,-.03,.75,.95,.04,1.05);cp.rotation.x=.18}
+    else if(k==='wings'){for(const sd of[-1,1]){const w=part(GEO.ico,mk(0xffffff),sd*.34,.18,-.12,.1,.42,.3,1.06);w.rotation.set(0,sd*.6,-sd*.55);w.position.y=.05;const w2=part(GEO.ico,mk(0xf0f4ff),sd*.5,.02,-.16,.08,.28,.22);w2.rotation.set(0,sd*.6,-sd*.9)}}
+    else if(k==='bag'){part(GEO.box,mk(0xffc21f),0,0,-.14,.5,.55,.26,1.05);part(GEO.box,mk(0xe8941f),0,.16,-.27,.5,.22,.04);part(GEO.box,mk(0xff5a5a),0,-.08,-.28,.16,.1,.02);for(const sd of[-1,1])part(GEO.box,mk(0xe8941f),sd*.2,.05,.02,.05,.55,.04)}
+    else if(k==='rocket'){for(const sd of[-1,1]){part(GEO.cyl8,mk(0xc8ccd4),sd*.17,0,-.14,.12,.6,.12,1.06);part(GEO.cone6,mk(0xe8261b),sd*.17,.4,-.14,.12,.2,.12,1.06);
+        const f=new THREE.Mesh(GEO.cone6,basic(0xffa020,.85));f.scale.set(.09,.28,.09);f.rotation.x=Math.PI;f.position.set(sd*.17,-.44,-.14);body.add(f);spin.push(f)}}});
+    const legs=[],arms=[];
   for(const s of[-1,1]){const lp=new THREE.Group();lp.position.set(s*.2,.6,0);const lg=new THREE.Mesh(GEO.cyl6,blk);lg.scale.set(.05,.6,.05);lg.position.y=-.3;lg.castShadow=true;lp.add(lg);group.add(lp);legs.push(lp);
     const ap=new THREE.Group();ap.position.set(s*armX,armY,0);const am=new THREE.Mesh(GEO.cyl6,blk);am.scale.set(.04,.5,.04);am.position.y=-.25;ap.rotation.z=s*.75;ap.add(am);body.add(ap);arms.push(ap)}
+  if(ac.hand){const k=ac.hand,hg=new THREE.Group(),n0=body.children.length;
+    if(k==='fork'){const sv=mk(0xd8dde4);part(GEO.cyl6,sv,0,.2,0,.03,.5,.03,1.1);part(GEO.box,sv,0,.5,0,.15,.12,.03);for(const x of[-.05,0,.05])part(GEO.box,sv,x,.64,0,.025,.18,.025)}
+    else if(k==='balloon'){part(GEO.cyl6,mk(0xffffff),0,.45,0,.008,.9,.008);part(GEO.sph,mk(0xff3a5a),0,1.12,0,.22,.27,.22,1.06);part(GEO.cone5,mk(0xff3a5a),0,.86,0,.05,.06,.05);part(GEO.sph,mk(0xffffff),-.07,1.2,.17,.04,.07,.02)}
+    else if(k==='wand'){part(GEO.cyl6,mk(0x5a3a2a),0,.22,0,.025,.45,.025,1.1);part(GEO.ico0,mk(0xffd23a),0,.52,0,.12,.12,.06,1.1);const sp2=new THREE.Mesh(GEO.sph,basic(0xfff6b0,.8));sp2.scale.setScalar(.05);sp2.position.set(.12,.62,0);body.add(sp2)}
+    else if(k==='flag'){part(GEO.cyl6,mk(0xd8d8d8),0,.38,0,.02,.8,.02);part(GEO.box,mk(0x3a7ad8),.17,.66,0,.32,.2,.015,1.1);part(GEO.sph,mk(0xffd23a),0,.8,0,.035,.035,.035)}
+    for(const m of body.children.slice(n0))hg.add(m);hg.position.set(0,-.56,0);hg.rotation.z=-.75;arms[1].add(hg)}
   if(ch==='fries')for(const ap of arms){const gl=new THREE.Mesh(GEO.sph,mk(A?A.glove:0xe8261b));gl.scale.set(.2,.18,.22);gl.position.y=-.52;gl.castShadow=true;const o=new THREE.Mesh(GEO.sph,out);o.scale.setScalar(1.12);gl.add(o);ap.add(gl)}
   if(ch==='riceball'){const kn=new THREE.Group();const bl=new THREE.Mesh(GEO.box,mk(0xdfe6ee));bl.scale.set(.05,.55,.14);bl.position.y=-.85;const hd=new THREE.Mesh(GEO.box,mk(0x2a1a10));hd.scale.set(.07,.22,.08);hd.position.y=-.5;const gd=new THREE.Mesh(GEO.box,mk(0xffc21f));gd.scale.set(.06,.04,.2);gd.position.y=-.6;kn.add(bl,hd,gd);arms[1].add(kn)}
-  return{group,body,legs,arms,mats,out,ch,ph:Math.random()*6,alpha:1}}
+  return{group,body,legs,arms,mats,out,ch,spin,ph:Math.random()*6,alpha:1}}
 function setAlpha(o,a){if(o.alpha===a)return;o.alpha=a;for(const m of o.mats){m.transparent=a<1;m.opacity=a;m.depthWrite=a>=1;m.needsUpdate=true}o.out.visible=a>=1}
 function animChar(o,dt,moving,slip,atk,t){
   o.ph+=dt*(moving?13:2.5);const s=Math.sin(o.ph);
   if(moving){o.legs[0].rotation.x=s*.7;o.legs[1].rotation.x=-s*.7;o.arms[0].rotation.x=-s*.6;o.arms[1].rotation.x=s*.6;o.body.position.y=Math.abs(s)*.08}
   else{o.legs[0].rotation.x*=.8;o.legs[1].rotation.x*=.8;o.arms[0].rotation.x=atk?-1.4:Math.sin(o.ph)*.08;o.arms[1].rotation.x=atk?-.2:-Math.sin(o.ph)*.08;o.body.position.y=Math.sin(o.ph)*.025}
-  o.body.rotation.x=atk?.18:slip?-.5:0;o.body.rotation.z=slip?Math.sin(t*20)*.3:0}
+  o.body.rotation.x=atk?.18:slip?-.5:0;o.body.rotation.z=slip?Math.sin(t*20)*.3:0;
+  if(o.spin)for(const m of o.spin){if(m.isGroup)m.rotation.y+=dt*14;else m.scale.y=.24+.08*Math.sin(t*40+m.position.x*9)}}
 
 /* ---------- 子彈與物件 ---------- */
 function makeProj(type,o){const g=new THREE.Group();
@@ -2801,7 +2832,7 @@ function taskSheet(){ensureDaily();return'<ul class="tasks">'+save.daily.list.ma
   return`<li class="${done?'done':''}"><div class="tt">${missionText(m)}</div><div class="bar"><i style="width:${m.p/m.t*100}%"></i></div><div class="tr2"><span>${m.p}/${m.t}</span><span>${rw}</span>${m.claimed?'<span class="ok">已領取</span>':done?`<button class="btn small main" data-act="claim" data-i="${i}">領取</button>`:''}</div></li>`}).join('')+'</ul><p class="sp">每天換 3 個新任務。</p>'}
 $('#mbTask').addEventListener('click',()=>openSheet('每日任務',taskSheet()));
 function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">替 <b>${CHARS[id].name}</b> 換造型（全部免費，只是好看，不影響能力）。每隻角色可以分開穿。</p><ul class="wards">`+Object.entries(ACCS).map(([k,a])=>{const own=true,on=eq[a.slot]===k;/* v0.21.1 起造型全部免費 */
-  return`<li><span class="an">${a.name}</span><span class="as">${{head:'頭上',face:'臉上',back:'背後'}[a.slot]}</span>${own?`<button class="btn small ${on?'blue':'main'}" data-act="wear" data-k="${k}">${on?'脫下':'穿上'}</button>`:`<button class="btn small main" data-act="buya" data-k="${k}" ${save.coins>=a.price?'':'disabled'}>${coinIc} ${a.price}</button>`}</li>`}).join('')+'</ul>'}
+  return`<li><span class="an">${a.name}</span><span class="as">${{head:'頭上',face:'臉上',back:'背後',hand:'手上'}[a.slot]}</span>${own?`<button class="btn small ${on?'blue':'main'}" data-act="wear" data-k="${k}">${on?'脫下':'穿上'}</button>`:`<button class="btn small main" data-act="buya" data-k="${k}" ${save.coins>=a.price?'':'disabled'}>${coinIc} ${a.price}</button>`}</li>`}).join('')+'</ul>'}
 $('#sheetBody').addEventListener('input',e=>{const t=e.target;
   if(t.id==='vMus'){save.musicVol=+t.value;persist();setMusicVol()}
   else if(t.id==='vSfx'){save.sfxVol=+t.value;persist()}});

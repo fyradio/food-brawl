@@ -147,7 +147,7 @@ button,input{font:inherit;color:inherit}
 .slots li.empty{background:transparent;border:2px dashed rgba(90,52,8,.35);color:rgba(90,52,8,.6);font-weight:700}
 .slots li .tag{margin-left:auto;font-size:11px;background:var(--brown);color:var(--cream);border-radius:5px;padding:1px 6px}
 .slots li .team{font-size:11px;border-radius:5px;padding:1px 6px;color:var(--paper);border:2px solid var(--ink)}
-.slots li .team.t0{background:var(--red-team)}.slots li .team.t1{background:var(--blue-team)}
+.slots li .team.t0{background:var(--red-team)}.slots li .team.t1{background:var(--blue-team)}.slots li .team.t2{background:#ffc21f;color:#2a1a00}.slots li .team.t3{background:#9a5ae8}.slots li .team.t4{background:#f2f2f2;color:#222}.slots li .team.t5{background:#2a2a2a}
 .slots li.tap{cursor:pointer}
 .ropts{grid-column:1;grid-row:2;display:flex;flex-direction:column;gap:5px}
 .rbtns{grid-column:1/-1;grid-row:3;display:grid;grid-template-columns:1fr 2fr;gap:10px}
@@ -175,7 +175,7 @@ button,input{font:inherit;color:inherit}
 .rlist li.me{background:var(--tomato)}
 .rlist li .n{font-family:var(--f-disp);font-size:16px}
 .rlist li i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink)}
-.rlist li i.t0{box-shadow:0 0 0 2px var(--red-team)}.rlist li i.t1{box-shadow:0 0 0 2px var(--blue-team)}
+.rlist li i.t0{box-shadow:0 0 0 2px var(--red-team)}.rlist li i.t1{box-shadow:0 0 0 2px var(--blue-team)}.rlist li i.t2{box-shadow:0 0 0 2px #ffc21f}.rlist li i.t3{box-shadow:0 0 0 2px #9a5ae8}.rlist li i.t4{box-shadow:0 0 0 2px #f2f2f2}.rlist li i.t5{box-shadow:0 0 0 2px #2a2a2a}
 .rlist li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rlist li .sc{font-family:var(--f-disp);font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .rbtns2{grid-column:3;grid-row:3;display:grid;grid-template-columns:3fr 2fr;gap:10px;align-self:end}
@@ -187,7 +187,7 @@ button,input{font:inherit;color:inherit}
 .lbl{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:1px;will-change:transform}
 .lbl .top{display:flex;align-items:center;gap:3px;font-family:var(--f-disp);font-size:14px;white-space:nowrap}
 .lbl .bdg{display:inline-grid;place-items:center;min-width:18px;height:18px;background:var(--cheese);color:var(--ink);border:2px solid var(--ink);border-radius:5px;font-size:12px;text-shadow:none;padding:0 2px}
-.lbl.t0 .bdg{background:var(--red-team);color:var(--paper)}.lbl.t1 .bdg{background:var(--blue-team);color:var(--paper)}
+.lbl.t0 .bdg{background:var(--red-team);color:var(--paper)}.lbl.t1 .bdg{background:var(--blue-team);color:var(--paper)}.lbl.t2 .bdg{background:#ffc21f;color:#2a1a00}.lbl.t3 .bdg{background:#9a5ae8;color:#fff}.lbl.t4 .bdg{background:#f2f2f2;color:#222}.lbl.t5 .bdg{background:#2a2a2a;color:#fff}
 .lbl .nm{color:var(--paper)}
 .lbl.me .nm{color:var(--grn)}
 .lbl .hp{position:relative;width:68px;height:13px;background:var(--ink);border:2px solid var(--ink);border-radius:4px;overflow:hidden}
@@ -629,7 +629,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.22.0</span>
+<span class="ver">v0.23.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -953,11 +953,17 @@ function resolveOn(M,crates,p,r,bx,bz,walls){for(let it=0;it<2;it++){for(const o
   for(const c of crates)if(c.alive)pushBox(p,c.x,c.z,.65,.65,r);if(walls)for(const w of walls)pushBox(p,w.x,w.z,w.hw,w.hd,r)}p.x=clamp(p.x,-bx+r,bx-r);p.z=clamp(p.z,-bz+r,bz-r)}
 function solidAtOn(M,x,z,r){for(const o of M.solids){if(o.k==='box'){if(Math.abs(x-o.x)<o.w/2+r&&Math.abs(z-o.z)<o.d/2+r)return true}else if(Math.hypot(x-o.x,z-o.z)<o.r+r)return true}return false}
 function inBushOn(M,x,z){for(const b of M.bushes)if(Math.abs(x-b.x)<b.w/2&&Math.abs(z-b.z)<b.d/2)return true;return false}
+/* 連線分隊顏色（足球只用 0 紅、1 藍） */
+const TEAM_N=['紅','藍','黃','紫','白','黑'],TEAM_HEX=[0xff4b4b,0x3a8bff,0xffc21f,0x9a5ae8,0xf2f2f2,0x2a2a2a];
+/* 電腦自動分隊：指定了就照指定；沒指定時，真人只有一種顏色就去另一隊，否則補到人最少的顏色 */
+function autoBotTeams(humTeams,n,bt){const out=[];for(let i=0;i<n;i++){const v=bt&&bt[i]!=null&&bt[i]>=0?bt[i]:-1;out.push(v)}
+  for(let i=0;i<n;i++){if(out[i]>=0)continue;const all=humTeams.concat(out.filter(v=>v>=0)),used=[...new Set(all)];
+    if(used.length<=1){const c=used.length?used[0]:0;out[i]=(c+1)%6}else{let best=used[0],bc=1e9;for(const c of used){const k=all.filter(v=>v===c).length;if(k<bc){bc=k;best=c}}out[i]=best}}return out}
 const foe=(a,b)=>!!a&&!!b&&a!==b&&b.owner!==a.id&&a.owner!==b.id&&(a.team==null||a.team!==b.team);
 
 /* ================= 對戰模擬（單機或房主） ================= */
 class Game{
-  constructor(o){this.mode=o.mode||'score';this.mapId=o.map;this.M=MAPS[o.map];this.diff=DIFF[o.diff??1];
+  constructor(o){this.mode=o.mode||'score';this.teamsOn=!!o.teams;this.mapId=o.map;this.M=MAPS[o.map];this.diff=DIFF[o.diff??1];
     [this.bx,this.bz]=boundsFor(this.mode,o.players.length);
     this.players=[];this.proj=[];this.traps=[];this.puddles=[];this.items=[];this.decoys=[];this.events=[];this.nid=1;this.clock=0;this.walls=[];this.turrets=[];this.hazT=8;
     this.crates=this.M.crates.map((c,i)=>{const off=Math.abs(c.x)>this.bx-1.2||Math.abs(c.z)>this.bz-1.2;return{i,x:c.x,z:c.z,hp:CRATE_HP,alive:!off,off,t:0}});
@@ -969,7 +975,7 @@ class Game{
   spawnPoint(i,p){if(this.mode==='soccer'){const k=this.players.filter(q=>q.team===p.team).indexOf(p);const s=TEAM_SP[Math.max(0,k)%4];return[s[0],p.team===0?s[1]:-s[1]]}
     const s=(this.bx-2.5)/18.5,sp=(this.M.spawns||SPAWNS)[i%8];return[sp[0]*s,sp[1]*s]}
   addPlayer(pp,i){const C=CHARS[pp.ch],lv=clamp(pp.lvl||1,1,MAX_LV);
-    const p={id:i,name:pp.name,ch:pp.ch,lvl:lv,alt:!pp.bot&&!!pp.alt,bot:!!pp.bot,netId:pp.netId||null,team:this.mode==='soccer'?(pp.team|0):null,tal:lv>=5&&(pp.tal==='a'||pp.tal==='b')?pp.tal:null,acc:pp.acc||'',
+    const p={id:i,name:pp.name,ch:pp.ch,lvl:lv,alt:!pp.bot&&!!pp.alt,bot:!!pp.bot,netId:pp.netId||null,team:this.mode==='soccer'?(pp.team|0):(this.teamsOn&&pp.team!=null&&pp.team>=0?pp.team|0:null),tal:lv>=5&&(pp.tal==='a'||pp.tal==='b')?pp.tal:null,acc:pp.acc||'',
       x:0,z:0,vx:0,vz:0,ang:0,maxHp:Math.round(C.hp*lvMul(lv)),hp:0,alive:true,respawnT:0,invT:0,score:0,deaths:0,goalsMade:0,supers:0,crates:0,maxAmmo:lvAmmo(lv),ammo:0,sup:0,
       slipT:0,slipX:0,slipZ:0,slowT:0,power:0,idleT:0,burnT:0,burnSrc:-1,burnTick:0,inkT:0,rollT:0,rollHit:{},rollDmg:0,dashT:0,dashX:0,dashZ:0,dashHit:null,dashDmg:0,pullT:0,pullX:0,pullZ:0,burstQ:[],ivx:0,ivz:0,stunT:0,orbitT:0,orbitHit:{},orbitDmg:0,bigT:0,thornT:0,rootT:0,dashQ:0,dashR:1.4,bumpHit:{},spinT:0,spinHit:{},leapT:0,h:0,blizT:0,blizTick:0,shieldT:0,flurT:0,flurCd:0,eatT:0,chill:0,chillT:0,frozenT:0,rbi:0,
       lives:this.mode==='royale'?2:99,out:false,place:0,emoT:-9,
@@ -997,7 +1003,7 @@ class Game{
     if(this.walls.length)this.walls=this.walls.filter(w=>(w.life-=dt)>0);if(this.M.erupt)this.stepHazard(dt);if(this.hz)this.stepHz(dt);
     if(this.zone)this.stepZone(dt);if(this.ball)this.stepBall(dt);
     this.updFlags();
-    if(this.mode==='royale'&&!this.over&&this.players.filter(p=>!p.out).length<=1)this.endMatch()}
+    if(this.mode==='royale'&&!this.over){const al=this.players.filter(p=>!p.out);if(al.length<=1||new Set(al.map(p=>p.team!=null?'t'+p.team:'p'+p.id)).size<=1)this.endMatch()}}
   endMatch(){if(this.over)return;this.over=true;this.ev(['end'])}
   updFlags(){for(const p of this.players){p.hidden=this.isHidden(p);p.inv=p.invT>0;p.slip=p.slipT>0;p.slow=p.slowT>0;p.atk=p.atkT>0;p.burn=p.burnT>0;p.ink=p.inkT>0;p.roll=p.rollT>0;p.dash=p.dashT>0;p.stun=p.stunT>0;p.orbit=p.orbitT>0;p.giant=p.bigT>0;p.thorn=p.thornT>0;p.root=p.rootT>0;p.spin=p.spinT>0;p.leap=p.leapT>0;p.frozen=p.frozenT>0;p.bliz=p.blizT>0;p.shield=p.shieldT>0;p.flur=p.flurT>0;p.pull=p.pullT>0;p.fire=p.fireT>0}}
   burnOn(q,src){if(!q.alive||!src)return;q.burnT=(src.ch==='chili'||src.ch==='curry')&&src.tal==='a'?4:2;q.burnSrc=src.id;if(q.burnTick<=0)q.burnTick=.5}
@@ -1425,7 +1431,12 @@ class Game{
     if(this.mode==='royale')list=P.sort((a,b)=>(a.out?a.place:0)-(b.out?b.place:0)||b.score-a.score);
     else if(this.mode==='soccer')list=P.sort((a,b)=>a.team-b.team||b.goalsMade-a.goalsMade||b.score-a.score);
     else list=P.sort((a,b)=>b.score-a.score||a.deaths-b.deaths||a.id-b.id);
-    return{mode:this.mode,goals:this.goals.slice(),list:list.map(p=>({id:p.id,name:p.name,ch:p.ch,score:p.score,deaths:p.deaths,bot:p.bot,team:p.team,goals:p.goalsMade,place:p.place,supers:p.supers,crates:p.crates}))}}
+    /* 分隊（搶分、生存）：搶分比隊伍淘汰數加總；生存比哪一隊撐最久（還活著的隊第 1） */
+    let tl=null;const tm=this.mode!=='soccer'&&P.some(p=>p.team!=null);
+    if(tm){const T=new Map();for(const p of P){const k=p.team;if(!T.has(k))T.set(k,{team:k,score:0,alive:false,best:99});const t=T.get(k);t.score+=p.score;if(!p.out)t.alive=true;else t.best=Math.min(t.best,p.place||99)}
+      tl=[...T.values()].sort(this.mode==='royale'?(a,b)=>(b.alive-a.alive)||(a.best-b.best)||(b.score-a.score):(a,b)=>b.score-a.score);tl.forEach((t,i)=>t.place=i+1);
+      const tp=new Map(tl.map(t=>[t.team,t.place]));list=P.sort((a,b)=>tp.get(a.team)-tp.get(b.team)||b.score-a.score||a.id-b.id);for(const p of list)p.tplace=tp.get(p.team)}
+    return{mode:this.mode,goals:this.goals.slice(),teams:tl&&tl.map(t=>({team:t.team,score:t.score,place:t.place})),list:list.map(p=>({id:p.id,name:p.name,ch:p.ch,score:p.score,deaths:p.deaths,bot:p.bot,team:p.team,goals:p.goalsMade,place:p.place,tplace:p.tplace,supers:p.supers,crates:p.crates}))}}
 }
 
 /* ================= 電腦 AI ================= */
@@ -2136,7 +2147,7 @@ class View{
     this.t+=dt;const t=this.t,me=st.players[meId],k=1-Math.exp(-dt*(st.local?40:14));
     for(const p of st.players){let o=this.pm.get(p.id);
       if(!o){o=makeChar(p.ch,!!p.alt,p.acc);o.dx=p.x;o.dz=p.z;o.da=p.ang;this.scene.add(o.group);this.pm.set(p.id,o);
-        if(p.team!=null){const ring=new THREE.Mesh(GEO.ring,basic(p.team===0?0xff4b4b:0x3a8bff,.9));ring.rotation.x=-Math.PI/2;ring.position.y=.04;ring.scale.setScalar(.85);o.group.add(ring)}
+        if(p.team!=null){const ring=new THREE.Mesh(GEO.ring,basic(TEAM_HEX[p.team]??0xff4b4b,.9));ring.rotation.x=-Math.PI/2;ring.position.y=.04;ring.scale.setScalar(.85);o.group.add(ring)}
         o.lbl=makeLabel(p,p.id===meId,me)}
       const tx=(p.id===meId&&pred)?pred.x:p.x,tz=(p.id===meId&&pred)?pred.z:p.z;
       if(Math.hypot(tx-o.dx,tz-o.dz)>3||!o.wasAlive){o.dx=tx;o.dz=tz}else{o.dx+=(tx-o.dx)*k;o.dz+=(tz-o.dz)*k}
@@ -2408,8 +2419,8 @@ function finish(res){if(mode!=='game'||ended)return;ended=true;
   const t0=save.trophies;let td,c1,c3,head,l1='名次',l3='獎勵',sub='比賽結束',win=false,rank=0;
   if(res.mode==='soccer'){const g=res.goals,mt=me.team|0;win=g[mt]>g[1-mt];const draw=g[0]===g[1];td=win?8:draw?2:-3;c1=jit(win?200:draw?60:20);c3=0;for(let i=0;i<(me.goals||0);i++)c3+=jit(300);l1='勝負';l3='進球';
     head=win?'你這隊贏了！':draw?'平手！':'差一點點！';sub=`紅 ${g[0]} : ${g[1]} 藍`;lastRank=win?0:1;rank=win?0:3}
-  else{rank=res.mode==='royale'?Math.max(0,(me.place||1)-1):Math.max(0,myI);win=rank===0;td=TRO[rank]??-4;c1=COIN_RANK[rank]??5;c3=rank===0?20:0;
-    head=rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.mode==='royale'?'生存結束':'比賽結束';lastRank=rank}
+  else{rank=res.teams&&me.tplace?me.tplace-1:res.mode==='royale'?Math.max(0,(me.place||1)-1):Math.max(0,myI);win=rank===0;td=TRO[rank]??-4;c1=COIN_RANK[rank]??5;c3=rank===0?20:0;
+    head=res.teams?(rank===0?'你這隊第 1 名！':`你這隊第 ${rank+1} 名`):rank===0?'你是第 1 名！':`你是第 ${rank+1} 名`;sub=res.teams?res.teams.map(t=>TEAM_N[t.team]+'隊 '+t.score+(res.mode==='royale'?' 殺':'')).join('・'):res.mode==='royale'?'生存結束':'比賽結束';lastRank=rank}
   /* 金幣：足球＝每進 1 球約 300＋贏球約 200；搶分＝每淘汰 1 人 10＋前三名加成（150／110／70）；生存＝名次×2＋淘汰×8 */
   if(res.mode==='score'){c1=[150,110,70,20,10,5,5,5][rank]??5;c3=0}
   const cm=res.mode==='royale'?2:1;c1*=cm;c3*=cm;const c2=me.score*(res.mode==='royale'?8:10);save.trophies=Math.max(0,t0+td);const cGot=gainCoins(c1+c2+c3);
@@ -2419,7 +2430,7 @@ function finish(res){if(mode!=='game'||ended)return;ended=true;
   $('#resT0').textContent=t0;$('#resT1').textContent=save.trophies;$('#resRank').textContent=head;$('#resSub').textContent=sub;
   $('#resL1').textContent=l1;$('#resL3').textContent=l3;$('#resC1').textContent=c1;$('#resC2').textContent=c2;$('#resC3').textContent=c3;$('#resC').textContent=(c1+c2+c3)+(cGot<c1+c2+c3?'（金幣已滿 '+COIN_CAP+'）':'');
   $('#resChest').hidden=!chest;$('#resChestN').textContent='+'+chest;
-  $('#resList').innerHTML=list.map((r,i)=>{const n=res.mode==='royale'?(r.place||1):res.mode==='soccer'?'':i+1;
+  $('#resList').innerHTML=list.map((r,i)=>{const n=res.teams?(r.tplace||''):res.mode==='royale'?(r.place||1):res.mode==='soccer'?'':i+1;
     const sc=res.mode==='soccer'?`${r.goals||0} 球・${r.score} 殺`:res.mode==='royale'?`${r.score} 殺`:r.score;
     return`<li class="${r.id===meId?'me':''}"><span class="n">${n}</span><i class="${r.team!=null?'t'+r.team:''}" style="${avStyle(r.ch)}"></i><span class="nm"></span><span class="sc">${sc}</span></li>`}).join('');
   [...$('#resList').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=list[i].name+(list[i].bot?'（電腦）':''));
@@ -2589,10 +2600,11 @@ function hostStart(){if(!NET.peer||!NET.peer.open)return;const o=NET.opts,fixL=o
   if(pool)humans.forEach(h=>{h.ch=pool[Math.floor(Math.random()*pool.length)];h.tal=null;h.alt=false});
   if(fixL)humans.forEach(h=>{h.lvl=fixL;h.tal=fixL>=5?(h.tal||(Math.random()<.5?'a':'b')):null});
   const avg=fixL||Math.round(humans.reduce((s,h)=>s+h.lvl,0)/humans.length);
-  if(!soccer)humans.forEach(h=>delete h.team);
+  const tm=!soccer&&o.tm==='on';if(soccer)humans.forEach(h=>h.team=(h.team|0)%2);if(!soccer&&!tm)humans.forEach(h=>delete h.team);
   const players=fillBots(humans,o.bots,avg,o.diff,!!fixL,soccer,pool);
+  if(tm){const bots=players.filter(p=>p.bot),bt=autoBotTeams(humans.map(h=>h.team|0),bots.length,o.bt);bots.forEach((b,i)=>b.team=bt[i])}
   const map=soccer?'stadium':o.map==='rand'?MAP_POOL[Math.floor(Math.random()*MAP_POOL.length)]:o.map;
-  const night=o.mode==='royale'&&Math.random()<.5;const cfg={map,mode:o.mode,dur:o.dur,diff:o.diff,players,night};NET.inGame=true;
+  const night=o.mode==='royale'&&Math.random()<.5;const cfg={map,mode:o.mode,dur:o.dur,diff:o.diff,players,night,teams:tm};NET.inGame=true;
   const[bx,bz]=boundsFor(o.mode,players.length);
   const P=players.map(p=>[p.name,p.ch,p.lvl,p.bot?1:0,p.team??-1,p.lvl>=5?p.tal||'':'',p.acc||'',!p.bot&&p.alt?1:0]);
   players.forEach((p,i)=>{if(p.netId){const c=NET.conns.get(p.netId);if(c&&c.open)c.send({t:'start',map,you:i,P,mode:o.mode,dur:o.dur,bx,bz,night:night?1:0})}});
@@ -2871,17 +2883,18 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='buya'){const k=b.dataset.k,a=ACCS[k];if(save.accOwned.includes(k)||save.coins<a.price)return;save.coins-=a.price;save.accOwned.push(k);const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=k;persist();SFX.pick();openSheet('造型',wardSheet())}
   else if(act==='wear'){const k=b.dataset.k,a=ACCS[k];const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=eq[a.slot]===k?'':k;persist();openSheet('造型',wardSheet())}
   refreshUI()});
-function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.opts:NET.opts,soccer=o.mode==='soccer';
-  $('#rHint').textContent=host?'朋友打開這個遊戲 → 加入房間 → 輸入代碼（同一個 WiFi 最穩）'+(soccer?'。點玩家可以換隊':''):NET.joined?'等房主按開始…':'連線中…';
+function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.opts:NET.opts,soccer=o.mode==='soccer',tm=!soccer&&o.tm==='on',tapT=soccer||tm;
+  $('#rHint').textContent=host?'朋友打開這個遊戲 → 加入房間 → 輸入代碼（同一個 WiFi 最穩）'+(soccer?'。點玩家可以換隊':tm?'。點玩家或電腦換顏色，同顏色就是同一隊':''):NET.joined?'等房主按開始…':'連線中…';
   const rows=[];if(m){rows.push({...m.host,tag:'房主',idx:-1});m.list.forEach((l,i)=>rows.push({...l,idx:i}))}
   const humans=rows.length,bots=Math.min(o.bots,8-humans);
-  let html=rows.map(r=>`<li class="${host&&soccer?'tap':''}" data-i="${r.idx}" ${host&&soccer?'tabindex="0"':''}><i style="${avStyle(r.ch)}"></i><span class="nm"></span>${soccer?`<span class="team t${r.team|0}">${r.team?'藍隊':'紅隊'}</span>`:''}${r.tag?'<span class="tag">房主</span>':''}</li>`).join('');
-  for(let i=0;i<bots;i++)html+='<li class="bot">電腦</li>';for(let i=humans+bots;i<8;i++)html+='<li class="empty">空位</li>';
+  let html=rows.map(r=>`<li class="${host&&tapT?'tap':''}" data-i="${r.idx}" ${host&&tapT?'tabindex="0"':''}><i style="${avStyle(r.ch)}"></i><span class="nm"></span>${tapT?`<span class="team t${soccer?(r.team|0)%2:r.team|0}">${TEAM_N[soccer?(r.team|0)%2:r.team|0]}隊</span>`:''}${r.tag?'<span class="tag">房主</span>':''}</li>`).join('');
+  const bT=tm?autoBotTeams(rows.map(r=>r.team|0),bots,o.bt):null;for(let i=0;i<bots;i++)html+=tm?`<li class="bot${host?' tap':''}" data-b="${i}">電腦 <span class="team t${bT[i]}">${TEAM_N[bT[i]]}隊</span></li>`:'<li class="bot">電腦</li>';for(let i=humans+bots;i<8;i++)html+='<li class="empty">空位</li>';
   $('#rSlots').innerHTML=html;
   [...$('#rSlots').querySelectorAll('.nm')].forEach((el,i)=>el.textContent=rows[i].name+'・'+(o.rc==='rand'?'隨機角色':(CHARS[rows[i].ch]||CHARS.apple).name)+(o.lv==='own'?' Lv'+rows[i].lvl:''));
   const maxBots=Math.max(0,8-Math.max(1,humans));const botVals=[];for(let i=0;i<=maxBots;i++)botVals.push([i,String(i)]);
   $('#rOpts').innerHTML=`<div class="chips">${chipsHTML('模式','mode',[['score','搶分'],['royale','生存'],['soccer','足球']],o.mode,!host)}</div>`+
     (o.mode!=='royale'?`<div class="chips">${chipsHTML('時間','dur',[[90,'90 秒'],[180,'180 秒']],o.dur,!host)}</div>`:'')+
+    (!soccer?`<div class="chips">${chipsHTML('分隊','tm',[['off','不分隊'],['on','分隊']],o.tm||'off',!host)}</div>`:'')+
     `<div class="chips">${chipsHTML('電腦','bots',botVals,bots,!host)}</div>`+
     `<div class="chips">${chipsHTML('強度','diff',DIFF.map((d,i)=>[i,d.name]),o.diff,!host)}</div>`+
     `<div class="chips">${chipsHTML('等級','lv',[[1,'全部 Lv1'],[5,'全部 Lv5'],[10,'全部 Lv10'],['own','自己的']],o.lv==='fair'?1:o.lv,!host)}</div>`+
@@ -2897,8 +2910,10 @@ function rpickSheet(){sheetKind='rpick';const cur=roomCh();
   openSheet('選角色',`<p class="sp">沒擁有的也能選，只有這一場可以用。</p>${grid}`,true)}
 $('#rMy').addEventListener('click',rpickSheet);
 $('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;const v=b.dataset.v;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+v:(k==='lv'||k==='rt')&&v!=='own'&&v!=='all'?+v:v;broadcastLobby()});
-$('#rSlots').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(!li||!NET.host||NET.opts.mode!=='soccer')return;const i=+li.dataset.i;
-  if(i<0)NET.hostTeam=1-NET.hostTeam;else if(NET.lobby[i])NET.lobby[i].team=1-(NET.lobby[i].team|0);broadcastLobby()});
+$('#rSlots').addEventListener('click',e=>{if(!NET.host)return;const o=NET.opts,soccer=o.mode==='soccer',tm=!soccer&&o.tm==='on';if(!soccer&&!tm)return;const nx=t=>soccer?1-(t|0):((t|0)+1)%6;
+  const lb=e.target.closest('li[data-b]');if(lb&&tm){const k=+lb.dataset.b,m=lobbyMsg(),hum=[m.host,...m.list].map(r=>r.team|0),cur=autoBotTeams(hum,k+1,o.bt)[k];o.bt=(o.bt||[]).slice();while(o.bt.length<=k)o.bt.push(-1);o.bt[k]=nx(cur);broadcastLobby();return}
+  const li=e.target.closest('li[data-i]');if(!li)return;const i=+li.dataset.i;
+  if(i<0)NET.hostTeam=nx(NET.hostTeam);else if(NET.lobby[i])NET.lobby[i].team=nx(NET.lobby[i].team);broadcastLobby()});
 $('#rStart').addEventListener('click',()=>{audioOn();hostStart()});
 $('#rLeave').addEventListener('click',()=>{netClose();showScreen('menu')});
 $('#resAgain').addEventListener('click',()=>{if(online){if(!NET.peer){showScreen('menu');return}showScreen('room');if(NET.host)broadcastLobby();else renderRoom()}else startSolo()});

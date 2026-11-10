@@ -228,6 +228,11 @@ button,input{font:inherit;color:inherit}
 .tr{position:absolute;top:max(8px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));display:flex;gap:6px}
 .tr button{pointer-events:auto;font-size:15px;padding:.5em 1.1em;min-height:40px;border:2px solid var(--ink);border-radius:8px;background:var(--hud);cursor:pointer}
 #emoPanel{position:absolute;bottom:calc(var(--ab) + var(--A) + var(--g));right:calc(var(--er) + (var(--A) + var(--Ec))/2 + var(--g));pointer-events:auto;display:grid;grid-template-columns:repeat(3,auto);gap:5px;background:var(--hud);border:2px solid var(--ink);border-radius:12px;padding:6px}
+#emoWheel{position:fixed;inset:0;z-index:40;pointer-events:none}
+#emoWheel .eb{position:absolute;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;line-height:1;pointer-events:auto;box-shadow:0 3px 0 rgba(0,0,0,.35);transition:transform .08s;touch-action:none;-webkit-user-select:none;user-select:none}
+#emoWheel .eb small{font-size:11px;font-weight:900;margin-top:2px}
+#emoWheel .eb.hi{transform:scale(1.25);background:var(--cheese);}
+#emoWheel .ec{position:absolute;border-radius:50%;border:3px dashed rgba(255,255,255,.55);pointer-events:none}
 #emoPanel button{border:2px solid var(--ink);border-radius:10px;background:var(--paper);color:var(--ink);font-size:15px;padding:7px 9px;cursor:pointer;white-space:nowrap}
 .abtn::after{content:'';position:absolute;inset:-16px;border-radius:50%}
 #btnSup::after,#btnEmo::after,#btnAtk::after{inset:-6px}
@@ -524,7 +529,7 @@ button,input{font:inherit;color:inherit}
   <div class="abtn" id="btnEmo" aria-label="聊天">💬</div>
   <div id="keyhint" class="ot">WASD 移動｜滑鼠瞄準、左鍵攻擊｜大招滿了按右鍵或 E｜1～6 表情</div>
   <div class="tr"><button id="btnQuit" class="ot">離開</button></div>
-  <div id="emoPanel" hidden></div>
+  <div id="emoPanel" hidden></div><div id="emoWheel" hidden></div>
 </div>
 
 <div id="menu" class="screen" hidden>
@@ -629,7 +634,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.23.0</span>
+<span class="ver">v0.24.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2281,11 +2286,13 @@ function avatar(ch){if(AVC.has(ch))return AVC.get(ch);if(!avR||!CHARS[ch])return
 function avStyle(ch){const u=AVC.get(ch);return u?`background:#fff7e2 url(${u}) center/cover`:`background:${(CHARS[ch]||CHARS.apple).col}`}
 function warmAvatars(){if(!avR)return;const ids=CH_IDS.slice();const step=()=>{for(let k=0;k<3&&ids.length;k++)avatar(ids.shift());if(ids.length)setTimeout(step,0);else if(mode==='pick'||mode==='menu')refreshUI()};setTimeout(step,0)}
 /* ================= 大廳 3D 展示 ================= */
-let menuScene,menuCam,menuChar=null,menuCharId='',menuPod;
+let menuScene,menuCam,menuChar=null,menuCharId='',menuPod,menuDim={h:2.1,w:1.5},menuRect=null,menuSpin=0,menuDrag=null;
 function initMenu3D(){menuScene=new THREE.Scene();menuCam=new THREE.PerspectiveCamera(32,1,.1,50);
   menuScene.add(new THREE.HemisphereLight(0xffffff,0xd0902a,.8));const d=new THREE.DirectionalLight(0xffffff,.7);d.position.set(3,6,5);menuScene.add(d);
   menuPod=new THREE.Mesh(GEO.disc,basic(0xb8741a,.35));menuPod.rotation.x=-Math.PI/2;menuPod.scale.setScalar(1.1);menuScene.add(menuPod)}
-function setMenuChar(ch,alt,acc){const key=ch+(alt?'*':'')+(acc||'');if(menuCharId===key)return;if(menuChar){menuScene.remove(menuChar.group);freeObj(menuChar.group)}menuChar=makeChar(ch,alt,acc);menuCharId=key;menuScene.add(menuChar.group)}
+function setMenuChar(ch,alt,acc){const key=ch+(alt?'*':'')+(acc||'');if(menuCharId===key)return;if(menuChar){menuScene.remove(menuChar.group);freeObj(menuChar.group)}menuChar=makeChar(ch,alt,acc);menuCharId=key;menuScene.add(menuChar.group);
+  /* 依角色真正的大小來縮放（泡菜、烤魷魚這種高的不會超出版面） */
+  try{menuChar.group.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(menuChar.group);menuDim={h:Math.max(2.1,b.max.y),w:Math.max(1.5,2*Math.max(-b.min.x,b.max.x,-b.min.z,b.max.z))}}catch(e){menuDim={h:2.1,w:1.5}}}
 function renderMenu(dt,t){if(!menuChar)return;const asp=innerWidth/innerHeight;menuCam.aspect=asp;menuCam.updateProjectionMatrix();
   const halfH=7*Math.tan(16*Math.PI/180),halfW=halfH*asp;let x=0,y=0,sc=1.25;
   if(mode==='menu'||mode==='pick'||mode==='reveal'){
@@ -2293,14 +2300,15 @@ function renderMenu(dt,t){if(!menuChar)return;const asp=innerWidth/innerHeight;m
     let L=0,T=0,Wd=innerWidth,Ht=innerHeight;
     if(mode==='pick'||mode==='reveal'){const r=$(mode==='pick'?'#pkStage':'#rvStage').getBoundingClientRect();L=r.left;T=r.top;Wd=r.width;Ht=r.height}
     else{const hb=document.querySelector('.mtop').getBoundingClientRect().bottom,mc=$('#mainCard').getBoundingClientRect();T=hb;Ht=(innerWidth<innerHeight?mc.top:innerHeight-8)-hb}
-    if(Wd>20&&Ht>20){const ppu=innerHeight/(2*halfH),cap=mode==='reveal'?2.2:mode==='pick'?1.7:1.45;
-      sc=Math.max(.5,Math.min(cap,.92*Ht/(2.1*ppu),.95*Wd/(1.5*ppu)));
+    menuRect={L,T,W:Wd,H:Ht};
+    if(Wd>20&&Ht>20){const ppu=innerHeight/(2*halfH),cap=(mode==='reveal'?2.2:mode==='pick'?1.7:1.45)*2.1/menuDim.h;
+      sc=Math.max(.45,Math.min(cap,.92*Ht/(menuDim.h*ppu),.95*Wd/(menuDim.w*ppu)));
       const fx=(L+Wd/2)/innerWidth,fy=(T+Ht*.5)/innerHeight;
-      x=(fx-.5)*2*halfW;const cy=1.05*sc,yl=cy-(.5-fy)*2*halfH;y=1.05-yl}
+      x=(fx-.5)*2*halfW;const cy=menuDim.h/2*sc,yl=cy-(.5-fy)*2*halfH;y=1.05-yl}
     else if(asp>1)x=halfW*.02;else y=-.5}
   else if(asp>1){x=mode==='result'?halfW*.08:halfW*.02}else{y=mode==='result'?-.1:-.5}
   menuCam.position.set(-x,1.4-y,7);menuCam.lookAt(-x,1.05-y,0);menuPod.scale.setScalar(1.1*sc/1.25);
-  const happy=mode==='result'&&lastRank===0;menuChar.group.rotation.y=Math.sin(t*.8)*.5;
+  const happy=mode==='result'&&lastRank===0;if(!menuDrag)menuSpin*=Math.pow(.985,dt*60)*(Math.abs(menuSpin)>TAU?1:1);menuChar.group.rotation.y=menuSpin+(menuDrag?0:Math.sin(t*.8)*.5);
   animChar(menuChar,dt,happy,false,false,t);menuChar.group.position.y=happy?Math.abs(Math.sin(t*6))*.35:0;menuChar.group.scale.setScalar(sc);menuChar.group.visible=true;menuPod.visible=true;
   if(mode==='reveal'&&rv){const on=rv.phase>=2;menuChar.group.visible=on;menuPod.visible=on;
     if(on){const e=Math.min(1,(performance.now()-rv.charT)/700),k=1-Math.pow(1-e,3);menuChar.group.position.y=3.2*(1-k)*sc+(e>=1?Math.abs(Math.sin(t*5))*.25:0);menuChar.group.rotation.y=(1-k)*TAU*1.5+(e>=1?Math.sin(t*1.6)*.4:0);
@@ -2358,6 +2366,12 @@ aimButton($('#btnAtk'),'atk',9);aimButton($('#btnSup'),'sup',6);
 const raycaster=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),_m=new THREE.Vector2(),_hit=new THREE.Vector3();
 function mouseWorld(e){if(!view)return null;_m.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);raycaster.setFromCamera(_m,view.cam);return raycaster.ray.intersectPlane(plane,_hit)?{x:_hit.x,z:_hit.z}:null}
 const cvEl=$('#cv');
+/* 選角／開始畫面：在角色身上左右拖曳就能轉角色（放手後慢慢轉回正面） */
+addEventListener('pointerdown',e=>{if((mode!=='menu'&&mode!=='pick')||!menuRect||e.target.closest('button,input,a,.sheet,#sheet,li,.pc,label'))return;const r=menuRect;
+  if(e.clientX<r.L||e.clientX>r.L+r.W||e.clientY<r.T||e.clientY>r.T+r.H)return;menuDrag={id:e.pointerId,x:e.clientX,s:menuSpin}});
+addEventListener('pointermove',e=>{if(!menuDrag||e.pointerId!==menuDrag.id)return;menuSpin=menuDrag.s+(e.clientX-menuDrag.x)*.018});
+addEventListener('pointerup',e=>{if(menuDrag&&e.pointerId===menuDrag.id){menuSpin=((menuSpin%TAU)+TAU+Math.PI)%TAU-Math.PI;menuDrag=null}});
+addEventListener('pointercancel',()=>{menuDrag=null});
 cvEl.addEventListener('contextmenu',e=>e.preventDefault());
 cvEl.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;IN.mouse={cx:e.clientX,cy:e.clientY};IN.mouseT=performance.now()});
 cvEl.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||mode!=='game')return;IN.mouse={cx:e.clientX,cy:e.clientY};if(e.button===2)doSuper();else if(e.button===0){IN.held=true;doFire()}});
@@ -2371,8 +2385,29 @@ function readMove(){let[x,z]=keyMove();if(joy.id!==null){x=joy.x;z=joy.y}IN.mx=x
   if(FINE&&IN.held&&performance.now()-(IN.lastFire||0)>320)doFire()}
 // 表情
 $('#emoPanel').innerHTML=EMOTES.map((e,i)=>`<button data-e="${i}">${e}</button>`).join('');
-$('#btnEmo').addEventListener('click',()=>{const h=!$('#emoPanel').hidden;$('#emoPanel').hidden=h;$('#btnEmo').classList.toggle('open',!h)});
-$('#emoPanel').addEventListener('click',e=>{const b=e.target.closest('[data-e]');if(!b)return;sendEmote(+b.dataset.e);$('#emoPanel').hidden=true;$('#btnEmo').classList.remove('open')});
+/* 表情輪盤：按住 💬 會在旁邊跳出一圈表情，手指不放滑到想要的表情再放開就送出；只點一下的話輪盤留著，再點表情送出。
+   用 touch 事件、自己追蹤手指編號，所以一邊壓著方向鍵也能按 */
+const EW={open:false,id:null,cx:0,cy:0,hi:-1,moved:false,pos:[]};
+function emoOpen(){const r=$('#btnEmo').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,n=EMOTES.length,R0=Math.max(128,r.width*1.75),a0=-218,a1=-78;
+  EW.cx=cx;EW.cy=cy;EW.pos=[];let h=`<div class="ec" style="left:${cx-R0}px;top:${cy-R0}px;width:${R0*2}px;height:${R0*2}px"></div>`;
+  for(let i=0;i<n;i++){const a=(a0+(a1-a0)*i/(n-1))*Math.PI/180;let x=cx+Math.cos(a)*R0,y=cy+Math.sin(a)*R0;x=clamp(x,36,innerWidth-36);y=clamp(y,36,innerHeight-36);EW.pos.push([x,y]);
+    const [emo,...tx]=EMOTES[i].split(' ');h+=`<div class="eb" data-e="${i}" style="left:${x}px;top:${y}px">${emo}${tx.length?`<small>${tx.join(' ')}</small>`:''}</div>`}
+  $('#emoWheel').innerHTML=h;$('#emoWheel').hidden=false;EW.open=true;EW.hi=-1;$('#btnEmo').classList.add('open')}
+function emoClose(){EW.open=false;EW.id=null;EW.hi=-1;$('#emoWheel').hidden=true;$('#btnEmo').classList.remove('open')}
+function emoHi(x,y){const dx=x-EW.cx,dy=y-EW.cy;let k=-1;if(Math.hypot(dx,dy)>34){let bd=1e9;EW.pos.forEach(([px,py],i)=>{const d=Math.hypot(px-x,py-y);if(d<bd){bd=d;k=i}});if(bd>90){const a=Math.atan2(dy,dx);let ba=9;EW.pos.forEach(([px,py],i)=>{const d=Math.abs(Math.atan2(Math.sin(Math.atan2(py-EW.cy,px-EW.cx)-a),Math.cos(Math.atan2(py-EW.cy,px-EW.cx)-a)));if(d<ba){ba=d;k=i}});if(ba>.6)k=-1}}
+  if(k!==EW.hi){EW.hi=k;[...$('#emoWheel').querySelectorAll('.eb')].forEach((el,i)=>el.classList.toggle('hi',i===k))}}
+function emoDown(id,x,y){if(EW.open&&EW.id===null){emoClose();return}emoOpen();EW.id=id;EW.moved=false;EW.sx=x;EW.sy=y}
+function emoMove(id,x,y){if(id!==EW.id)return;if(Math.hypot(x-EW.sx,y-EW.sy)>12)EW.moved=true;emoHi(x,y)}
+function emoUp(id){if(id!==EW.id)return;EW.id=null;if(EW.hi>=0){sendEmote(EW.hi);emoClose()}else if(EW.moved)emoClose()}
+{const be=$('#btnEmo');
+  if(TOUCH){be.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();const t=e.changedTouches[0];emoDown(t.identifier,t.clientX,t.clientY)},{passive:false});
+    addEventListener('touchmove',e=>{if(EW.id===null)return;for(const t of e.changedTouches)emoMove(t.identifier,t.clientX,t.clientY)},{passive:true});
+    addEventListener('touchend',e=>{if(EW.id===null)return;for(const t of e.changedTouches)emoUp(t.identifier)},{passive:true});
+    addEventListener('touchcancel',e=>{if(EW.id!==null)emoClose()},{passive:true});
+    $('#emoWheel').addEventListener('touchstart',e=>{const b=e.target.closest('.eb');if(!b)return;e.preventDefault();e.stopPropagation();sendEmote(+b.dataset.e);emoClose()},{passive:false})}
+  else{be.addEventListener('pointerdown',e=>{e.preventDefault();emoDown(e.pointerId,e.clientX,e.clientY)});
+    addEventListener('pointermove',e=>{if(EW.id!==null)emoMove(e.pointerId,e.clientX,e.clientY)});addEventListener('pointerup',e=>{if(EW.id!==null)emoUp(e.pointerId)});
+    $('#emoWheel').addEventListener('pointerdown',e=>{const b=e.target.closest('.eb');if(!b)return;e.preventDefault();sendEmote(+b.dataset.e);emoClose()})}}
 let lastEmo=0;
 function sendEmote(k){const now=performance.now();if(now-lastEmo<1200)return;lastEmo=now;
   if(game){game.emote(game.players[meId],k)}else if(NET.conn&&NET.conn.open){try{NET.conn.send({t:'emo',k})}catch(e){}}}
@@ -2381,7 +2416,7 @@ function sendEmote(k){const now=performance.now();if(now-lastEmo<1200)return;las
 let mode='loading',game=null,view=null,netState=null,meId=0,acc=0,pred=null,lastRank=0,matchCfg=null,ffT=0;
 const curState=()=>game||netState;
 function showScreen(name){if(name==='game')$('#updBar').hidden=true;else showUpd();for(const s of['menu','pick','room','result','reveal'])$('#'+s).hidden=s!==name;$('#hud').hidden=name!=='game';$('#bg').hidden=name==='game';
-  mode=name;if(name==='menu')renderMenuUI();if(name==='pick')renderPickUI();$('#joinBox').hidden=true;$('#confirmBox').hidden=true;$('#emoPanel').hidden=true;$('#sheet').hidden=true;$('#ink').style.opacity=0;
+  mode=name;if(name==='menu')renderMenuUI();if(name==='pick')renderPickUI();$('#joinBox').hidden=true;$('#confirmBox').hidden=true;$('#emoPanel').hidden=true;emoClose();$('#sheet').hidden=true;$('#ink').style.opacity=0;
   if(name!=='game')playMusic('lobby');$('#rvBg').hidden=name!=='reveal'}
 function botName(used){const pool=BOT_NAMES.filter(n=>!used.has(n));const n=pool[Math.floor(Math.random()*pool.length)]||'電腦';used.add(n);return n}
 function botLevel(base,diff,fair){if(fair)return 1;const[a,b]=BOT_LV[diff]||BOT_LV[1];return clamp(base+rndi(a,b),1,MAX_LV)}

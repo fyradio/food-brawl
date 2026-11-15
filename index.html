@@ -635,7 +635,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.26.0</span>
+<span class="ver">v0.26.1</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -3020,7 +3020,7 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
     (!soccer?`<div class="chips">${chipsHTML('分隊','tm',[['off','不分隊'],['on','分隊']],o.tm||'off',!host)}</div>`:'')+
     `<div class="chips">${chipsHTML('電腦','bots',botVals,bots,!host)}</div>`+
     `<div class="chips">${chipsHTML('強度','diff',DIFF.map((d,i)=>[i,d.name]),o.diff,!host)}</div>`+
-    `<div class="chips">${chipsHTML('等級','lv',[[1,'全部 Lv1'],[5,'全部 Lv5'],[10,'全部 Lv10'],['own','自己的']],o.lv==='fair'?1:o.lv,!host)}</div>`+
+    `<div class="chips">${chipsHTML('等級','lv',[[1,'全部 Lv1'],[5,'全部 Lv5'],[10,'全部 Lv10'],['own','自己練的']],o.lv==='fair'?1:o.lv,!host)}</div>`+(o.lv==='own'?`<p class="sp">用每個人自己練到的等級和天賦（Lv10 會變異色）；選了沒擁有的角色就是 Lv1。</p>`:'')+
     `<div class="chips">${chipsHTML('角色','rc',[['own','自己選'],['rand','隨機']],o.rc||'own',!host)}</div>`+
     (o.rc==='rand'?`<div class="chips">${chipsHTML('範圍','rt',[['all','全部'],...TIERS.map((T,i)=>[i,T.name])],o.rt??'all',!host)}</div>`:'')+
     (!soccer?`<div class="chips">${chipsHTML('地圖','map',[['rand','隨機'],...MAP_POOL.map(k=>[k,MAPS[k].name])],o.map,!host)}</div>`:'');
@@ -3034,7 +3034,9 @@ function rpickSheet(){sheetKind='rpick';const cur=roomCh();
   openSheet('選角色',`<p class="sp">沒擁有的也能選，只有這一場可以用。</p>${grid}`,true)}
 $('#rMy').addEventListener('click',rpickSheet);
 $('#rWard').addEventListener('click',()=>{wardId=roomCh();wardFrom='room';openSheet('造型',wardSheet())});
-$('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;const v=b.dataset.v;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+v:(k==='lv'||k==='rt')&&v!=='own'&&v!=='all'?+v:v;broadcastLobby()});
+$('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;const v=b.dataset.v;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+v:(k==='lv'||k==='rt')&&v!=='own'&&v!=='all'?+v:v;save.roomOpts={...NET.opts};persist();broadcastLobby()});
+/* 房主上次的房間設定（含「自己練的」等級）會記住，下次開房沿用 */
+try{if(save.roomOpts&&typeof save.roomOpts==='object')for(const k of Object.keys(NET.opts))if(save.roomOpts[k]!=null)NET.opts[k]=save.roomOpts[k]}catch(e){}
 $('#rSlots').addEventListener('click',e=>{if(!NET.host)return;const o=NET.opts,soccer=o.mode==='soccer',tm=!soccer&&o.tm==='on';if(!soccer&&!tm)return;const nx=t=>soccer?1-(t|0):((t|0)+1)%6;
   const lb=e.target.closest('li[data-b]');if(lb&&tm){const k=+lb.dataset.b,m=lobbyMsg(),hum=[m.host,...m.list].map(r=>r.team|0),cur=autoBotTeams(hum,k+1,o.bt)[k];o.bt=(o.bt||[]).slice();while(o.bt.length<=k)o.bt.push(-1);o.bt[k]=nx(cur);broadcastLobby();return}
   const li=e.target.closest('li[data-i]');if(!li)return;const i=+li.dataset.i;

@@ -588,6 +588,7 @@ button,input{font:inherit;color:inherit}
       <div class="code ot" id="rCode">····</div>
       <p class="rhint" id="rHint"></p>
       <button class="btn blue rmy" id="rMy" hidden></button>
+      <button class="btn blue rmy" id="rWard" hidden>👒 造型</button>
     </div>
     <ol class="slots" id="rSlots"></ol>
     <div class="ropts" id="rOpts"></div>
@@ -634,7 +635,7 @@ button,input{font:inherit;color:inherit}
   <div id="rvFlash"></div>
 </div>
 <div id="toast"></div>
-<span class="ver">v0.25.0</span>
+<span class="ver">v0.26.0</span>
 <button id="updBar" class="btn small main" hidden></button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
@@ -2787,7 +2788,7 @@ const coinIc='<svg class="ic"><use href="#i-coin"/></svg>',troIc='<svg class="ic
 function perkText(lv){if(lv>=MAX_LV)return'已滿級：血量攻擊 ×'+lvMul(lv).toFixed(2)+'、彈藥 '+lvAmmo(lv)+' 格、<b>異色造型</b>';
   const n=lv+1,parts=['血量攻擊 +15%'];if(lvAmmo(n)>lvAmmo(lv))parts.push('彈藥變 <b>'+lvAmmo(n)+' 格</b>');if(n===5)parts.push('<b>解鎖天賦</b>');if(n===10)parts.push('<b>異色造型</b>');
   return'下一級：'+parts.join('、')}
-let pickTier='all',startStep=1,helpTab='how',wardId='apple';
+let pickTier='all',startStep=1,helpTab='how',wardId='apple',wardFrom='',wardRst=0;
 const detectDev=()=>{const u=navigator.userAgent||'';if(/iPhone|iPad|iPod/i.test(u)||(/Macintosh/i.test(u)&&(navigator.maxTouchPoints||0)>1))return'ios';if(/Android/i.test(u))return'android';return'pc'};
 let helpDev=detectDev();
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
@@ -2832,7 +2833,7 @@ $('#pkTabs').addEventListener('click',e=>{const b=e.target.closest('[data-pt]');
 $('#pkGrid').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b)return;viewCh=b.dataset.ch;renderPickUI()});
 $('#chTal').addEventListener('click',e=>{const b=e.target.closest('[data-tal]');if(!b)return;save.tal[viewCh]=b.dataset.tal;persist();renderPickUI()});
 $('#pkUse').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return;save.ch=viewCh;persist();SFX.pick();toast('換成'+CHARS[viewCh].name);renderPickUI()});
-$('#pkWard').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return;wardId=viewCh;openSheet('造型',wardSheet())});
+$('#pkWard').addEventListener('click',()=>{if(!save.owned.includes(viewCh))return;wardId=viewCh;wardFrom='pick';openSheet('造型',wardSheet())});
 $('#btnUp').addEventListener('click',()=>{const id=viewCh,C=CHARS[id];
   if($('#btnUp').dataset.act==='buy'){if(save.owned.includes(id)||save.trophies<C.unlock||save.coins<C.price)return;save.coins-=C.price;save.owned.push(id);save.ch=id;persist();startReveal({kind:'buy',id});return}
   const lv=save.lvl[id],cost=lv*100,need=fragReq(C.tier,lv);if(lv>=MAX_LV||save.coins<cost||save.frag[C.tier]<need)return;
@@ -2868,12 +2869,16 @@ function wildSheet(){sheetKind='wild';const id=viewCh,C=CHARS[id],own=save.owned
   openSheet('碎片',`<p class="sp">碎片分 5 個等級，升級只能用<b>同等級</b>的碎片。開寶箱抽到重複的食物，會得到同等級碎片 5～10 片；每級最多存 ${FRAG_CAP} 片，滿了多的會換成金幣。10 片可以換 1 片高一級的（不能往下換）。點一格選等級。</p><div class="wgrid">${hold}</div><div class="row4">${buy}</div>${info}<p class="sp">金幣 ${coinIc} ${save.coins}</p><button class="btn blue" data-act="wclose">返回</button>`)}
 $('#btnWild').addEventListener('click',wildSheet);
 /* ---- 存檔碼：記「擁有哪些角色、每隻等級、獎盃、碎片（5 片為單位，最多 35）、金幣（100 為單位）、萬用碎片」。造型、寶箱、任務、天賦選擇匯入後歸零。新欄位接在最後面，舊存檔碼讀得回來（那些欄位視為 0） ---- */
+/* 造型編號（v0.26）：每個欄位照 ACCS 的順序編 1～15，0 是沒穿。新造型一律加在 ACCS 最後面，不改順序 */
+const ACC_SLOTS=['head','face','back','hand'],ACC_IDX=ACC_SLOTS.map(sl=>Object.keys(ACCS).filter(k=>ACCS[k].slot===sl));
 const SC_AL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',SC_FREE=id=>id==='apple'||id==='sushi'||id==='eggplant';
 /* 規則：新角色一律加在 CHARS 最後面，不改順序、不改 id、不刪角色，舊存檔碼才讀得回來（角色數 7 位元，最多 127 隻） */
 function scSum(a){let x=0;for(const v of a)x=(x*31+v+7)%1021;return x}
 function scEncode(){const bits=[],w=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1)};w(CH_IDS.length+64,7);w(clamp(save.trophies|0,0,8191),13);
   for(const id of CH_IDS){const own=save.owned.includes(id);if(!SC_FREE(id))w(own?1:0,1);if(own)w(clamp((save.lvl[id]|0)||1,1,MAX_LV)-1,4)}
   w(clamp(Math.floor(save.coins/100),0,4095),12);for(let i=0;i<5;i++)w(clamp(save.frag[i]|0,0,FRAG_CAP),8);
+  /* 造型：每隻擁有的角色 1 位元（有沒有穿），有穿再 4 個欄位各 4 位元 */
+  w(1,1);for(const id of CH_IDS){if(!save.owned.includes(id))continue;const e=save.accEq[id]||{},v=ACC_SLOTS.map((sl,i)=>ACC_IDX[i].indexOf(e[sl])+1);if(v.some(x=>x>0)){w(1,1);for(const x of v)w(clamp(x,0,15),4)}else w(0,1)}
   while(bits.length%5)bits.push(0);const ch=[];for(let i=0;i<bits.length;i+=5)ch.push(bits[i]*16+bits[i+1]*8+bits[i+2]*4+bits[i+3]*2+bits[i+4]);
   const cs=scSum(ch);ch.push(cs>>5,cs&31);return ch.map(v=>SC_AL[v]).join('').replace(/(.{4})(?=.)/g,'$1-')}
 function scDecode(txt){const t=String(txt).toUpperCase().replace(/[^A-Z0-9]/g,'');if(t.length<6)throw new Error('short');
@@ -2885,17 +2890,20 @@ function scDecode(txt){const t=String(txt).toUpperCase().replace(/[^A-Z0-9]/g,''
   /* 三種格式：舊版（沒有金幣）／v0.12（每隻碎片 3 位元＋金幣 12＋萬用 13）／現在（金幣 12＋萬用 15），用剩下的位元數分辨 */
   /* v0.18 起：角色數加 64 當記號，後面是金幣 12＋5 級碎片各 8 位元 */
   const sh={};let coins=0,wild=0,frag=null;const left=bits.length-p;
-  if(nf){coins=r(12)*100;frag=[r(8),r(8),r(8),r(8),r(8)]}
+  let acc=null;
+  if(nf){coins=r(12)*100;frag=[r(8),r(8),r(8),r(8),r(8)];
+    /* v0.26 起後面接造型：先 1 位元記號，舊存檔碼這裡是補的 0 */
+    if(bits.length-p>=1+owned.length&&r(1)){acc={};for(const id of owned){if(bits.length-p<1)break;if(r(1)){const e={};ACC_SLOTS.forEach((sl,i)=>{const x=r(4);if(x&&ACC_IDX[i][x-1])e[sl]=ACC_IDX[i][x-1]});acc[id]=e}}}}
   else if(left>=owned.length*3+25){for(const id of owned)sh[id]=r(3)*5;coins=r(12)*100;wild=r(13)}
   else if(left>=27){coins=r(12)*100;wild=r(15)}
-  if(p>bits.length+4)throw new Error('len');return{owned,lvl,trophies,sh,coins,wild,frag}}
+  if(p>bits.length+4)throw new Error('len');return{owned,lvl,trophies,sh,coins,wild,frag,acc}}
 let scPending=null;
 function scSheet(mode,msg){sheetKind='savecode';if(mode!=='ok')scPending=null;
   if(mode==='exp'){let c='';try{c=scEncode()}catch(e){}
-    openSheet('匯出存檔碼',`<p class="sp">把這串存檔碼複製起來（貼到備忘錄或傳給自己）。換手機或進度不見時，用「匯入」貼回來。<br>會記得<b>擁有的角色、等級、獎盃、金幣（100 為單位）、各等級碎片</b>。造型、寶箱、任務、天賦選擇匯入後會<b>歸零</b>。</p><textarea id="scBox" class="scbox" readonly rows="3"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-copy">複製</button></div>`);$('#scBox').value=c;$('#scMsg').textContent=`共 ${c.replace(/-/g,'').length} 個字，擁有 ${save.owned.length} 隻角色`}
-  else if(mode==='imp')openSheet('匯入存檔碼',`<p class="sp">貼上或輸入存檔碼，大小寫、空格、橫線都沒關係。<br><b>會取代這支手機的進度</b>：角色、等級、獎盃、金幣、碎片換成存檔碼的，造型、寶箱、任務、天賦選擇歸零。</p><textarea id="scBox" class="scbox" rows="3" placeholder="例如 K7QM-2XRA-9TWB-HN3…" autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-read">讀取</button></div>`);
-  else if(mode==='ok'){const o=scPending;const top=Math.max(...o.owned.map(i=>o.lvl[i]));openSheet('確認匯入',`<p class="sp">這組存檔碼有 <b>${o.owned.length}</b> 隻角色（最高 Lv ${top}）、獎盃 <b>${o.trophies}</b>。<br>這支手機現在有 <b>${save.owned.length}</b> 隻角色、獎盃 <b>${save.trophies}</b>、金幣 <b>${save.coins}</b>。<br>存檔碼裡的金幣是 <b>${o.coins}</b>，碎片 <b>${o.frag?fragText(o.frag):fragText(fragSplit(o.wild).f)}</b>。匯入後造型、寶箱、任務、天賦選擇會<b>歸零</b>，確定嗎？</p><div class="row2"><button class="btn blue" data-act="sc-imp">不要，重輸入</button><button class="btn main" data-act="sc-apply">確定匯入</button></div>`)}}
-function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=0}save.trophies=o.trophies;save.coins=o.coins||0;save.wild=0;if(o.frag)save.frag=o.frag.map(n=>clamp(n,0,FRAG_CAP));else{const r=fragSplit((o.wild||0)+CH_IDS.reduce((a,id)=>a+(((o.sh&&o.sh[id])||0)*Math.pow(3,CHARS[id].tier)),0));save.frag=r.f;if(r.coins)gainCoins(r.coins)}save.chests=0;save.matches=0;save.accOwned=[];save.accEq={};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
+    openSheet('匯出存檔碼',`<p class="sp">把這串存檔碼複製起來（貼到備忘錄或傳給自己）。換手機或進度不見時，用「匯入」貼回來。<br>會記得<b>擁有的角色、等級、獎盃、金幣（100 為單位）、各等級碎片、每隻角色穿的造型</b>。寶箱、任務、天賦選擇匯入後會<b>歸零</b>。</p><textarea id="scBox" class="scbox" readonly rows="3"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-copy">複製</button></div>`);$('#scBox').value=c;$('#scMsg').textContent=`共 ${c.replace(/-/g,'').length} 個字，擁有 ${save.owned.length} 隻角色`}
+  else if(mode==='imp')openSheet('匯入存檔碼',`<p class="sp">貼上或輸入存檔碼，大小寫、空格、橫線都沒關係。<br><b>會取代這支手機的進度</b>：角色、等級、獎盃、金幣、碎片、造型換成存檔碼的，寶箱、任務、天賦選擇歸零。</p><textarea id="scBox" class="scbox" rows="3" placeholder="例如 K7QM-2XRA-9TWB-HN3…" autocapitalize="characters" autocomplete="off" spellcheck="false"></textarea><p class="sp" id="scMsg">${msg||''}</p><div class="row2"><button class="btn blue" data-act="sc-back">返回</button><button class="btn main" data-act="sc-read">讀取</button></div>`);
+  else if(mode==='ok'){const o=scPending;const top=Math.max(...o.owned.map(i=>o.lvl[i]));openSheet('確認匯入',`<p class="sp">這組存檔碼有 <b>${o.owned.length}</b> 隻角色（最高 Lv ${top}）、獎盃 <b>${o.trophies}</b>。<br>這支手機現在有 <b>${save.owned.length}</b> 隻角色、獎盃 <b>${save.trophies}</b>、金幣 <b>${save.coins}</b>。<br>存檔碼裡的金幣是 <b>${o.coins}</b>，碎片 <b>${o.frag?fragText(o.frag):fragText(fragSplit(o.wild).f)}</b>。${o.acc?`造型會換成存檔碼裡的（${Object.keys(o.acc).length} 隻有穿）`:'這組是舊存檔碼，沒有記造型，造型會清空'}。寶箱、任務、天賦選擇會<b>歸零</b>，確定嗎？</p><div class="row2"><button class="btn blue" data-act="sc-imp">不要，重輸入</button><button class="btn main" data-act="sc-apply">確定匯入</button></div>`)}}
+function scApply(){const o=scPending;if(!o)return;save.owned=o.owned.slice();for(const id of CH_IDS){save.lvl[id]=o.lvl[id]||1;save.shards[id]=0}save.trophies=o.trophies;save.coins=o.coins||0;save.wild=0;if(o.frag)save.frag=o.frag.map(n=>clamp(n,0,FRAG_CAP));else{const r=fragSplit((o.wild||0)+CH_IDS.reduce((a,id)=>a+(((o.sh&&o.sh[id])||0)*Math.pow(3,CHARS[id].tier)),0));save.frag=r.f;if(r.coins)gainCoins(r.coins)}save.chests=0;save.matches=0;save.accOwned=[];save.accEq=o.acc||{};save.tal={};save.daily=null;if(!save.owned.includes(save.ch))save.ch='apple';viewCh=save.ch;persist();scPending=null;closeSheet();toast(`匯入成功！有 ${save.owned.length} 隻角色`,3500)}
 function setSheet(){sheetKind='set';
   openSheet('設定',`<label class="namebox">名字<input id="nameIn" maxlength="8" autocomplete="off"></label><div class="vrow"><span class="lab">音樂</span><button class="chip${save.music?' on':''}" data-act="tgm">${save.music?'開':'關'}</button><input type="range" id="vMus" min="0" max="100" step="5" value="${save.musicVol}" aria-label="音樂音量"></div><div class="vrow"><span class="lab">音效</span><button class="chip${save.sfx?' on':''}" data-act="tgs">${save.sfx?'開':'關'}</button><input type="range" id="vSfx" min="0" max="100" step="5" value="${save.sfxVol}" aria-label="音效音量"></div><div class="chips"><span class="lab">存檔碼</span><button class="chip" data-act="sc-exp">匯出</button><button class="chip" data-act="sc-imp">匯入</button></div><div class="chips"><span class="lab">更新</span><button class="chip" data-act="upd-chk">檢查更新</button><button class="chip" data-act="upd-force">強制更新</button></div><p class="sp">版本 ${document.querySelector('.ver').textContent}。名字會顯示在對戰和房間裡。存檔碼可以備份角色、等級、獎盃、金幣和碎片。</p>`);
   $('#nameIn').value=save.name}
@@ -2954,8 +2962,10 @@ $('#mbChest').addEventListener('click',()=>openSheet('寶箱',chestSheet(null)))
 function taskSheet(){ensureDaily();return'<ul class="tasks">'+save.daily.list.map((m,i)=>{const done=m.p>=m.t;const rw=m.rw==='chest'?'寶箱 ×'+(m.n||1):`${coinIc} ${m.rw}`;
   return`<li class="${done?'done':''}"><div class="tt">${missionText(m)}</div><div class="bar"><i style="width:${m.p/m.t*100}%"></i></div><div class="tr2"><span>${m.p}/${m.t}</span><span>${rw}</span>${m.claimed?'<span class="ok">已領取</span>':done?`<button class="btn small main" data-act="claim" data-i="${i}">領取</button>`:''}</div></li>`}).join('')+'</ul><p class="sp">每天換 3 個新任務。</p>'}
 $('#mbTask').addEventListener('click',()=>openSheet('每日任務',taskSheet()));
-function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">替 <b>${CHARS[id].name}</b> 換造型（全部免費，只是好看，不影響能力）。每隻角色可以分開穿。</p><ul class="wards">`+Object.entries(ACCS).map(([k,a])=>{const own=true,on=eq[a.slot]===k;/* v0.21.1 起造型全部免費 */
+function wardSheet(){const id=wardId,eq=save.accEq[id]||{};return`<p class="sp">替 <b>${CHARS[id].name}</b> 換造型（全部免費，只是好看，不影響能力）。每隻角色可以分開穿，穿好會自動記住，下次打開還在，匯出存檔碼也會一起帶走。</p><div class="row2"><button class="btn blue" data-act="wclr">這隻全部脫下</button><button class="btn ${wardRst?'main':'blue'}" data-act="wrst">${wardRst?'再按一次確定':'一鍵重設全部角色'}</button></div><ul class="wards">`+Object.entries(ACCS).map(([k,a])=>{const own=true,on=eq[a.slot]===k;/* v0.21.1 起造型全部免費 */
   return`<li><span class="an">${a.name}</span><span class="as">${{head:'頭上',face:'臉上',back:'背後',hand:'手上'}[a.slot]}</span>${own?`<button class="btn small ${on?'blue':'main'}" data-act="wear" data-k="${k}">${on?'脫下':'穿上'}</button>`:`<button class="btn small main" data-act="buya" data-k="${k}" ${save.coins>=a.price?'':'disabled'}>${coinIc} ${a.price}</button>`}</li>`}).join('')+'</ul>'}
+/* 造型變了：存檔、更新畫面上的角色、房間裡馬上告訴大家 */
+function wardChanged(){persist();if(wardFrom==='room'&&(NET.host||NET.joined)){if(NET.host)broadcastLobby();else sendHello();renderRoom()}else refreshUI();const sb=$('#sheet .sheet'),y=sb?sb.scrollTop:0;openSheet('造型',wardSheet());if(sb)sb.scrollTop=y}
 $('#sheetBody').addEventListener('input',e=>{const t=e.target;
   if(t.id==='vMus'){save.musicVol=+t.value;persist();setMusicVol()}
   else if(t.id==='vSfx'){save.sfxVol=+t.value;persist()}});
@@ -2992,7 +3002,9 @@ $('#sheetBody').addEventListener('click',e=>{
   else if(act==='buyc'){if(save.coins<CHEST_PRICE)return;save.coins-=CHEST_PRICE;save.chests++;persist();openSheet('寶箱',chestSheet(null))}
   else if(act==='claim'){const m=save.daily.list[+b.dataset.i];if(!m||m.claimed||m.p<m.t)return;m.claimed=true;if(m.rw==='chest')save.chests+=m.n||1;else gainCoins(m.rw);persist();SFX.pick();openSheet('每日任務',taskSheet())}
   else if(act==='buya'){const k=b.dataset.k,a=ACCS[k];if(save.accOwned.includes(k)||save.coins<a.price)return;save.coins-=a.price;save.accOwned.push(k);const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=k;persist();SFX.pick();openSheet('造型',wardSheet())}
-  else if(act==='wear'){const k=b.dataset.k,a=ACCS[k];const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=eq[a.slot]===k?'':k;persist();openSheet('造型',wardSheet())}
+  else if(act==='wear'){const k=b.dataset.k,a=ACCS[k];const eq=save.accEq[wardId]=save.accEq[wardId]||{};eq[a.slot]=eq[a.slot]===k?'':k;wardRst=0;wardChanged()}
+  else if(act==='wclr'){delete save.accEq[wardId];wardRst=0;wardChanged()}
+  else if(act==='wrst'){if(!wardRst){wardRst=1;openSheet('造型',wardSheet());return}wardRst=0;save.accEq={};wardChanged();toast('全部角色的造型都重設了')}
   refreshUI()});
 function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.opts:NET.opts,soccer=o.mode==='soccer',tm=!soccer&&o.tm==='on',tapT=soccer||tm;
   $('#rHint').textContent=host?'朋友打開這個遊戲 → 加入房間 → 輸入代碼（同一個 WiFi 最穩）'+(soccer?'。點玩家可以換隊':tm?'。點玩家或電腦換顏色，同顏色就是同一隊':''):NET.joined?'等房主按開始…':'連線中…';
@@ -3013,6 +3025,7 @@ function renderRoom(){const host=NET.host,m=host?lobbyMsg():NET.lobbyMsg,o=m?m.o
     (o.rc==='rand'?`<div class="chips">${chipsHTML('範圍','rt',[['all','全部'],...TIERS.map((T,i)=>[i,T.name])],o.rt??'all',!host)}</div>`:'')+
     (!soccer?`<div class="chips">${chipsHTML('地圖','map',[['rand','隨機'],...MAP_POOL.map(k=>[k,MAPS[k].name])],o.map,!host)}</div>`:'');
   const rm=$('#rMy'),mc=roomCh();rm.hidden=o.rc==='rand'||!(host||NET.joined);rm.innerHTML=`<i class="rmi" style="${avStyle(mc)}"></i><span>我的角色：${CHARS[mc].name} ›</span>`;
+  const rw=$('#rWard');rw.hidden=rm.hidden;const ae=accStr(mc).split(',').filter(Boolean).length;rw.textContent=`👒 ${CHARS[mc].name}的造型${ae?`（穿 ${ae} 件）`:''} ›`;
   const sb=$('#rStart');sb.hidden=!host;sb.disabled=!(NET.peer&&NET.peer.open)}
 /* ---- 房間裡選角色：全部角色都能選（沒擁有的只限這一場），也可以指定稀有度抽一隻 ---- */
 function rSetCh(id){if(!CHARS[id])return;NET.myCh=id;if(NET.host)broadcastLobby();else sendHello();renderRoom()}
@@ -3020,6 +3033,7 @@ function rpickSheet(){sheetKind='rpick';const cur=roomCh();
   const grid=TIERS.map((T,ti)=>`<div class="rgh" style="--tc:${T.col}">${T.name}</div><div class="rgg">${CH_IDS.filter(id=>CHARS[id].tier===ti).map(id=>`<button class="rgc${id===cur?' on':''}${save.owned.includes(id)?'':' no'}" data-act="rset" data-v="${id}" style="--tc:${T.col}"><i style="${avStyle(id)}"></i><b>${CHARS[id].name}</b>${save.owned.includes(id)?'':'<em>未擁有</em>'}</button>`).join('')}</div>`).join('');
   openSheet('選角色',`<p class="sp">沒擁有的也能選，只有這一場可以用。</p>${grid}`,true)}
 $('#rMy').addEventListener('click',rpickSheet);
+$('#rWard').addEventListener('click',()=>{wardId=roomCh();wardFrom='room';openSheet('造型',wardSheet())});
 $('#rOpts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!NET.host)return;const k=b.dataset.k;const v=b.dataset.v;NET.opts[k]=(k==='diff'||k==='bots'||k==='dur')?+v:(k==='lv'||k==='rt')&&v!=='own'&&v!=='all'?+v:v;broadcastLobby()});
 $('#rSlots').addEventListener('click',e=>{if(!NET.host)return;const o=NET.opts,soccer=o.mode==='soccer',tm=!soccer&&o.tm==='on';if(!soccer&&!tm)return;const nx=t=>soccer?1-(t|0):((t|0)+1)%6;
   const lb=e.target.closest('li[data-b]');if(lb&&tm){const k=+lb.dataset.b,m=lobbyMsg(),hum=[m.host,...m.list].map(r=>r.team|0),cur=autoBotTeams(hum,k+1,o.bt)[k];o.bt=(o.bt||[]).slice();while(o.bt.length<=k)o.bt.push(-1);o.bt[k]=nx(cur);broadcastLobby();return}
